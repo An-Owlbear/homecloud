@@ -2,7 +2,6 @@ package apps
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -31,7 +30,7 @@ func NewStoreClient(repoUrl string) *StoreClient {
 }
 
 // UpdatePackageList updates the package list contained in the StoreClient struct
-func (client StoreClient) UpdatePackageList() error {
+func (client *StoreClient) UpdatePackageList() error {
 	// Retrieve package list over HTTP
 	resp, err := http.Get(client.repoUrl)
 	if err != nil {
@@ -55,7 +54,7 @@ func (client StoreClient) UpdatePackageList() error {
 	return nil
 }
 
-func (client StoreClient) GetPackage(packageId string) (appPackage persistence.AppPackage, err error) {
+func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.AppPackage, err error) {
 	// Retrieve package file
 	packagePath := strings.Trim(client.repoUrl, "list.json") + "packages/" + packageId + ".json"
 	resp, err := http.Get(packagePath)
@@ -63,7 +62,7 @@ func (client StoreClient) GetPackage(packageId string) (appPackage persistence.A
 		return
 	}
 	if resp.StatusCode != 200 {
-		err = errors.New(fmt.Sprintf("Invalid HTTP response %d", resp.StatusCode))
+		err = fmt.Errorf("Invalid HTTP response %d", resp.StatusCode)
 		return
 	}
 
