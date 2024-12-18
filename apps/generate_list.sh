@@ -9,8 +9,8 @@ results=""
 for json_file in "$INPUT_DIR"/*.json; do
     # Check if the file exists
     if [ -f "$json_file" ]; then
-        # Extract name, version, author, and description using a single jq call
-        parsed_data=$(jq -c '{name: .name, version: .version, author: .author, description: .description}' "$json_file")
+        # Extract id, name, version, author, and description using a single jq call
+        parsed_data=$(jq -c '{id: .id, name: .name, version: .version, author: .author, description: .description}' "$json_file")
 
         if [ -z "$results" ]; then
             results="$parsed_data"

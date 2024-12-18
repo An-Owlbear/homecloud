@@ -1,5 +1,6 @@
 [
   {
+    "id": "traefik.whoami",
     "name": "whoami",
     "version": "v1.5",
     "author": "traefik",
