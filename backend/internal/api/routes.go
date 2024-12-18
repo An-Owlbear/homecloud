@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -16,9 +17,17 @@ type containerInfo struct {
 	Container string   `json:"container"`
 }
 
-func AddRoutes(e *echo.Echo, docker *client.Client, queries *persistence.Queries) {
+func AddRoutes(
+	e *echo.Echo,
+	docker *client.Client,
+	queries *persistence.Queries,
+	storeClient *apps.StoreClient,
+) {
 	e.GET("/", test(docker))
 	e.GET("/db", db_test(queries))
+
+	e.POST("/api/v1/packages/install", AddPackage(storeClient))
+	e.POST("/api/v1/packages/update", CheckUpdates(storeClient))
 }
 
 func test(docker *client.Client) echo.HandlerFunc {
