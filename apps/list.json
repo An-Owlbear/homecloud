@@ -1,0 +1,8 @@
+[
+  {
+    "name": "whoami",
+    "version": "v1.5",
+    "author": "traefik",
+    "description": "Tiny Go webserver that prints OS information and HTTP request to output."
+  }
+]

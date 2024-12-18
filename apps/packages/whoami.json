@@ -1,0 +1,16 @@
+{
+  "schema": "v1.0",
+  "version": "v1.5",
+  "id": "traefik.whoami",
+  "name": "whoami",
+  "author": "traefik",
+  "description":  "Tiny Go webserver that prints OS information and HTTP request to output.",
+  "containers": [
+    {
+      "name": "whoami",
+      "image": "traefik/whoami:v.1.10.3",
+      "proxy_target": true,
+      "proxy_port": "80"
+    }
+  ]
+}
