@@ -13,9 +13,11 @@ import (
 	"github.com/docker/docker/client"
 )
 
+const APP_ID_LABEL = "AppID"
+
 func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 	networkVar, err := dockerClient.NetworkCreate(context.Background(), app.Id, network.CreateOptions{
-		Labels: map[string]string{"AppID": app.Id},
+		Labels: map[string]string{APP_ID_LABEL: app.Id},
 	})
 	if err != nil {
 		return err
@@ -47,7 +49,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 		containerConfig := &container.Config{
 			Image:    containerDef.Image,
 			Hostname: containerDef.Name,
-			Labels:   map[string]string{"AppID": app.Id},
+			Labels:   map[string]string{APP_ID_LABEL: app.Id},
 		}
 
 		hostConfig := &container.HostConfig{
@@ -78,7 +80,7 @@ func StartApp(dockerClient *client.Client, appID string) error {
 	// Retrieves filtered list of containers filtered by app ID
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
 		All:     true,
-		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", "AppID", appID))),
+		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appID))),
 	})
 	if err != nil {
 		return err
@@ -99,7 +101,7 @@ func StartApp(dockerClient *client.Client, appID string) error {
 func StopApp(dockerClient *client.Client, appID string) error {
 	// Retrieves list of containers filterted by app ID
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
-		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", "AppID", appID))),
+		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appID))),
 	})
 	if err != nil {
 		return err

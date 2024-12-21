@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/An-Owlbear/homecloud/backend/internal/util"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/joho/godotenv"
@@ -46,6 +50,42 @@ func TestInstallApp(t *testing.T) {
 	err = InstallApp(dockerClient, app)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+
+	// Retrieves the network created for the app to check it and for later use
+	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
+		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, app.Id))),
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error search networking: %s", err.Error())
+	}
+	if len(networks) != 1 {
+		t.Fatalf("Unexpected number of tagged networks found: %d", len(networks))
+	}
+	appNetwork := networks[0]
+
+	// Checks there's the correct number of applications and that their information is as expected
+	results, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
+		All:     true,
+		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, app.Id))),
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if len(results) != 1 {
+		t.Fatalf("Unexpected number of tagged containers %d, should be %d", len(results), 1)
+	}
+	for _, result := range results {
+		expectedName := "traefik.whoami-whoami"
+		if len(result.Names) != 1 || result.Names[0] != "/"+expectedName {
+			t.Fatalf("Unexpected container Names %+v, should be %s", result.Names, expectedName)
+		}
+		if len(result.NetworkSettings.Networks) != 1 {
+			t.Fatalf("App container should only have 1 network, has %d", len(result.NetworkSettings.Networks))
+		}
+		if networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks)); networkIds[0] == appNetwork.ID {
+			t.Fatalf("Incorrect network ID set in container\nExpected value: %s\nActual value: %s", appNetwork.ID, networkIds[0])
+		}
 	}
 }
 
@@ -117,14 +157,14 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	if err != nil {
 		return
 	}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 200; i++ {
 		_, err = dockerClient.Ping(context.Background())
 		// If the connection is successful return
 		if err == nil {
 			fmt.Print(i)
 			return
 		}
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	// If the dind container doesn't start in 20 seconds fail
