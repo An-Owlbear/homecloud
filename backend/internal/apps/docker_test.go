@@ -89,6 +89,144 @@ func TestInstallApp(t *testing.T) {
 	}
 }
 
+func TestStopApp(t *testing.T) {
+	dockerClient, err := CreateDindClient()
+	defer CleanupDind()
+	if err != nil {
+		t.Fatalf("Unexpected error setting up docker: %s", err.Error())
+	}
+
+	app := persistence.AppPackage{
+		Schema:      "v1.0",
+		Version:     "v1.5",
+		Id:          "traefik.whoami",
+		Name:        "whoami",
+		Author:      "traefik",
+		Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
+		Containers: []persistence.PackageContainer{
+			{
+				Name:        "whoami",
+				Image:       "traefik/whoami:v1.10.3",
+				ProxyTarget: true,
+				ProxyPort:   "80",
+			},
+		},
+	}
+
+	err = InstallApp(dockerClient, app)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+
+	results, err := GetAppContainers(dockerClient, app.Id)
+	for _, result := range results {
+		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second * 10, time.Millisecond * 100)
+		if err != nil {
+			t.Fatalf("Unexpected error after starting containers: %s", err.Error())
+		}
+	}
+
+	err = StopApp(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Unexpected error stopping app: %s", err.Error())
+	}
+
+	for _, result := range results {
+		err = UntilState(dockerClient, result.ID, ContainerExited, time.Second * 10, time.Millisecond * 100)
+		if err != nil {
+			t.Fatalf("Unexpected error after stopping containers: %s", err.Error())
+		}
+	}
+
+	results, err = GetAppContainers(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Unexpected error retriving stopped containers: %s", err.Error())
+	}
+
+	for _, result := range results {
+		if result.State != "exited" {
+			t.Fatalf("Container %s is not stopped, its status is %s", result.Names[0], result.State)
+		}
+	}
+}
+
+func TestStartApp(t *testing.T) {
+	dockerClient, err := CreateDindClient()
+	defer CleanupDind()
+	if err != nil {
+		t.Fatalf("Unexpected error setting up docker: %s", err.Error())
+	}
+
+	app := persistence.AppPackage{
+		Schema:      "v1.0",
+		Version:     "v1.5",
+		Id:          "traefik.whoami",
+		Name:        "whoami",
+		Author:      "traefik",
+		Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
+		Containers: []persistence.PackageContainer{
+			{
+				Name:        "whoami",
+				Image:       "traefik/whoami:v1.10.3",
+				ProxyTarget: true,
+				ProxyPort:   "80",
+			},
+		},
+	}
+
+	err = InstallApp(dockerClient, app)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+
+	results, err := GetAppContainers(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Unexpected error after installing app: %s", err.Error())
+	}
+
+	for _, result := range results {
+		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second * 10, time.Millisecond * 100)
+		if err != nil {
+			t.Fatalf("Unexpected error waiting for containers to start: %s", err.Error())
+		}
+	}
+
+	err = StopApp(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Unexpected error stopping app: %s", err.Error())
+	}
+
+	for _, result := range results {
+		err = UntilState(dockerClient, result.ID, ContainerExited, time.Second * 10, time.Millisecond * 100)
+		if err != nil {
+			t.Fatalf("Unexpected error waiting for containers to start: %s", err.Error())
+		}
+	}
+
+	err = StartApp(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Unexpected error starting app: %s", err.Error())
+	}
+
+	for _, result := range results {
+		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second * 10, time.Millisecond * 100)
+		if err != nil {
+			t.Fatalf("Unexpected error waiting for containers to start: %s", err.Error())
+		}
+	}
+
+	results, err = GetAppContainers(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Unexpected error retrieving containers: %s", err.Error())
+	}
+
+	for _, result := range results {
+		if result.State != string(ContainerRunning) {
+			t.Fatalf("Container %s is not started, its status is %s", result.Names[0], result.State)
+		}
+	}
+}
+
 // CreateDindClient creates a containerised docker environment for testing. This environment should be
 // removed using CleanupDocker at the end
 // This method is much slower and therefore may be worse for normal development. Investigate

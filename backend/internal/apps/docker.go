@@ -2,10 +2,13 @@ package apps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
@@ -13,7 +16,19 @@ import (
 	"github.com/docker/docker/client"
 )
 
+type State string
+const (
+	ContainerCreated State = "created"
+	ContainerRestarting State = "restarting"
+	ContainerRunning State = "running"
+	ContainerPaused State = "paused"
+	ContainerExited State = "exited"
+	ContainerDead State = "dead"
+)
+
 const APP_ID_LABEL = "AppID"
+
+var TimeoutError = errors.New("Container didn't start in time")
 
 func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 	networkVar, err := dockerClient.NetworkCreate(context.Background(), app.Id, network.CreateOptions{
@@ -116,6 +131,34 @@ func StopApp(dockerClient *client.Client, appID string) error {
 	}
 
 	return nil
+}
+
+// GetAppContainers retrieves a list of all containers belonging to the specified app
+func GetAppContainers(dockerClient *client.Client, appId string) (containers []types.Container, err error) {
+	return dockerClient.ContainerList(context.Background(), container.ListOptions{
+		All: true,
+		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appId))),
+	})
+}
+
+// UntilState waits until the given container is started
+func UntilState(dockerClient *client.Client, containerId string, state State, timeout time.Duration, interval time.Duration) error {
+	currentTimeout := time.Duration(0)
+	for currentTimeout < timeout {
+		info, err := dockerClient.ContainerInspect(context.Background(), containerId)
+		if err != nil {
+			return err
+		}
+
+		if info.State.Status == string(state) {
+			return nil
+		}
+
+		time.Sleep(interval)
+		currentTimeout += interval
+	}
+
+	return TimeoutError
 }
 
 // Checks if the image is downloaded already
