@@ -227,6 +227,64 @@ func TestStartApp(t *testing.T) {
 	}
 }
 
+func TestUninstallApp(t *testing.T) {
+	dockerClient, err := CreateDindClient()
+	defer CleanupDind()
+	if err != nil {
+		t.Fatalf("Unexpected error setting up container: %s", err.Error())
+	}
+
+	app := persistence.AppPackage{
+		Schema:      "v1.0",
+		Version:     "v1.5",
+		Id:          "traefik.whoami",
+		Name:        "whoami",
+		Author:      "traefik",
+		Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
+		Containers: []persistence.PackageContainer{
+			{
+				Name:        "whoami",
+				Image:       "traefik/whoami:v1.10.3",
+				ProxyTarget: true,
+				ProxyPort:   "80",
+			},
+		},
+	}
+
+	err = InstallApp(dockerClient, app)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+
+	err = UninstallApp(dockerClient, app.Id)
+	if err != nil {
+		t.Fatalf("Error uninstall app: %s", err.Error())
+	}
+
+	results, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
+		All: true,
+		Filters: filters.NewArgs(appFilter(app.Id)),
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error after uninstall app: %s", err.Error())
+	}
+
+	if len(results) != 0 {
+		t.Fatalf("Containers found when they're supposed to be deleted")
+	}
+
+	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
+		Filters: filters.NewArgs(appFilter(app.Id)),
+	})
+	if err != nil {
+		t.Fatalf("Error occured when finding networks: %s", err.Error())
+	}
+
+	if len(networks) != 0 {
+		t.Fatalf("Networks belonging to app found when they're supposed to be removed")
+	}
+}
+
 // CreateDindClient creates a containerised docker environment for testing. This environment should be
 // removed using CleanupDocker at the end
 // This method is much slower and therefore may be worse for normal development. Investigate

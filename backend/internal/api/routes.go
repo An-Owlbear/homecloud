@@ -31,6 +31,7 @@ func AddRoutes(
 
 	e.POST("/api/v1/apps/:appId/start", StartApp(docker))
 	e.POST("/api/v1/apps/:appId/stop", StopApp(docker))
+	e.POST("/api/v1/apps/:appId/uninstall", UninstallApp(docker))
 }
 
 func test(docker *client.Client) echo.HandlerFunc {

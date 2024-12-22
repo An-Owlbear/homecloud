@@ -37,3 +37,15 @@ func StopApp(dockerClient *client.Client) echo.HandlerFunc {
 		return c.String(200, "App stopped!")
 	}
 }
+
+func UninstallApp(dockerClient *client.Client) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		appId := c.Param("appId")
+		err := apps.UninstallApp(dockerClient, appId)
+		if err != nil {
+			return c.String(500, err.Error())
+		}
+
+		return c.String(200, "App uninstalled!")
+	}
+}

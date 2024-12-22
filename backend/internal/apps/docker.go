@@ -133,11 +133,56 @@ func StopApp(dockerClient *client.Client, appID string) error {
 	return nil
 }
 
+func UninstallApp(dockerClient *client.Client, appId string) error {
+	// Stop the app so containers can be deleted
+	err := StopApp(dockerClient, appId)
+	if err != nil {
+		return err
+	}
+
+	// Retrieve a list of containers to delete
+	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
+		Filters: filters.NewArgs(appFilter(appId)),
+	})
+	if err != nil {
+		return err
+	}
+
+	// Ensure each container is stopped before deleting them, along with their volumes
+	for _, containerResult := range containers {
+		err = UntilState(dockerClient, containerResult.ID, ContainerExited, time.Second * 10, time.Millisecond * 100)
+		if err != nil {
+			return err
+		}
+
+		err = dockerClient.ContainerRemove(context.Background(), containerResult.ID, container.RemoveOptions{RemoveVolumes: true})
+		if err != nil {
+			return err
+		}
+	}
+
+	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
+		Filters: filters.NewArgs(appFilter(appId)),
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, networkResult := range networks {
+		err := dockerClient.NetworkRemove(context.Background(), networkResult.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // GetAppContainers retrieves a list of all containers belonging to the specified app
 func GetAppContainers(dockerClient *client.Client, appId string) (containers []types.Container, err error) {
 	return dockerClient.ContainerList(context.Background(), container.ListOptions{
 		All: true,
-		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appId))),
+		Filters: filters.NewArgs(appFilter(appId)),
 	})
 }
 
@@ -159,6 +204,11 @@ func UntilState(dockerClient *client.Client, containerId string, state State, ti
 	}
 
 	return TimeoutError
+}
+
+// simple function for creating 
+func appFilter(appId string) filters.KeyValuePair {
+	return filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appId))
 }
 
 // Checks if the image is downloaded already
