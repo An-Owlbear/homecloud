@@ -10,7 +10,7 @@ SELECT id, json(schema) as schema, date_added FROM apps
 `
 
 type GetAppsRow struct {
-	ID        int64      `json:"id"`
+	ID        string     `json:"id"`
 	Schema    AppPackage `json:"schema"`
 	DateAdded int64      `json:"dateAdded"`
 }

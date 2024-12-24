@@ -5,7 +5,7 @@
 package persistence
 
 type App struct {
-	ID        int64
+	ID        string
 	Schema    []byte
 	DateAdded int64
 }
