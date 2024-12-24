@@ -9,6 +9,7 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
+	"github.com/mattn/go-sqlite3"
 )
 
 func AddPackage(storeClient *apps.StoreClient, queries *persistence.Queries, dockerClient *client.Client) echo.HandlerFunc {
@@ -36,6 +37,10 @@ func AddPackage(storeClient *apps.StoreClient, queries *persistence.Queries, doc
 			Schema: string(json),
 		})
 		if err != nil {
+			// If the app is already in the database return an error
+			if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return echo.NewHTTPError(http.StatusBadRequest, "App already installed")
+			}
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
