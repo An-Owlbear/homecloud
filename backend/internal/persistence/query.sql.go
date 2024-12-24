@@ -7,28 +7,28 @@ package persistence
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createApp = `-- name: CreateApp :exec
 INSERT INTO apps (id, schema, date_added)
-VALUES (?, jsonb(?), unixepoch())
+VALUES (?1, jsonb(?2), unixepoch())
 `
 
 type CreateAppParams struct {
-	ID    string
-	Jsonb interface{}
+	ID     string
+	Schema string
 }
 
 func (q *Queries) CreateApp(ctx context.Context, arg CreateAppParams) error {
-	_, err := q.db.ExecContext(ctx, createApp, arg.ID, arg.Jsonb)
+	_, err := q.db.ExecContext(ctx, createApp, arg.ID, arg.Schema)
 	return err
 }
 
-const removeApp = `-- name: RemoveApp :exec
+const removeApp = `-- name: RemoveApp :execresult
 DELETE FROM apps where id = ?
 `
 
-func (q *Queries) RemoveApp(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, removeApp, id)
-	return err
+func (q *Queries) RemoveApp(ctx context.Context, id string) (sql.Result, error) {
+	return q.db.ExecContext(ctx, removeApp, id)
 }
