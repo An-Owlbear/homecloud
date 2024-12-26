@@ -6,7 +6,9 @@ import (
 	"io"
 	"maps"
 	"path/filepath"
+	"reflect"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,6 +45,10 @@ func TestInstallApp(t *testing.T) {
 				Image:       "traefik/whoami:v1.10.3",
 				ProxyTarget: true,
 				ProxyPort:   "80",
+				Ports:       []string{"8000:80"},
+				Environment: map[string]string{
+					"test_env": "value",
+				},
 			},
 		},
 	}
@@ -75,17 +81,51 @@ func TestInstallApp(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("Unexpected number of tagged containers %d, should be %d", len(results), 1)
 	}
-	for _, result := range results {
-		expectedName := "traefik.whoami-whoami"
-		if len(result.Names) != 1 || result.Names[0] != "/"+expectedName {
-			t.Fatalf("Unexpected container Names %+v, should be %s", result.Names, expectedName)
+
+	result, err := dockerClient.ContainerInspect(context.Background(), results[0].ID)
+	if err != nil {
+		t.Fatalf("Unexpected error inspecting cotainer: %s", err.Error())
+	}
+
+	// Checks name is correct
+	expectedName := "traefik.whoami-whoami"
+	if result.Name != "/"+expectedName {
+		t.Fatalf("Unexpected container Names %s, should be %s", result.Name, expectedName)
+	}
+
+	// Checks the network configuration is correct
+	if len(result.NetworkSettings.Networks) != 1 {
+		t.Fatalf("App container should only have 1 network, has %d", len(result.NetworkSettings.Networks))
+	}
+	if networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks)); networkIds[0] == appNetwork.ID {
+		t.Fatalf("Incorrect network ID set in container\nExpected value: %s\nActual value: %s", appNetwork.ID, networkIds[0])
+	}
+
+	// Tests environment variables are correct
+	envVars := result.Config.Env
+	// Creates a list of env vars with the path variable removed
+	for i, envVar := range envVars {
+		if strings.HasPrefix(envVar, "PATH=") {
+			envVars = append(envVars[:i], envVars[i+1:]...)
 		}
-		if len(result.NetworkSettings.Networks) != 1 {
-			t.Fatalf("App container should only have 1 network, has %d", len(result.NetworkSettings.Networks))
-		}
-		if networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks)); networkIds[0] == appNetwork.ID {
-			t.Fatalf("Incorrect network ID set in container\nExpected value: %s\nActual value: %s", appNetwork.ID, networkIds[0])
-		}
+	}
+
+	expectedEnv := []string{"test_env=value"}
+	if !reflect.DeepEqual(envVars, expectedEnv) {
+		t.Fatalf("Incorrect container environment variables\nExpected values: %+v\nActual values:%+v", envVars, expectedEnv)
+	}
+
+	// Tests the correct port mappings are done correctly
+	expectedPortMap := nat.PortMap{
+		"80/tcp": []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: "8000",
+			},
+		},
+	}
+	if !reflect.DeepEqual(result.NetworkSettings.Ports, expectedPortMap) {
+		t.Fatalf("Incorrect port mappings\nExpected: %+v\nActual: %+v", expectedPortMap, result.NetworkSettings.Ports)
 	}
 }
 
@@ -120,7 +160,7 @@ func TestStopApp(t *testing.T) {
 
 	results, err := GetAppContainers(dockerClient, app.Id)
 	for _, result := range results {
-		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second * 10, time.Millisecond * 100)
+		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second*10, time.Millisecond*100)
 		if err != nil {
 			t.Fatalf("Unexpected error after starting containers: %s", err.Error())
 		}
@@ -132,7 +172,7 @@ func TestStopApp(t *testing.T) {
 	}
 
 	for _, result := range results {
-		err = UntilState(dockerClient, result.ID, ContainerExited, time.Second * 10, time.Millisecond * 100)
+		err = UntilState(dockerClient, result.ID, ContainerExited, time.Second*10, time.Millisecond*100)
 		if err != nil {
 			t.Fatalf("Unexpected error after stopping containers: %s", err.Error())
 		}
@@ -185,7 +225,7 @@ func TestStartApp(t *testing.T) {
 	}
 
 	for _, result := range results {
-		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second * 10, time.Millisecond * 100)
+		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second*10, time.Millisecond*100)
 		if err != nil {
 			t.Fatalf("Unexpected error waiting for containers to start: %s", err.Error())
 		}
@@ -197,7 +237,7 @@ func TestStartApp(t *testing.T) {
 	}
 
 	for _, result := range results {
-		err = UntilState(dockerClient, result.ID, ContainerExited, time.Second * 10, time.Millisecond * 100)
+		err = UntilState(dockerClient, result.ID, ContainerExited, time.Second*10, time.Millisecond*100)
 		if err != nil {
 			t.Fatalf("Unexpected error waiting for containers to start: %s", err.Error())
 		}
@@ -209,7 +249,7 @@ func TestStartApp(t *testing.T) {
 	}
 
 	for _, result := range results {
-		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second * 10, time.Millisecond * 100)
+		err = UntilState(dockerClient, result.ID, ContainerRunning, time.Second*10, time.Millisecond*100)
 		if err != nil {
 			t.Fatalf("Unexpected error waiting for containers to start: %s", err.Error())
 		}
@@ -262,7 +302,7 @@ func TestUninstallApp(t *testing.T) {
 	}
 
 	results, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
-		All: true,
+		All:     true,
 		Filters: filters.NewArgs(appFilter(app.Id)),
 	})
 	if err != nil {

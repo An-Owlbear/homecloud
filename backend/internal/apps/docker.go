@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
@@ -14,16 +15,18 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 )
 
 type State string
+
 const (
-	ContainerCreated State = "created"
+	ContainerCreated    State = "created"
 	ContainerRestarting State = "restarting"
-	ContainerRunning State = "running"
-	ContainerPaused State = "paused"
-	ContainerExited State = "exited"
-	ContainerDead State = "dead"
+	ContainerRunning    State = "running"
+	ContainerPaused     State = "paused"
+	ContainerExited     State = "exited"
+	ContainerDead       State = "dead"
 )
 
 const APP_ID_LABEL = "AppID"
@@ -49,6 +52,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			return err
 		}
 
+		// If not downloaded downloads the image
 		if !alreadyDownloaded {
 			reader, err := dockerClient.ImagePull(context.Background(), containerDef.Image, image.PullOptions{})
 			if err != nil {
@@ -61,10 +65,33 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			}
 		}
 
+		// sets up the envionmrnet variables for the container
+		var env []string
+		for key, value := range containerDef.Environment {
+			env = append(env, fmt.Sprintf("%s=%s", key, value))
+		}
+
 		containerConfig := &container.Config{
 			Image:    containerDef.Image,
 			Hostname: containerDef.Name,
+			Env:      env,
 			Labels:   map[string]string{APP_ID_LABEL: app.Id},
+		}
+
+		// creates port mappings
+		portMap := nat.PortMap{}
+		for _, ports := range containerDef.Ports {
+			portParts := strings.Split(ports, ":")
+			var containerPort = portParts[1]
+			if !strings.HasSuffix(containerPort, "/tcp") && !strings.HasSuffix(containerPort, "/udp") {
+				containerPort += "/tcp"
+			}
+			portMap[nat.Port(containerPort)] = []nat.PortBinding{
+				{
+					HostIP:   "0.0.0.0",
+					HostPort: portParts[0],
+				},
+			}
 		}
 
 		hostConfig := &container.HostConfig{
@@ -72,6 +99,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
+			PortBindings: portMap,
 		}
 
 		containerName := app.Id + "-" + containerDef.Name
@@ -150,7 +178,7 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 
 	// Ensure each container is stopped before deleting them, along with their volumes
 	for _, containerResult := range containers {
-		err = UntilState(dockerClient, containerResult.ID, ContainerExited, time.Second * 10, time.Millisecond * 100)
+		err = UntilState(dockerClient, containerResult.ID, ContainerExited, time.Second*10, time.Millisecond*100)
 		if err != nil {
 			return err
 		}
@@ -159,6 +187,12 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// removes unused volumes
+	_, err = dockerClient.VolumesPrune(context.Background(), filters.NewArgs(appFilter(appId)))
+	if err != nil {
+		return err
 	}
 
 	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
@@ -181,7 +215,7 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 // GetAppContainers retrieves a list of all containers belonging to the specified app
 func GetAppContainers(dockerClient *client.Client, appId string) (containers []types.Container, err error) {
 	return dockerClient.ContainerList(context.Background(), container.ListOptions{
-		All: true,
+		All:     true,
 		Filters: filters.NewArgs(appFilter(appId)),
 	})
 }
@@ -206,7 +240,7 @@ func UntilState(dockerClient *client.Client, containerId string, state State, ti
 	return TimeoutError
 }
 
-// simple function for creating 
+// simple function for creating
 func appFilter(appId string) filters.KeyValuePair {
 	return filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appId))
 }
