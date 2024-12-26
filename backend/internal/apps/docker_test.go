@@ -18,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/joho/godotenv"
@@ -48,6 +49,10 @@ func TestInstallApp(t *testing.T) {
 				Ports:       []string{"8000:80"},
 				Environment: map[string]string{
 					"test_env": "value",
+				},
+				Volumes: []string{
+					"test_vol:/opt/bind1",
+					"test_vol2:/opt/bind2",
 				},
 			},
 		},
@@ -126,6 +131,47 @@ func TestInstallApp(t *testing.T) {
 	}
 	if !reflect.DeepEqual(result.NetworkSettings.Ports, expectedPortMap) {
 		t.Fatalf("Incorrect port mappings\nExpected: %+v\nActual: %+v", expectedPortMap, result.NetworkSettings.Ports)
+	}
+
+	// Tests volumes are properly created and bound
+	volumes, err := dockerClient.VolumeList(context.Background(), volume.ListOptions{
+		Filters: filters.NewArgs(appFilter(app.Id)),
+	})
+	if len(volumes.Volumes) != 2 {
+		t.Fatalf("Invalid number of volumes\nExpected: 2\nActual: %d", len(volumes.Volumes))
+	}
+
+	// Creates k,v map of volumes for testing
+	checkVols := make(map[string]string)
+	for _, vol := range app.Containers[0].Volumes {
+		volParts := strings.Split(vol, ":")
+		checkVols[volParts[0]] = volParts[1]
+	}
+
+	// Tests all created volumes with the app label are valid
+	volListCheck := make(map[string]string)
+	for k, v := range checkVols {
+		volListCheck[k] = v
+	}
+	for _, volResult := range volumes.Volumes {
+		if _, ok := volListCheck[volResult.Name]; !ok {
+			t.Fatalf("Volume not one of the expected volumes: %s", volResult.Name)
+		}
+		delete(volListCheck, volResult.Name)
+	}
+
+	// Checks the volume bindings on the container are as expected
+	containerVolCheck := make(map[string]string)
+	for k, v := range checkVols {
+		containerVolCheck[k] = v
+	}
+	for _, containerVol := range result.Mounts {
+		if mountLoc, ok := containerVolCheck[containerVol.Name]; !ok {
+			t.Fatalf("Volume not one of the expected volumes: %s", containerVol.Source)
+		} else if containerVol.Destination != mountLoc {
+			t.Fatalf("Incorrect mount location for volume: %s\nExpected: %s\nActual: %s", containerVol.Name, mountLoc, containerVol.Destination)
+		}
+		delete(containerVolCheck, containerVol.Name)
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -94,12 +95,25 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			}
 		}
 
+		// creates required volumes
+		for _, vol := range containerDef.Volumes {
+			volumeParts := strings.Split(vol, ":")
+			_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
+				Name:   volumeParts[0],
+				Labels: map[string]string{APP_ID_LABEL: app.Id},
+			})
+			if err != nil {
+				return err
+			}
+		}
+
 		hostConfig := &container.HostConfig{
 			NetworkMode: "bridge",
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
 			PortBindings: portMap,
+			Binds:        containerDef.Volumes,
 		}
 
 		containerName := app.Id + "-" + containerDef.Name

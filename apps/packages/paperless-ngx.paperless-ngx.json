@@ -1,0 +1,38 @@
+{
+  "schema": "v1.0",
+  "version": "v1.0",
+  "id": "paperless-ngx.paperless-ngx",
+  "name": "paperless-ngx",
+  "author": "paperless-ngx",
+  "description": " A community-supported supercharged version of paperless: scan, index and archive all your physical documents",
+  "containers": [
+    {
+      "name": "broker",
+      "image": "docker.io/library/redis:7",
+      "volumes": [
+        "redisdata:/data"
+      ]
+    },
+    {
+      "name": "webserver",
+      "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
+      "proxy_target": true,
+      "proxy_port": "8000",
+      "volumes": [
+        "data:/usr/src/paperless/data",
+        "media:/usr/src/paperless/media"
+      ],
+      "environment": {
+        "PAPERLESS_REDIS": "redis://broker:6379"
+      },
+      "ports": [
+        "8000:8000"
+      ]
+    }
+  ],
+  "volumes": [
+    "data",
+    "media",
+    "redisdata"
+  ]
+}
