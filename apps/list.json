@@ -1,8 +1,15 @@
 [
   {
+    "id": "paperless-ngx.paperless-ngx",
+    "name": "paperless-ngx",
+    "version": "v1.0",
+    "author": "paperless-ngx",
+    "description": " A community-supported supercharged version of paperless: scan, index and archive all your physical documents"
+  },
+  {
     "id": "traefik.whoami",
     "name": "whoami",
-    "version": "v1.5",
+    "version": "v1.6",
     "author": "traefik",
     "description": "Tiny Go webserver that prints OS information and HTTP request to output."
   }
