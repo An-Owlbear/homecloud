@@ -184,6 +184,7 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 
 	// Retrieve a list of containers to delete
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
+		All:     true,
 		Filters: filters.NewArgs(appFilter(appId)),
 	})
 	if err != nil {

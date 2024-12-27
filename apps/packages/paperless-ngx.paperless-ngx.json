@@ -23,7 +23,8 @@
         "media:/usr/src/paperless/media"
       ],
       "environment": {
-        "PAPERLESS_REDIS": "redis://broker:6379"
+        "PAPERLESS_REDIS": "redis://broker:6379",
+        "COMPOSE_PROJECT_NAME": "paperless"
       },
       "ports": [
         "8000:8000"
