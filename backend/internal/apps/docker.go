@@ -35,15 +35,23 @@ const APP_ID_LABEL = "AppID"
 var TimeoutError = errors.New("Container didn't start in time")
 
 func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
-	networkVar, err := dockerClient.NetworkCreate(context.Background(), app.Id, network.CreateOptions{
-		Labels: map[string]string{APP_ID_LABEL: app.Id},
-	})
+	// Creates the network if it doesn't already exist
+	var networkId string
+	networkInspect, err := dockerClient.NetworkInspect(context.Background(), app.Id, network.InspectOptions{})
 	if err != nil {
-		return err
+		networkVar, err := dockerClient.NetworkCreate(context.Background(), app.Id, network.CreateOptions{
+			Labels: map[string]string{APP_ID_LABEL: app.Id},
+		})
+		if err != nil {
+			return err
+		}
+		networkId = networkVar.ID
+	} else {
+		networkId = networkInspect.ID
 	}
 
 	networkingConfig := &network.NetworkingConfig{
-		EndpointsConfig: map[string]*network.EndpointSettings{networkVar.ID: {NetworkID: networkVar.ID}},
+		EndpointsConfig: map[string]*network.EndpointSettings{networkId: {NetworkID: networkId}},
 	}
 
 	for _, containerDef := range app.Containers {
@@ -53,7 +61,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			return err
 		}
 
-		// If not downloaded downloads the image
+		// If not downloaded the image
 		if !alreadyDownloaded {
 			reader, err := dockerClient.ImagePull(context.Background(), containerDef.Image, image.PullOptions{})
 			if err != nil {
@@ -98,12 +106,16 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 		// creates required volumes
 		for _, vol := range containerDef.Volumes {
 			volumeParts := strings.Split(vol, ":")
-			_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
-				Name:   volumeParts[0],
-				Labels: map[string]string{APP_ID_LABEL: app.Id},
-			})
-			if err != nil {
-				return err
+
+			// Checks if the volume exists before creating
+			if _, err = dockerClient.VolumeInspect(context.Background(), volumeParts[0]); err != nil {
+				_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
+					Name:   volumeParts[0],
+					Labels: map[string]string{APP_ID_LABEL: app.Id},
+				})
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -175,7 +187,7 @@ func StopApp(dockerClient *client.Client, appID string) error {
 	return nil
 }
 
-func UninstallApp(dockerClient *client.Client, appId string) error {
+func RemoveContainers(dockerClient *client.Client, appId string) error {
 	// Stop the app so containers can be deleted
 	err := StopApp(dockerClient, appId)
 	if err != nil {
@@ -202,6 +214,16 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func UninstallApp(dockerClient *client.Client, appId string) error {
+	// removes containers
+	err := RemoveContainers(dockerClient, appId)
+	if err != nil {
+		return err
 	}
 
 	// removes unused volumes
