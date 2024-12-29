@@ -22,6 +22,7 @@ func AddRoutes(
 	docker *client.Client,
 	queries *persistence.Queries,
 	storeClient *apps.StoreClient,
+	appManager *apps.AppManager,
 ) {
 	e.GET("/", test(docker))
 	e.GET("/db", db_test(queries))
@@ -29,9 +30,11 @@ func AddRoutes(
 	e.POST("/api/v1/packages/:appId/install", AddPackage(storeClient, queries, docker))
 	e.POST("/api/v1/packages/update", CheckUpdates(storeClient))
 
+	e.GET("/api/v1/apps", ListApps(queries))
 	e.POST("/api/v1/apps/:appId/start", StartApp(docker))
 	e.POST("/api/v1/apps/:appId/stop", StopApp(docker))
 	e.POST("/api/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
+	e.POST("/api/v1/apps/update", UpdateApps(appManager))
 }
 
 func test(docker *client.Client) echo.HandlerFunc {

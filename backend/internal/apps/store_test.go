@@ -26,33 +26,33 @@ func TestUpdatePackageList(t *testing.T) {
 		},
 	}
 
-	if !reflect.DeepEqual(expectedResults, client.packages) {
-		t.Fatalf("Packages are not equal\nExpected packages: %+v\nActual data: %+v", expectedResults, client.packages)
+	if !reflect.DeepEqual(expectedResults, client.Packages) {
+		t.Fatalf("Packages are not equal\nExpected packages: %+v\nActual data: %+v", expectedResults, client.Packages)
 	}
 }
 
 // Tests whether the retrieved individual package is correct
 func TestGetPackage(t *testing.T) {
 	client := prepareClient()
-	
+
 	app, err := client.GetPackage("traefik.whoami")
 	if err != nil {
 		t.Fatalf("Unexpected error occured : %s", err.Error())
 	}
 
 	expectedPackage := persistence.AppPackage{
-		Schema: "v1.0",
-		Version: "v1.5",
-		Id: "traefik.whoami",
-		Name: "whoami",
-		Author: "traefik",
+		Schema:      "v1.0",
+		Version:     "v1.5",
+		Id:          "traefik.whoami",
+		Name:        "whoami",
+		Author:      "traefik",
 		Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
-		Containers: []persistence.PackageContainer {
+		Containers: []persistence.PackageContainer{
 			{
-				Name: "whoami",
-				Image: "traefik/whoami:v1.10.3",
+				Name:        "whoami",
+				Image:       "traefik/whoami:v1.10.3",
 				ProxyTarget: true,
-				ProxyPort: "80",
+				ProxyPort:   "80",
 			},
 		},
 	}

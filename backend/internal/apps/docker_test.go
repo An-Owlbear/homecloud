@@ -63,6 +63,10 @@ func TestInstallApp(t *testing.T) {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
 
+	HelpTestAppPackage(dockerClient, app, t)
+}
+
+func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage, t *testing.T) {
 	// Retrieves the network created for the app to check it and for later use
 	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
 		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, app.Id))),

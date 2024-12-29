@@ -64,3 +64,13 @@ func CheckUpdates(storeClient *apps.StoreClient) echo.HandlerFunc {
 		return c.String(200, "List updated")
 	}
 }
+
+func UpdateApps(appManager *apps.AppManager) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		err := appManager.UpdateApps()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.String(http.StatusOK, "Apps updated")
+	}
+}

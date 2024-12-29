@@ -20,7 +20,7 @@ type PackageListItem struct {
 
 type StoreClient struct {
 	repoUrl  string
-	packages []PackageListItem
+	Packages []PackageListItem
 }
 
 func NewStoreClient(repoUrl string) *StoreClient {
@@ -46,7 +46,7 @@ func (client *StoreClient) UpdatePackageList() error {
 		return err
 	}
 
-	err = json.Unmarshal(body, &client.packages)
+	err = json.Unmarshal(body, &client.Packages)
 	if err != nil {
 		return err
 	}

@@ -33,9 +33,10 @@ func CreateServer() *echo.Echo {
 
 	queries := persistence.New(db)
 	storeClient := apps.NewStoreClient(os.Getenv("STORE_URL"))
+	appManager := apps.NewAppManager(docker, storeClient, queries)
 
 	e := echo.New()
-	api.AddRoutes(e, docker, queries, storeClient)
+	api.AddRoutes(e, docker, queries, storeClient, appManager)
 
 	return e
 }

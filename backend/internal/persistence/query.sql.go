@@ -17,7 +17,7 @@ VALUES (?1, jsonb(?2), unixepoch())
 
 type CreateAppParams struct {
 	ID     string
-	Schema string
+	Schema interface{}
 }
 
 func (q *Queries) CreateApp(ctx context.Context, arg CreateAppParams) error {
@@ -31,4 +31,19 @@ DELETE FROM apps where id = ?
 
 func (q *Queries) RemoveApp(ctx context.Context, id string) (sql.Result, error) {
 	return q.db.ExecContext(ctx, removeApp, id)
+}
+
+const updateApp = `-- name: UpdateApp :exec
+UPDATE apps SET schema = jsonb(?1)
+WHERE id = ?2
+`
+
+type UpdateAppParams struct {
+	Schema interface{}
+	ID     string
+}
+
+func (q *Queries) UpdateApp(ctx context.Context, arg UpdateAppParams) error {
+	_, err := q.db.ExecContext(ctx, updateApp, arg.Schema, arg.ID)
+	return err
 }
