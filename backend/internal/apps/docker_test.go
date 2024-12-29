@@ -97,7 +97,7 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 	}
 
 	// Checks name is correct
-	expectedName := "traefik.whoami-whoami"
+	expectedName := app.Id + "-" + app.Containers[0].Name
 	if result.Name != "/"+expectedName {
 		t.Fatalf("Unexpected container Names %s, should be %s", result.Name, expectedName)
 	}
@@ -119,20 +119,30 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 		}
 	}
 
-	expectedEnv := []string{"test_env=value"}
+	expectedEnv := []string{}
+	for k, v := range app.Containers[0].Environment {
+		expectedEnv = append(expectedEnv, fmt.Sprintf("%s=%s", k, v))
+	}
 	if !reflect.DeepEqual(envVars, expectedEnv) {
 		t.Fatalf("Incorrect container environment variables\nExpected values: %+v\nActual values:%+v", envVars, expectedEnv)
 	}
 
 	// Tests the correct port mappings are done correctly
-	expectedPortMap := nat.PortMap{
-		"80/tcp": []nat.PortBinding{
+	expectedPortMap := nat.PortMap{}
+	for _, portString := range app.Containers[0].Ports {
+		portParts := strings.Split(portString, ":")
+		containerPort := portParts[1]
+		if !strings.HasSuffix(containerPort, "/tcp") || !strings.HasSuffix(containerPort, "/udp") {
+			containerPort += "/tcp"
+		}
+		expectedPortMap[nat.Port(containerPort)] = []nat.PortBinding{
 			{
 				HostIP:   "0.0.0.0",
-				HostPort: "8000",
+				HostPort: portParts[0],
 			},
-		},
+		}
 	}
+
 	if !reflect.DeepEqual(result.NetworkSettings.Ports, expectedPortMap) {
 		t.Fatalf("Incorrect port mappings\nExpected: %+v\nActual: %+v", expectedPortMap, result.NetworkSettings.Ports)
 	}
@@ -141,8 +151,8 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 	volumes, err := dockerClient.VolumeList(context.Background(), volume.ListOptions{
 		Filters: filters.NewArgs(appFilter(app.Id)),
 	})
-	if len(volumes.Volumes) != 2 {
-		t.Fatalf("Invalid number of volumes\nExpected: 2\nActual: %d", len(volumes.Volumes))
+	if len(volumes.Volumes) != len(app.Containers[0].Volumes) {
+		t.Fatalf("Invalid number of volumes\nExpected: %d\nActual: %d", len(app.Containers[0].Volumes), len(volumes.Volumes))
 	}
 
 	// Creates k,v map of volumes for testing
