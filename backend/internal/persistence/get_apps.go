@@ -5,15 +5,35 @@ import (
 	"encoding/json"
 )
 
-const getApps = `-- name: GetApps :many
-SELECT id, json(schema) as schema, date_added FROM apps
-`
-
 type GetAppsRow struct {
 	ID        string     `json:"id"`
 	Schema    AppPackage `json:"schema"`
 	DateAdded int64      `json:"dateAdded"`
 }
+
+const getApp = `--name: GetApp :one
+SELECT id, json(schema) as schema, date_added FROM apps
+`
+
+// GetApp Retrieves a single app from the database
+func (q *Queries) GetApp(ctx context.Context, id string) (GetAppsRow, error) {
+	row := q.db.QueryRowContext(ctx, getApp, id)
+	var i GetAppsRow
+	var packageString string
+	if err := row.Scan(&i.ID, &packageString, &i.ID); err != nil {
+		return i, err
+	}
+
+	if err := json.Unmarshal([]byte(packageString), &i.Schema); err != nil {
+		return i, err
+	}
+
+	return i, nil
+}
+
+const getApps = `-- name: GetApps :many
+SELECT id, json(schema) as schema, date_added FROM apps
+`
 
 // GetApps Modified sqlc function as the JSON column needs parsing to a custom struct
 func (q *Queries) GetApps(ctx context.Context) ([]GetAppsRow, error) {

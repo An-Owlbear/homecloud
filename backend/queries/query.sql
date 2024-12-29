@@ -7,4 +7,4 @@ DELETE FROM apps where id = ?;
 
 -- name: UpdateApp :exec
 UPDATE apps SET schema = jsonb(sqlc.arg(schema))
-WHERE id = sqlc.arg(id)
+WHERE id = sqlc.arg(id);
