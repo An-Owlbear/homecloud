@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
@@ -17,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
@@ -53,6 +55,7 @@ func TestInstallApp(t *testing.T) {
 				Volumes: []string{
 					"test_vol:/opt/bind1",
 					"test_vol2:/opt/bind2",
+					"./docker_test.go:/opt/random_file.go",
 				},
 			},
 		},
@@ -148,17 +151,31 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 	}
 
 	// Tests volumes are properly created and bound
+	expectedVolumeNum := 0
+	for _, vol := range app.Containers[0].Volumes {
+		if !strings.HasPrefix(vol, "./") && !strings.HasPrefix(vol, ".") {
+			expectedVolumeNum++
+		}
+	}
+
 	volumes, err := dockerClient.VolumeList(context.Background(), volume.ListOptions{
 		Filters: filters.NewArgs(appFilter(app.Id)),
 	})
-	if len(volumes.Volumes) != len(app.Containers[0].Volumes) {
-		t.Fatalf("Invalid number of volumes\nExpected: %d\nActual: %d", len(app.Containers[0].Volumes), len(volumes.Volumes))
+	if len(volumes.Volumes) != expectedVolumeNum {
+		t.Fatalf("Invalid number of volumes\nExpected: %d\nActual: %d", expectedVolumeNum, len(volumes.Volumes))
 	}
 
 	// Creates k,v map of volumes for testing
 	checkVols := make(map[string]string)
 	for _, vol := range app.Containers[0].Volumes {
 		volParts := strings.Split(vol, ":")
+		if strings.HasPrefix(volParts[0], "./") {
+			execPath, err := os.Executable()
+			if err != nil {
+				t.Fatalf("Unexpected error gettign exec path: %s", err.Error())
+			}
+			volParts[0] = filepath.Join(execPath, volParts[0][2:])
+		}
 		checkVols[volParts[0]] = volParts[1]
 	}
 
@@ -180,10 +197,19 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 		containerVolCheck[k] = v
 	}
 	for _, containerVol := range result.Mounts {
-		if mountLoc, ok := containerVolCheck[containerVol.Name]; !ok {
-			t.Fatalf("Volume not one of the expected volumes: %s", containerVol.Source)
+		var volName string
+		if containerVol.Type == mount.TypeVolume {
+			volName = containerVol.Name
+		} else if containerVol.Type == mount.TypeBind {
+			volName = containerVol.Source
+		} else {
+			t.Fatalf("Unexpected type of volume: %s", containerVol.Type)
+		}
+
+		if mountLoc, ok := containerVolCheck[volName]; !ok {
+			t.Fatalf("Volume not one of the expected volumes: %s", volName)
 		} else if containerVol.Destination != mountLoc {
-			t.Fatalf("Incorrect mount location for volume: %s\nExpected: %s\nActual: %s", containerVol.Name, mountLoc, containerVol.Destination)
+			t.Fatalf("Incorrect mount location for volume: %s\nExpected: %s\nActual: %s", volName, mountLoc, containerVol.Destination)
 		}
 		delete(containerVolCheck, containerVol.Name)
 	}

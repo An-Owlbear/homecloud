@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -104,19 +106,32 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 		}
 
 		// creates required volumes
+		formattedVolumes := []string{}
 		for _, vol := range containerDef.Volumes {
 			volumeParts := strings.Split(vol, ":")
 
-			// Checks if the volume exists before creating
-			if _, err = dockerClient.VolumeInspect(context.Background(), volumeParts[0]); err != nil {
-				_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
-					Name:   volumeParts[0],
-					Labels: map[string]string{APP_ID_LABEL: app.Id},
-				})
+			// if the mount is for a local file or folder skip
+			if strings.HasPrefix(volumeParts[0], "./") {
+				execPath, err := os.Executable()
 				if err != nil {
 					return err
 				}
+
+				volumeParts[0] = filepath.Join(execPath, volumeParts[0][2:])
+			} else if !strings.HasPrefix(volumeParts[0], "/") {
+				// Checks if the volume exists before creating
+				if _, err = dockerClient.VolumeInspect(context.Background(), volumeParts[0]); err != nil {
+					_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
+						Name:   volumeParts[0],
+						Labels: map[string]string{APP_ID_LABEL: app.Id},
+					})
+					if err != nil {
+						return err
+					}
+				}
 			}
+
+			formattedVolumes = append(formattedVolumes, strings.Join(volumeParts, ":"))
 		}
 
 		hostConfig := &container.HostConfig{
@@ -125,7 +140,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 				Name: "always",
 			},
 			PortBindings: portMap,
-			Binds:        containerDef.Volumes,
+			Binds:        formattedVolumes,
 		}
 
 		containerName := app.Id + "-" + containerDef.Name
