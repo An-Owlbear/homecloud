@@ -2,6 +2,7 @@ package apps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -423,6 +424,17 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 		return
 	}
 
+	// creates the network and attaches the current container to it
+	networkRes, err := hostClient.NetworkCreate(context.Background(), "homecloud-tester", network.CreateOptions{})
+	if err != nil {
+		return
+	}
+
+	err = hostClient.NetworkConnect(context.Background(), networkRes.ID, os.Getenv("TEST_CONTAINER_NAME"), &network.EndpointSettings{})
+	if err != nil {
+		return
+	}
+
 	// Downloads the dind image if needed
 	dindImage := "docker:27.4.1-dind"
 	isDownloaded, err := isImageDownloaded(hostClient, dindImage)
@@ -441,26 +453,20 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	dindContainer, err := hostClient.ContainerCreate(
 		context.Background(),
 		&container.Config{
-			Image: dindImage,
-			ExposedPorts: map[nat.Port]struct{}{
-				"2375/tcp": {},
-			},
+			Image:      dindImage,
 			Entrypoint: []string{"dockerd"},
 			// tls=false must be specified to disable a 15 second sleep that occurs otherwise
 			Cmd: []string{"--host=0.0.0.0:2375", "--tls=false"},
 		},
 		&container.HostConfig{
-			Privileged: true,
-			PortBindings: map[nat.Port][]nat.PortBinding{
-				"2375/tcp": {
-					{
-						HostIP:   "0.0.0.0",
-						HostPort: "2375",
-					},
-				},
+			Privileged:  true,
+			NetworkMode: "bridge",
+		},
+		&network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				networkRes.ID: {NetworkID: networkRes.ID},
 			},
 		},
-		nil,
 		nil,
 		"homecloud-test-container",
 	)
@@ -475,7 +481,7 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	}
 
 	// Waits until the docker runtime inside dind has started before returning
-	dockerClient, err = client.NewClientWithOpts(client.WithHost("tcp://0.0.0.0:2375"), client.WithAPIVersionNegotiation())
+	dockerClient, err = client.NewClientWithOpts(client.WithHost("tcp://homecloud-test-container:2375"), client.WithAPIVersionNegotiation())
 	if err != nil {
 		return
 	}
@@ -490,7 +496,8 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	}
 
 	// If the dind container doesn't start in 20 seconds fail
-	panic("Dind container didn't start in time")
+	err = errors.New("Dind container didn't start in time")
+	return
 }
 
 // Cleans up the dind docker container
@@ -502,6 +509,16 @@ func CleanupDind() {
 	}
 
 	err = hostClient.ContainerRemove(context.Background(), "homecloud-test-container", container.RemoveOptions{})
+	if err != nil {
+		panic(errString + err.Error())
+	}
+
+	err = hostClient.NetworkDisconnect(context.Background(), "homecloud-tester", os.Getenv("TEST_CONTAINER_NAME"), true)
+	if err != nil {
+		panic(errString + err.Error())
+	}
+
+	err = hostClient.NetworkRemove(context.Background(), "homecloud-tester")
 	if err != nil {
 		panic(errString + err.Error())
 	}
