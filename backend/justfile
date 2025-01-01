@@ -1,0 +1,27 @@
+set dotenv-load := true
+default_test := "\".*\""
+
+run:
+	docker run -it --rm \
+		-w "/opt/homecloud" \
+		-e "air_wd=/opt/homecloud" \
+		-v $(pwd):/opt/homecloud \
+		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
+		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
+		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
+		-p 1323:1323 \
+		cosmtrek/air \
+		-c ".air.toml"
+
+test target=default_test:
+	docker run -it --rm \
+		-w "/opt/homecloud" \
+		-e "TEST_CONTAINER_NAME=homecloud-tester" \
+		-v $(pwd):/opt/homecloud \
+		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
+		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
+		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
+		--name "homecloud-tester" \
+		--entrypoint go \
+		golang:1.23 \
+		test -run {{target}} ./...
