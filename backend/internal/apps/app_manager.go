@@ -3,6 +3,8 @@ package apps
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
@@ -13,13 +15,20 @@ type AppManager struct {
 	dockerClient *client.Client
 	storeClient  *StoreClient
 	queries      *persistence.Queries
+	hosts        Hosts
 }
 
-func NewAppManager(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries) *AppManager {
+func NewAppManager(
+	dockerClient *client.Client,
+	storeClient *StoreClient,
+	queries *persistence.Queries,
+	hosts Hosts,
+) *AppManager {
 	return &AppManager{
 		dockerClient: dockerClient,
 		storeClient:  storeClient,
 		queries:      queries,
+		hosts:        hosts,
 	}
 }
 
@@ -70,6 +79,43 @@ func (am *AppManager) UpdateApps() error {
 				ID:     app.ID,
 				Schema: schemaJson,
 			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (am *AppManager) StartApp(appId string) error {
+	app, err := am.queries.GetApp(context.Background(), appId)
+	if err != nil {
+		return err
+	}
+
+	// Start app containers
+	if err := StartApp(am.dockerClient, app.ID); err != nil {
+		return err
+	}
+
+	// Retrieve containers and wait for them to finish starting
+	containers, err := GetAppContainers(am.dockerClient, app.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, appContainer := range containers {
+		err = UntilState(am.dockerClient, appContainer.ID, ContainerRunning, time.Second*20, time.Millisecond*10)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check if any containers need proxying and proxy if needed
+	for _, packageContainer := range app.Schema.Containers {
+		if packageContainer.ProxyTarget {
+			err = AddProxy(am.hosts, app.Schema.Name, fmt.Sprintf("%s-%s", app.Schema.Id, packageContainer.Name), packageContainer.ProxyPort)
 			if err != nil {
 				return err
 			}

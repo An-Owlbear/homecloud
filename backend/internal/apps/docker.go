@@ -52,10 +52,6 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 		networkId = networkInspect.ID
 	}
 
-	networkingConfig := &network.NetworkingConfig{
-		EndpointsConfig: map[string]*network.EndpointSettings{networkId: {NetworkID: networkId}},
-	}
-
 	for _, containerDef := range app.Containers {
 		// Checks if the image is already downloaded and downloads it if not
 		alreadyDownloaded, err := isImageDownloaded(dockerClient, containerDef.Image)
@@ -145,6 +141,15 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 
 		containerName := app.Id + "-" + containerDef.Name
 
+		// sets up the network config for the container
+		networkingConfig := &network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{networkId: {NetworkID: networkId}},
+		}
+		if containerDef.ProxyTarget {
+			// adds the network shared with homecloud api to the network config
+			networkingConfig.EndpointsConfig["homecloud-proxy"] = &network.EndpointSettings{NetworkID: "homecloud-proxy"}
+		}
+
 		result, err := dockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, networkingConfig, nil, containerName)
 		if err != nil {
 			return err
@@ -170,7 +175,7 @@ func StartApp(dockerClient *client.Client, appID string) error {
 		return err
 	}
 
-	// Starts each contianer
+	// Starts each container
 	for _, containerResult := range containers {
 		err = dockerClient.ContainerStart(context.Background(), containerResult.ID, container.StartOptions{})
 		if err != nil {
@@ -183,7 +188,7 @@ func StartApp(dockerClient *client.Client, appID string) error {
 
 // StopApp stops all containers related to the app
 func StopApp(dockerClient *client.Client, appID string) error {
-	// Retrieves list of containers filterted by app ID
+	// Retrieves list of containers filtered by app ID
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appID))),
 	})
@@ -290,6 +295,22 @@ func UntilState(dockerClient *client.Client, containerId string, state State, ti
 	}
 
 	return TimeoutError
+}
+
+func EnsureProxyNetwork(dockerClient *client.Client) error {
+	// creates network if it doesn't exist already
+	if _, err := dockerClient.NetworkInspect(context.Background(), "homecloud-proxy", network.InspectOptions{}); err != nil {
+		if _, err := dockerClient.NetworkCreate(context.Background(), "homecloud-proxy", network.CreateOptions{}); err != nil {
+			return err
+		}
+	}
+
+	// connects container to network
+	if err := dockerClient.NetworkConnect(context.Background(), "homecloud-proxy", os.Getenv("CONTAINER_NAME"), &network.EndpointSettings{}); err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 // simple function for creating

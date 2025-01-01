@@ -12,11 +12,13 @@ import (
 
 func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// Retrieves list of apps
 		appList, err := queries.GetApps(context.Background())
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
+		// returns them in a more compact format fit for lists
 		var resList []apps.PackageListItem
 		for _, app := range appList {
 			resList = append(resList, apps.PackageListItem{
@@ -32,14 +34,10 @@ func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 	}
 }
 
-func StartApp(dockerClient *client.Client) echo.HandlerFunc {
+func StartApp(appManager *apps.AppManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		appId := c.Param("appId")
-		if appId == "" {
-			return c.String(400, "App ID must be set")
-		}
-
-		err := apps.StartApp(dockerClient, appId)
+		err := appManager.StartApp(appId)
 		if err != nil {
 			return c.String(500, err.Error())
 		}

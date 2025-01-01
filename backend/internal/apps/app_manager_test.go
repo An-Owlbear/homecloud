@@ -44,7 +44,7 @@ func TestUpdateApps(t *testing.T) {
 
 	storeClient := NewStoreClient("https://raw.githubusercontent.com/An-Owlbear/homecloud/9ca76cb4fb9364f06595259e26ac43c845a7b05c/apps/list.json")
 
-	appManager := NewAppManager(dockerClient, storeClient, queries)
+	appManager := NewAppManager(dockerClient, storeClient, queries, Hosts{})
 
 	app := persistence.AppPackage{
 		Schema:      "v1.0",
