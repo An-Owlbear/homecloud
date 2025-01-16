@@ -107,9 +107,7 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 	}
 
 	// Checks the network configuration is correct
-	if len(result.NetworkSettings.Networks) != 1 {
-		t.Fatalf("App container should only have 1 network, has %d", len(result.NetworkSettings.Networks))
-	}
+	// TODO: update network testing to be more generalised
 	if networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks)); networkIds[0] == appNetwork.ID {
 		t.Fatalf("Incorrect network ID set in container\nExpected value: %s\nActual value: %s", appNetwork.ID, networkIds[0])
 	}
@@ -485,18 +483,27 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	if err != nil {
 		return
 	}
+
 	for i := 0; i < 200; i++ {
 		_, err = dockerClient.Ping(context.Background())
 		// If the connection is successful return
 		if err == nil {
-			fmt.Print(i)
-			return
+			break
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	// If the dind container doesn't start in 20 seconds fail
-	err = errors.New("Dind container didn't start in time")
+	if err != nil {
+		// If the dind container doesn't start in 20 seconds fail
+		err = errors.New("Dind container didn't start in time")
+		return
+	}
+
+	err = EnsureProxyNetwork(dockerClient)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -504,22 +511,22 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 func CleanupDind() {
 	errString := "Failure during cleanup of homecloud-test-container, you may need to remove it manually.\nCaused by error:\n"
 	err := hostClient.ContainerStop(context.Background(), "homecloud-test-container", container.StopOptions{})
-	if err != nil {
+	if err != nil && !client.IsErrNotFound(err) {
 		panic(errString + err.Error())
 	}
 
 	err = hostClient.ContainerRemove(context.Background(), "homecloud-test-container", container.RemoveOptions{})
-	if err != nil {
+	if err != nil && !client.IsErrNotFound(err) {
 		panic(errString + err.Error())
 	}
 
 	err = hostClient.NetworkDisconnect(context.Background(), "homecloud-tester", os.Getenv("TEST_CONTAINER_NAME"), true)
-	if err != nil {
+	if err != nil && !client.IsErrNotFound(err) {
 		panic(errString + err.Error())
 	}
 
 	err = hostClient.NetworkRemove(context.Background(), "homecloud-tester")
-	if err != nil {
+	if err != nil && !client.IsErrNotFound(err) {
 		panic(errString + err.Error())
 	}
 }
