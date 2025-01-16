@@ -1,4 +1,4 @@
-package apps
+package docker
 
 import (
 	"context"
@@ -54,7 +54,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 
 	for _, containerDef := range app.Containers {
 		// Checks if the image is already downloaded and downloads it if not
-		alreadyDownloaded, err := isImageDownloaded(dockerClient, containerDef.Image)
+		alreadyDownloaded, err := IsImageDownloaded(dockerClient, containerDef.Image)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func RemoveContainers(dockerClient *client.Client, appId string) error {
 	// Retrieve a list of containers to delete
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
 		All:     true,
-		Filters: filters.NewArgs(appFilter(appId)),
+		Filters: filters.NewArgs(AppFilter(appId)),
 	})
 	if err != nil {
 		return err
@@ -247,13 +247,13 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 	}
 
 	// removes unused volumes
-	_, err = dockerClient.VolumesPrune(context.Background(), filters.NewArgs(appFilter(appId)))
+	_, err = dockerClient.VolumesPrune(context.Background(), filters.NewArgs(AppFilter(appId)))
 	if err != nil {
 		return err
 	}
 
 	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
-		Filters: filters.NewArgs(appFilter(appId)),
+		Filters: filters.NewArgs(AppFilter(appId)),
 	})
 	if err != nil {
 		return err
@@ -273,7 +273,7 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 func GetAppContainers(dockerClient *client.Client, appId string) (containers []types.Container, err error) {
 	return dockerClient.ContainerList(context.Background(), container.ListOptions{
 		All:     true,
-		Filters: filters.NewArgs(appFilter(appId)),
+		Filters: filters.NewArgs(AppFilter(appId)),
 	})
 }
 
@@ -313,13 +313,13 @@ func EnsureProxyNetwork(dockerClient *client.Client) error {
 	return nil
 }
 
-// simple function for creating
-func appFilter(appId string) filters.KeyValuePair {
+// AppFilter simple function for creating
+func AppFilter(appId string) filters.KeyValuePair {
 	return filters.Arg("label", fmt.Sprintf("%s=%s", APP_ID_LABEL, appId))
 }
 
-// Checks if the image is downloaded already
-func isImageDownloaded(dockerClient *client.Client, imageName string) (alreadyDownloaded bool, err error) {
+// IsImageDownloaded Checks if the image is downloaded already
+func IsImageDownloaded(dockerClient *client.Client, imageName string) (alreadyDownloaded bool, err error) {
 	images, err := dockerClient.ImageList(context.Background(), image.ListOptions{})
 	if err != nil {
 		return

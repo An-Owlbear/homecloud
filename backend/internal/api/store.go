@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
@@ -45,7 +46,7 @@ func AddPackage(storeClient *apps.StoreClient, queries *persistence.Queries, doc
 		}
 
 		// Install and sets up app containers
-		err = apps.InstallApp(dockerClient, app)
+		err = docker.InstallApp(dockerClient, app)
 		if err != nil {
 			return c.String(500, err.Error())
 		}
@@ -65,9 +66,9 @@ func CheckUpdates(storeClient *apps.StoreClient) echo.HandlerFunc {
 	}
 }
 
-func UpdateApps(appManager *apps.AppManager) echo.HandlerFunc {
+func UpdateApps(dockerClient *client.Client, storeClient *apps.StoreClient, queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := appManager.UpdateApps()
+		err := apps.UpdateApps(dockerClient, storeClient, queries)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

@@ -8,7 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 	"github.com/An-Owlbear/homecloud/backend/internal/util"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pressly/goose/v3"
@@ -18,8 +20,8 @@ import (
 
 func TestUpdateApps(t *testing.T) {
 	// Setup dependencies
-	dockerClient, err := CreateDindClient()
-	defer CleanupDind()
+	dockerClient, err := testutils.CreateDindClient()
+	defer testutils.CleanupDind()
 	if err != nil {
 		t.Fatalf("Unexpected error setting up docker: %s", err.Error())
 	}
@@ -44,8 +46,6 @@ func TestUpdateApps(t *testing.T) {
 
 	storeClient := NewStoreClient("https://raw.githubusercontent.com/An-Owlbear/homecloud/9ca76cb4fb9364f06595259e26ac43c845a7b05c/apps/list.json")
 
-	appManager := NewAppManager(dockerClient, storeClient, queries, Hosts{})
-
 	app := persistence.AppPackage{
 		Schema:      "v1.0",
 		Version:     "v1.5",
@@ -68,7 +68,7 @@ func TestUpdateApps(t *testing.T) {
 	}
 
 	// Install and update app
-	err = InstallApp(dockerClient, app)
+	err = docker.InstallApp(dockerClient, app)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -90,7 +90,7 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error saving app to DB: %s", err.Error())
 	}
 
-	err = appManager.UpdateApps()
+	err = UpdateApps(dockerClient, storeClient, queries)
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
 	}
@@ -101,7 +101,7 @@ func TestUpdateApps(t *testing.T) {
 	app.Containers[0].ProxyPort = "80"
 	app.Containers[0].ProxyTarget = true
 	app.Containers[0].Environment = nil
-	HelpTestAppPackage(dockerClient, app, t)
+	testutils.HelpTestAppPackage(dockerClient, app, t)
 
 	// Check DB is updated properly
 	dbApp, err := queries.GetApp(context.Background(), app.Id)
