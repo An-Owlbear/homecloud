@@ -47,9 +47,6 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	if err != nil {
 		return
 	}
-	if err != nil {
-		return
-	}
 
 	err = hostClient.NetworkConnect(context.Background(), networkRes.ID, os.Getenv("TEST_CONTAINER_NAME"), &network.EndpointSettings{})
 	if err != nil {
