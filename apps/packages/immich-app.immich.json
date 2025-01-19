@@ -1,24 +1,24 @@
 {
   "schema": "v1.0",
-  "version": "v1.124.2",
+  "version": "v1.124.1",
   "id": "immich-app.immich",
   "name": "immich",
   "author": "immich-app",
   "description": "High-performance self-hosted photo and video management solution",
   "containers": [
     {
-      "name": "immich_maching_learning",
+      "name": "immich-machine-learning",
       "image": "ghcr.io/immich-app/immich-machine-learning:v1.124.2",
       "volumes": [
         "model-cache:/cache"
       ]
     },
     {
-      "name": "immich_redis",
+      "name": "redis",
       "image": "docker.io/redis:6.2-alpine@sha256:eaba718fecd1196d88533de7ba49bf903ad33664a92debb24660a922ecd9cac8"
     },
     {
-      "name": "immich_postgres",
+      "name": "database",
       "image": "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0",
       "environment": {
         "POSTGRES_PASSWORD": "postgres",
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "name": "immich_server",
+      "name": "immich-server",
       "image": "ghcr.io/immich-app/immich-server:v1.124.2",
       "volumes": [
         "uploads:/usr/src/app/upload",
