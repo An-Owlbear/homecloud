@@ -1,5 +1,12 @@
 [
   {
+    "id": "immich-app.immich",
+    "name": "immich",
+    "version": "v1.124.2.1",
+    "author": "immich-app",
+    "description": "High-performance self-hosted photo and video management solution"
+  },
+  {
     "id": "paperless-ngx.paperless-ngx",
     "name": "paperless-ngx",
     "version": "v1.0",
