@@ -17,12 +17,22 @@
               "password": {
                 "identifier": true
               }
+            },
+            "verification": {
+              "via": "email"
             }
           }
+        },
+        "name": {
+          "type": "string",
+          "title": "Display username",
+          "minLength": 1,
+          "maxLength": 20
         }
       },
       "required": [
-        "email"
+        "email",
+        "name"
       ],
       "additionalProperties": false
     }

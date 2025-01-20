@@ -46,6 +46,13 @@ selfservice:
           hooks:
             - hook: session
 
+    verification:
+      enabled: true
+      ui_url: http://login.hc.anowlbear.com:1323/verification
+      use: code
+      after:
+        default_browser_return_url: http://login.hc.anowlbear.com/
+
 log:
   format: text
   leak_sensitive_values: true
