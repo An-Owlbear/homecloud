@@ -15,7 +15,7 @@ services:
     command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
     restart: on-failure
     networks:
-      - orynet
+      - homecloud-proxy
   kratos-selfservice-ui-node:
     image: oryd/kratos-selfservice-ui-node:v1.1.0
     ports:
@@ -24,13 +24,13 @@ services:
       - PORT=4455
       - HYDRA_ADMIN_URL=http://hydra:4445
       - KRATOS_PUBLIC_URL=http://kratos:4433
-      - KRATOS_BROWSER_URL=http://127.0.0.1:4433
+      - KRATOS_BROWSER_URL=http://kratos.hc.anowlbear.com:1323
       - COOKIE_SECRET=changeme
       - CSRF_COOKIE_NAME=cookie_name
       - CSRF_COOKIE_SECRET=changeme
       - DANGEROUSLY_DISABLE_SECURE_CSRF_COOKIES=true
     networks:
-      - orynet
+      - homecloud-proxy
     restart: on-failure
   kratos:
     depends_on:
@@ -53,7 +53,7 @@ services:
         source: ./ory_config
         target: /etc/config/kratos
     networks:
-      - orynet
+      - homecloud-proxy
   hydra:
     image: oryd/hydra:v2.2.0
     ports:
@@ -75,7 +75,7 @@ services:
     depends_on:
       - hydra-migrate
     networks:
-      - orynet
+      - homecloud-proxy
   hydra-migrate:
     image: oryd/hydra:v2.2.0
     environment:
@@ -91,10 +91,11 @@ services:
         target: /etc/config/hydra
     restart: on-failure
     networks:
-      - orynet
+      - homecloud-proxy
 
 networks:
-  orynet:
+  homecloud-proxy:
+    external: true
 volumes:
   hydra-sqlite:
   kratos-sqlite:

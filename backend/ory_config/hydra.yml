@@ -4,12 +4,12 @@ serve:
 
 urls:
   self:
-    issuer: http://127.0.0.1:4444
-  consent: http://127.0.0.1:4455/consent
-  login: http://127.0.0.1:4455/login
-  logout: http://127.0.0.1:4455/logout
+    issuer: http://hydra.hc.anowlbear.com:1323
+  consent: http://login.hc.anowlbear.com:1323/consent
+  login: http://login.hc.anowlbear.com:1323/login
+  logout: http://login.hc.anowlbear.com:1323/logout
   identity_provider:
-    publicUrl: http://127.0.0.1:4433
+    publicUrl: http://kratos.hc.anowlbear.com:1323
     url: http://127.0.0.1:4434
 
 secrets:

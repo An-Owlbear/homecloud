@@ -3,6 +3,7 @@ package apps
 import (
 	"fmt"
 	"net/url"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -27,12 +28,12 @@ func AddProxy(hosts Hosts, hostAddress string, proxyAddress string, proxyPort st
 	}
 
 	proxyHost.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(targets)))
-	hosts[fmt.Sprintf("%s.home.cloud:1323", hostAddress)] = proxyHost
+	hosts[fmt.Sprintf("%s.%s:%s", hostAddress, os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT"))] = proxyHost
 
 	return nil
 }
 
 // RemoveProxy removes the proxy for the given host address
 func RemoveProxy(hosts Hosts, hostAddress string) {
-	delete(hosts, fmt.Sprintf("%s.home.cloud:1323", hostAddress))
+	delete(hosts, fmt.Sprintf("%s.%s:%s", hostAddress, os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT")))
 }

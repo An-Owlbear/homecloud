@@ -4,16 +4,16 @@ dsn: memory
 
 serve:
   public:
-    base_url: http://127.0.0.1:4433
+    base_url: http://kratos.hc.anowlbear.com:1323
     cors:
-      enabled: true
+      enabled: false
   admin:
     base_url: http://127.0.0.1:4434
 
 selfservice:
-  default_browser_return_url: http://127.0.0.1:4455/
+  default_browser_return_url: http://login.hc.anowlbear.com:1323/
   allowed_return_urls:
-    - http://127.0.0.1:4455
+    - http://login.hc.anowlbear.com:1323
 
   methods:
     password:
@@ -25,22 +25,22 @@ selfservice:
 
   flows:
     error:
-      ui_url: http://127.0.0.1:4455/error
+      ui_url: http://login.hc.anowlbear.com:1323/error
 
     settings:
-      ui_url: http://127.0.0.1:4455/settings
+      ui_url: http://login.hc.anowlbear.com:1323/settings
       privileged_session_max_age: 15m
       required_aal: highest_available
 
     logout:
       after:
-        default_browser_return_url: http://127.0.0.1:4455/login
+        default_browser_return_url: http://login.hc.anowlbear.com:1323/login
 
     login:
-      ui_url: http://127.0.0.1:4455/login
+      ui_url: http://login.hc.anowlbear.com:1323/login
 
     registration:
-      ui_url: http://127.0.0.1:4455/registration
+      ui_url: http://login.hc.anowlbear.com:1323/registration
       after:
         password:
           hooks:
@@ -68,3 +68,14 @@ courier:
 
 oauth2_provider:
   url: http://hydra:4445
+
+cookies:
+  domain: anowlbear.com
+  path: /
+  same_site: Lax
+
+session:
+  cookie:
+    domain: anowlbear.com
+    path: /
+    same_site: Strict
