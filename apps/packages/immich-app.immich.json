@@ -1,10 +1,16 @@
 {
   "schema": "v1.0",
-  "version": "v1.124.2.1",
+  "version": "v1.124.3",
   "id": "immich-app.immich",
   "name": "immich",
   "author": "immich-app",
   "description": "High-performance self-hosted photo and video management solution",
+  "oidc_enabled": true,
+  "oidc_scopes": [
+    "openid",
+    "email",
+    "profile"
+  ],
   "containers": [
     {
       "name": "immich-machine-learning",
@@ -43,7 +49,11 @@
         "DB_DATABASE_NAME": "immich"
       },
       "proxy_target": true,
-      "proxy_port": "2283"
+      "proxy_port": "2283",
+      "oidc_redirect_uris": [
+        "/auth/login",
+        "/user-settings"
+      ]
     }
   ],
   "volumes": [
