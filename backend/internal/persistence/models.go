@@ -4,8 +4,14 @@
 
 package persistence
 
+import (
+	"database/sql"
+)
+
 type App struct {
-	ID        string
-	Schema    []byte
-	DateAdded int64
+	ID           string
+	Schema       []byte
+	DateAdded    int64
+	ClientID     sql.NullString
+	ClientSecret sql.NullString
 }

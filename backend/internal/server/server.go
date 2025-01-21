@@ -14,6 +14,7 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
+	hydra "github.com/ory/hydra-client-go/v2"
 )
 
 func CreateServer() *echo.Echo {
@@ -24,6 +25,7 @@ func CreateServer() *echo.Echo {
 
 	hosts := apps.Hosts{}
 
+	// Sets up docker client
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
@@ -33,6 +35,7 @@ func CreateServer() *echo.Echo {
 		panic(err)
 	}
 
+	// Sets of database connection
 	db, err := sql.Open("sqlite3", "file:tmp/data.db")
 	if err != nil {
 		panic(err)
@@ -41,13 +44,24 @@ func CreateServer() *echo.Echo {
 	queries := persistence.New(db)
 	storeClient := apps.NewStoreClient(os.Getenv("STORE_URL"))
 
+	// Sets up ory hydra client
+	hydraAdminConfig := hydra.NewConfiguration()
+	hydraAdminConfig.Servers = []hydra.ServerConfiguration{
+		{
+			URL: "http://hydra:4445",
+		},
+	}
+	hydraAdmin := hydra.NewAPIClient(hydraAdminConfig)
+
+	// Setups of hard coded proxies
 	backendApi := echo.New()
-	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts)
+	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin)
 	hosts[fmt.Sprintf("%s:%s", os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT"))] = backendApi
 	apps.AddProxy(hosts, "hydra", "hydra", "4444")
 	apps.AddProxy(hosts, "login", "kratos-selfservice-ui-node", "4455")
 	apps.AddProxy(hosts, "kratos", "kratos", "4433")
 
+	// Sets up global logging
 	e := echo.New()
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus: true,
@@ -59,6 +73,7 @@ func CreateServer() *echo.Echo {
 		},
 	}))
 
+	// Checks which HTTP server/proxy to send traffic to
 	e.Any("/*", func(c echo.Context) (err error) {
 		c.Logger().Error(fmt.Sprintf("Hosts: %+v", hosts))
 

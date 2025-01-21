@@ -11,17 +11,24 @@ import (
 )
 
 const createApp = `-- name: CreateApp :exec
-INSERT INTO apps (id, schema, date_added)
-VALUES (?1, jsonb(?2), unixepoch())
+INSERT INTO apps (id, schema, date_added, client_id, client_secret)
+VALUES (?1, jsonb(?2), unixepoch(), ?3, ?4)
 `
 
 type CreateAppParams struct {
-	ID     string
-	Schema interface{}
+	ID           string
+	Schema       interface{}
+	ClientID     sql.NullString
+	ClientSecret sql.NullString
 }
 
 func (q *Queries) CreateApp(ctx context.Context, arg CreateAppParams) error {
-	_, err := q.db.ExecContext(ctx, createApp, arg.ID, arg.Schema)
+	_, err := q.db.ExecContext(ctx, createApp,
+		arg.ID,
+		arg.Schema,
+		arg.ClientID,
+		arg.ClientSecret,
+	)
 	return err
 }
 
