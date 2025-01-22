@@ -68,7 +68,7 @@ func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *
 	return nil
 }
 
-func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts Hosts, appId string) error {
+func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *Hosts, appId string) error {
 	app, err := queries.GetApp(context.Background(), appId)
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts H
 	// Check if any containers need proxying and proxy if needed
 	for _, packageContainer := range app.Schema.Containers {
 		if packageContainer.ProxyTarget {
-			err = AddProxy(hosts, app.Schema.Name, fmt.Sprintf("%s-%s", app.Schema.Id, packageContainer.Name), packageContainer.ProxyPort)
+			err = hosts.AddProxy(app.Schema.Name, fmt.Sprintf("%s-%s", app.Schema.Id, packageContainer.Name), packageContainer.ProxyPort)
 			if err != nil {
 				return err
 			}

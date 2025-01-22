@@ -24,7 +24,7 @@ func AddRoutes(
 	docker *client.Client,
 	queries *persistence.Queries,
 	storeClient *apps.StoreClient,
-	hosts apps.Hosts,
+	hosts *apps.Hosts,
 	hydraAdmin *hydra.APIClient,
 	hostConfig config.Host,
 ) {

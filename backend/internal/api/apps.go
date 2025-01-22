@@ -35,7 +35,7 @@ func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 	}
 }
 
-func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts apps.Hosts) echo.HandlerFunc {
+func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *apps.Hosts) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		appId := c.Param("appId")
 		err := apps.StartApp(dockerClient, queries, hosts, appId)

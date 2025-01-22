@@ -2,17 +2,25 @@ package apps
 
 import (
 	"fmt"
-	"net/url"
-	"os"
-
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/url"
 )
 
-type Hosts map[string]*echo.Echo
+type HostsMap map[string]*echo.Echo
+
+type Hosts struct {
+	hosts  HostsMap
+	config config.Host
+}
+
+func NewHosts(hosts HostsMap, config config.Host) *Hosts {
+	return &Hosts{hosts: hosts, config: config}
+}
 
 // AddProxy creates and adds a new reverse proxy at the given address
-func AddProxy(hosts Hosts, hostAddress string, proxyAddress string, proxyPort string) error {
+func (hosts *Hosts) AddProxy(hostAddress string, proxyAddress string, proxyPort string) error {
 	// creates echo host for the application
 	proxyHost := echo.New()
 
@@ -28,12 +36,12 @@ func AddProxy(hosts Hosts, hostAddress string, proxyAddress string, proxyPort st
 	}
 
 	proxyHost.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(targets)))
-	hosts[fmt.Sprintf("%s.%s:%s", hostAddress, os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT"))] = proxyHost
+	hosts.hosts[fmt.Sprintf("%s.%s:%d", hostAddress, hosts.config.Host, hosts.config.Port)] = proxyHost
 
 	return nil
 }
 
 // RemoveProxy removes the proxy for the given host address
-func RemoveProxy(hosts Hosts, hostAddress string) {
-	delete(hosts, fmt.Sprintf("%s.%s:%s", hostAddress, os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT")))
+func (hosts *Hosts) RemoveProxy(hostAddress string) {
+	delete(hosts.hosts, fmt.Sprintf("%s.%s:%d", hostAddress, hosts.config.Host, hosts.config.Port))
 }

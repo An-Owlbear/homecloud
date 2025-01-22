@@ -61,13 +61,14 @@ func CreateServer() *echo.Echo {
 	hydraAdmin := hydra.NewAPIClient(hydraAdminConfig)
 
 	// Setups of hard coded proxies
-	hosts := apps.Hosts{}
+	hostsMap := apps.HostsMap{}
+	hosts := apps.NewHosts(hostsMap, hostConfig)
 	backendApi := echo.New()
 	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin, hostConfig)
-	hosts[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
-	apps.AddProxy(hosts, "hydra", "hydra", "4444")
-	apps.AddProxy(hosts, "login", "kratos-selfservice-ui-node", "4455")
-	apps.AddProxy(hosts, "kratos", "kratos", "4433")
+	hostsMap[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
+	hosts.AddProxy("hydra", "hydra", "4444")
+	hosts.AddProxy("login", "kratos-selfservice-ui-node", "4455")
+	hosts.AddProxy("kratos", "kratos", "4433")
 
 	// Sets up global logging
 	e := echo.New()
@@ -83,7 +84,7 @@ func CreateServer() *echo.Echo {
 
 	// Checks which HTTP server/proxy to send traffic to
 	e.Any("/*", func(c echo.Context) (err error) {
-		if host, ok := hosts[c.Request().Host]; ok {
+		if host, ok := hostsMap[c.Request().Host]; ok {
 			host.ServeHTTP(c.Response(), c.Request())
 		} else {
 			err = echo.ErrNotFound
