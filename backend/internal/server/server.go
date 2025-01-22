@@ -3,10 +3,12 @@ package server
 import (
 	"database/sql"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3"
 	"os"
+	"strconv"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/api"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
@@ -23,7 +25,12 @@ func CreateServer() *echo.Echo {
 		panic(err)
 	}
 
-	hosts := apps.Hosts{}
+	// Loads the configuration
+	hostPort, err := strconv.Atoi(os.Getenv("HOMECLOUD_PORT"))
+	if err != nil {
+		panic(err)
+	}
+	hostConfig := config.NewHost(os.Getenv("HOMECLOUD_HOST"), hostPort)
 
 	// Sets up docker client
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -54,9 +61,10 @@ func CreateServer() *echo.Echo {
 	hydraAdmin := hydra.NewAPIClient(hydraAdminConfig)
 
 	// Setups of hard coded proxies
+	hosts := apps.Hosts{}
 	backendApi := echo.New()
-	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin)
-	hosts[fmt.Sprintf("%s:%s", os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT"))] = backendApi
+	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin, hostConfig)
+	hosts[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
 	apps.AddProxy(hosts, "hydra", "hydra", "4444")
 	apps.AddProxy(hosts, "login", "kratos-selfservice-ui-node", "4455")
 	apps.AddProxy(hosts, "kratos", "kratos", "4433")
@@ -75,8 +83,6 @@ func CreateServer() *echo.Echo {
 
 	// Checks which HTTP server/proxy to send traffic to
 	e.Any("/*", func(c echo.Context) (err error) {
-		c.Logger().Error(fmt.Sprintf("Hosts: %+v", hosts))
-
 		if host, ok := hosts[c.Request().Host]; ok {
 			host.ServeHTTP(c.Response(), c.Request())
 		} else {

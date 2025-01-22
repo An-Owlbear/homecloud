@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	hydra "github.com/ory/hydra-client-go/v2"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
@@ -18,7 +19,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func AddPackage(storeClient *apps.StoreClient, queries *persistence.Queries, dockerClient *client.Client, hydraAdmin *hydra.APIClient) echo.HandlerFunc {
+func AddPackage(
+	storeClient *apps.StoreClient,
+	queries *persistence.Queries,
+	dockerClient *client.Client,
+	hydraAdmin *hydra.APIClient,
+	hostConfig config.Host,
+) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("appId")
 		if id == "" {
@@ -51,7 +58,13 @@ func AddPackage(storeClient *apps.StoreClient, queries *persistence.Queries, doc
 		if app.OidcEnabled {
 			var redirectUris []string
 			for _, appContainer := range app.Containers {
-				redirectUris = slices.Concat(redirectUris, appContainer.OidcRedirectUris)
+				// If the redirect uri starts with a slash append the actual host
+				for _, redirectUri := range appContainer.OidcRedirectUris {
+					if strings.HasPrefix(redirectUri, "/") {
+						redirectUri = fmt.Sprintf("http://%s.%s:%d%s", app.Name, hostConfig.Host, hostConfig.Port, redirectUri)
+					}
+					redirectUris = append(redirectUris, redirectUri)
+				}
 			}
 
 			oidcClient, err := auth.SetupAppAuth(hydraAdmin, app.Name, strings.Join(app.OidcScopes[:], " "), redirectUris)

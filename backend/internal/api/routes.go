@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	hydra "github.com/ory/hydra-client-go/v2"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
@@ -25,11 +26,12 @@ func AddRoutes(
 	storeClient *apps.StoreClient,
 	hosts apps.Hosts,
 	hydraAdmin *hydra.APIClient,
+	hostConfig config.Host,
 ) {
 	e.GET("/", test(docker))
 	e.GET("/db", db_test(queries))
 
-	e.POST("/api/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin))
+	e.POST("/api/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hostConfig))
 	e.POST("/api/v1/packages/update", CheckUpdates(storeClient))
 
 	e.GET("/api/v1/apps", ListApps(queries))
