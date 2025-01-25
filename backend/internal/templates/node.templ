@@ -1,0 +1,30 @@
+package templates
+
+import "strconv"
+
+import kratos "github.com/ory/kratos-client-go"
+
+templ Node(node kratos.UiNode) {
+    if node.Attributes.UiNodeInputAttributes.Type == "submit" {
+        <button
+            id={ node.Attributes.UiNodeInputAttributes.Name }
+            type={ node.Attributes.UiNodeInputAttributes.Type }
+            name={ node.Attributes.UiNodeInputAttributes.Name }
+            value={ node.Attributes.UiNodeInputAttributes.Value.(string) }
+        >
+            { node.Meta.Label.Text }
+        </button>
+    } else if node.Attributes.UiNodeInputAttributes.Name == "csrf_token" {
+        <input type="hidden" name={ node.Attributes.UiNodeInputAttributes.Name } value={getInputNodeValue(node)}>
+    } else {
+        <div>
+            <label for={ node.Attributes.UiNodeInputAttributes.Name }>{ node.Meta.Label.Text }</label>
+            <input
+                type={ node.Attributes.UiNodeInputAttributes.Name }
+                id={ node.Attributes.UiNodeInputAttributes.Name }
+                name={ node.Attributes.UiNodeInputAttributes.Name }
+                required={ strconv.FormatBool(*node.Attributes.UiNodeInputAttributes.Required) }
+            >
+        </div>
+    }
+}

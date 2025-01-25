@@ -1,0 +1,11 @@
+package templates
+
+import kratos "github.com/ory/kratos-client-go"
+
+templ Login(flow kratos.UiContainer) {
+    <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) }>
+        for _, node := range flow.Nodes {
+            @Node(node)
+        }
+    </form>
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	hydra "github.com/ory/hydra-client-go/v2"
+	kratos "github.com/ory/kratos-client-go"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
@@ -26,6 +27,7 @@ func AddRoutes(
 	storeClient *apps.StoreClient,
 	hosts *apps.Hosts,
 	hydraAdmin *hydra.APIClient,
+	kratosClient *kratos.APIClient,
 	hostConfig config.Host,
 ) {
 	e.GET("/", test(docker))
@@ -39,6 +41,8 @@ func AddRoutes(
 	e.POST("/api/v1/apps/:appId/stop", StopApp(docker))
 	e.POST("/api/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
 	e.POST("/api/v1/apps/update", UpdateApps(docker, storeClient, queries))
+
+	e.GET("/auth/login", Login(kratosClient))
 }
 
 func test(docker *client.Client) echo.HandlerFunc {

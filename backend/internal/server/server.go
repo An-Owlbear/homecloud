@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3"
+	kratos "github.com/ory/kratos-client-go"
 	"os"
 	"strconv"
 
@@ -60,11 +61,20 @@ func CreateServer() *echo.Echo {
 	}
 	hydraAdmin := hydra.NewAPIClient(hydraAdminConfig)
 
+	// Sets up ory kratos client
+	kratosConfig := kratos.NewConfiguration()
+	kratosConfig.Servers = []kratos.ServerConfiguration{
+		{
+			URL: "http://kratos:4433",
+		},
+	}
+	kratosClient := kratos.NewAPIClient(kratosConfig)
+
 	// Setups of hard coded proxies
 	hostsMap := apps.HostsMap{}
 	hosts := apps.NewHosts(hostsMap, hostConfig)
 	backendApi := echo.New()
-	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin, hostConfig)
+	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin, kratosClient, hostConfig)
 	hostsMap[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
 	hosts.AddProxy("hydra", "hydra", "4444")
 	hosts.AddProxy("login", "kratos-selfservice-ui-node", "4455")
