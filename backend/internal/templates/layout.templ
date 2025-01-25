@@ -1,0 +1,13 @@
+package templates
+
+templ Layout(title string) {
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Homecloud - { title }</title>
+        </head>
+        <body>
+            { children... }
+        </body>
+    </html>
+}
