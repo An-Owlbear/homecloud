@@ -17,7 +17,7 @@ templ Node(node kratos.UiNode) {
     } else if node.Attributes.UiNodeInputAttributes.Name == "csrf_token" {
         <input type="hidden" name={ node.Attributes.UiNodeInputAttributes.Name } value={getInputNodeValue(node)}>
     } else {
-        <div>
+        <div class="auth-input-container">
             <label for={ node.Attributes.UiNodeInputAttributes.Name }>{ node.Meta.Label.Text }</label>
             <input
                 type={ node.Attributes.UiNodeInputAttributes.Name }

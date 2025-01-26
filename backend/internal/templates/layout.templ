@@ -4,7 +4,10 @@ templ Layout(title string) {
     <!DOCTYPE html>
     <html>
         <head>
-            <title>Homecloud - { title }</title>
+            <title>{ title } - Homecloud</title>
+            <link rel="stylesheet" href="/assets/auth.css">
+            <link rel="preconnect" href="/assets/fonts">
+            <link rel="stylesheet" href="/assets/fonts/inter.css">
         </head>
         <body>
             { children... }

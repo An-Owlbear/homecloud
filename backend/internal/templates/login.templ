@@ -4,10 +4,16 @@ import kratos "github.com/ory/kratos-client-go"
 
 templ Login(flow kratos.UiContainer) {
     @Layout("login") {
-        <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) }>
-            for _, node := range flow.Nodes {
-                @Node(node)
-            }
-        </form>
+        <div class="auth-container">
+            <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
+                <h1>Login</h1>
+                for _, node := range flow.Nodes {
+                    @Node(node)
+                }
+                <div class="auth-form-footer">
+                    <a href="/auth/registration">Register</a>
+                </div>
+            </form>
+        </div>
     }
 }
