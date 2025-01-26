@@ -20,11 +20,15 @@ templ Node(node kratos.UiNode) {
         <div class="auth-input-container">
             <label for={ node.Attributes.UiNodeInputAttributes.Name }>{ node.Meta.Label.Text }</label>
             <input
+                class={ templ.KV("error", len(node.Messages) > 0) }
                 type={ node.Attributes.UiNodeInputAttributes.Name }
                 id={ node.Attributes.UiNodeInputAttributes.Name }
                 name={ node.Attributes.UiNodeInputAttributes.Name }
                 required={ strconv.FormatBool(*node.Attributes.UiNodeInputAttributes.Required) }
             >
         </div>
+        for _, message := range node.Messages {
+            <span class="form-input-message">{ message.Text }</span>
+        }
     }
 }

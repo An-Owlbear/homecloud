@@ -7,6 +7,9 @@ templ Login(flow kratos.UiContainer) {
         <div class="auth-container">
             <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
                 <h1>Login</h1>
+                for _, message := range flow.Messages {
+                    <span class="form-input-message">{ message.Text }</span>
+                }
                 for _, node := range flow.Nodes {
                     @Node(node)
                 }
