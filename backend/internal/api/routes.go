@@ -43,6 +43,7 @@ func AddRoutes(
 	e.POST("/api/v1/apps/update", UpdateApps(docker, storeClient, queries))
 
 	e.GET("/auth/login", Login(kratosClient))
+	e.GET("/auth/registration", Registration(kratosClient))
 	e.Static("/assets", "assets")
 }
 
