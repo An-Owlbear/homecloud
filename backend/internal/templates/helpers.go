@@ -22,3 +22,10 @@ func getInputNodeValue(node kratos.UiNode) string {
 
 	return ""
 }
+
+func getInputNodeAutocomplete(node kratos.UiNode) string {
+	if node.Attributes.UiNodeInputAttributes.Autocomplete == nil {
+		return "off"
+	}
+	return *node.Attributes.UiNodeInputAttributes.Autocomplete
+}

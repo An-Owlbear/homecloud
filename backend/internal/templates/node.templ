@@ -15,7 +15,7 @@ templ Node(node kratos.UiNode) {
             { node.Meta.Label.Text }
         </button>
     } else if node.Attributes.UiNodeInputAttributes.Name == "csrf_token" {
-        <input type="hidden" name={ node.Attributes.UiNodeInputAttributes.Name } value={getInputNodeValue(node)}>
+        <input type="hidden" name={ node.Attributes.UiNodeInputAttributes.Name } value={ getInputNodeValue(node) }>
     } else {
         <div class="auth-input-container">
             <label for={ node.Attributes.UiNodeInputAttributes.Name }>{ node.Meta.Label.Text }</label>
@@ -25,6 +25,8 @@ templ Node(node kratos.UiNode) {
                 id={ node.Attributes.UiNodeInputAttributes.Name }
                 name={ node.Attributes.UiNodeInputAttributes.Name }
                 required={ strconv.FormatBool(*node.Attributes.UiNodeInputAttributes.Required) }
+                autocomplete={ getInputNodeAutocomplete(node) }
+                value={ getInputNodeValue(node) }
             >
         </div>
         for _, message := range node.Messages {

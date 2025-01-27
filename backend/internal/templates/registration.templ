@@ -1,8 +1,10 @@
 package templates
 
-import kratos "github.com/ory/kratos-client-go"
+import (
+    kratos "github.com/ory/kratos-client-go"
+)
 
-templ Registration(flow kratos.UiContainer) {
+templ Registration(flow kratos.UiContainer, inviteCodeRequest string) {
     @Layout("Registration") {
         <div class="auth-container">
             <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
@@ -10,6 +12,7 @@ templ Registration(flow kratos.UiContainer) {
                 for _, message := range flow.Messages {
                     <span class="form-input-message">{ message.Text }</span>
                 }
+                <input type="hidden" name="transient_payload" value={ inviteCodeRequest }>
                 for _, node := range flow.Nodes {
                     @Node(node)
                 }

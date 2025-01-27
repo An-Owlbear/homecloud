@@ -45,6 +45,13 @@ selfservice:
       after:
         password:
           hooks:
+            - hook: web_hook
+              config:
+                url: http://hc.anowlbear.com:1323/api/v1/invites/check
+                method: POST
+                body: "file:///etc/config/kratos/pre_registration.jsonnet"
+                response:
+                  parse: true
             - hook: session
 
     verification:
