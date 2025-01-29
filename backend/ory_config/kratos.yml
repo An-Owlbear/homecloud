@@ -49,10 +49,17 @@ selfservice:
               config:
                 url: http://hc.anowlbear.com:1323/api/v1/invites/check
                 method: POST
-                body: "file:///etc/config/kratos/pre_registration.jsonnet"
+                body: "file:///etc/config/kratos/invite_code.jsonnet"
                 response:
                   parse: true
             - hook: session
+            - hook: web_hook
+              config:
+                url: http://hc.anowlbear.com:1323/api/v1/invites
+                method: DELETE
+                body: "file:///etc/config/kratos/invite_code.jsonnet"
+                response:
+                  parse: false
 
     verification:
       enabled: true

@@ -42,7 +42,9 @@ func AddRoutes(
 	e.POST("/api/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
 	e.POST("/api/v1/apps/update", UpdateApps(docker, storeClient, queries))
 
-	e.POST("/api/v1/invites/check", CheckInvitationCode())
+	e.POST("/api/v1/invites/check", CheckInvitationCode(queries))
+	e.PUT("/api/v1/invites", CreateInviteCode(queries))
+	e.DELETE("/api/v1/invites", RemoveUsedCode(queries))
 
 	e.GET("/auth/login", Login(kratosClient))
 	e.GET("/auth/registration", Registration(kratosClient))

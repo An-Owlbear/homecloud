@@ -6,6 +6,7 @@ package persistence
 
 import (
 	"database/sql"
+	"time"
 )
 
 type App struct {
@@ -14,4 +15,9 @@ type App struct {
 	DateAdded    int64
 	ClientID     sql.NullString
 	ClientSecret sql.NullString
+}
+
+type InviteCode struct {
+	Code       string
+	ExpiryDate time.Time
 }
