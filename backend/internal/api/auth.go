@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/templates"
 	"github.com/labstack/echo/v4"
 	kratos "github.com/ory/kratos-client-go"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"path"
@@ -56,7 +56,6 @@ func Registration(kratosClient *kratos.APIClient) echo.HandlerFunc {
 			return err
 		}
 
-		slog.Info(flow.RequestUrl)
 		originalUrl, err := url.Parse(flow.RequestUrl)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid url received")
@@ -75,5 +74,28 @@ func Registration(kratosClient *kratos.APIClient) echo.HandlerFunc {
 		}
 
 		return render(c, http.StatusOK, templates.Registration(flow.Ui, string(inviteRequestString)))
+	}
+}
+
+func ListUsers(kratosAdminClient kratos.IdentityAPI) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		users, err := auth.ListUsers(c.Request().Context(), kratosAdminClient)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to list users")
+		}
+
+		return c.JSON(http.StatusOK, users)
+	}
+}
+
+func DeleteUser(kratosIdentity kratos.IdentityAPI) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userId := c.Param("id")
+		err := auth.DeleteUser(c.Request().Context(), kratosIdentity, userId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to delete user")
+		}
+
+		return c.NoContent(http.StatusNoContent)
 	}
 }

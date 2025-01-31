@@ -70,11 +70,30 @@ func CreateServer() *echo.Echo {
 	}
 	kratosClient := kratos.NewAPIClient(kratosConfig)
 
+	// Sets up ory kratos admin client
+	kratosAdminConfig := kratos.NewConfiguration()
+	kratosAdminConfig.Servers = []kratos.ServerConfiguration{
+		{
+			URL: "http://kratos:4434",
+		},
+	}
+	kratosAdmin := kratos.NewAPIClient(kratosAdminConfig)
+
 	// Setups of hard coded proxies
 	hostsMap := apps.HostsMap{}
 	hosts := apps.NewHosts(hostsMap, hostConfig)
 	backendApi := echo.New()
-	api.AddRoutes(backendApi, dockerClient, queries, storeClient, hosts, hydraAdmin, kratosClient, hostConfig)
+	api.AddRoutes(
+		backendApi,
+		dockerClient,
+		queries,
+		storeClient,
+		hosts,
+		hydraAdmin,
+		kratosClient,
+		kratosAdmin.IdentityAPI,
+		hostConfig,
+	)
 	hostsMap[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
 	hosts.AddProxy("hydra", "hydra", "4444")
 	hosts.AddProxy("login", "kratos-selfservice-ui-node", "4455")

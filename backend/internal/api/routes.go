@@ -28,6 +28,7 @@ func AddRoutes(
 	hosts *apps.Hosts,
 	hydraAdmin *hydra.APIClient,
 	kratosClient *kratos.APIClient,
+	kratosIdentityAPI kratos.IdentityAPI,
 	hostConfig config.Host,
 ) {
 	e.GET("/", test(docker))
@@ -45,6 +46,9 @@ func AddRoutes(
 	e.POST("/api/v1/invites/check", CheckInvitationCode(queries))
 	e.PUT("/api/v1/invites", CreateInviteCode(queries))
 	e.DELETE("/api/v1/invites", RemoveUsedCode(queries))
+
+	e.GET("/api/v1/users", ListUsers(kratosIdentityAPI))
+	e.DELETE("/api/v1/users/:id", DeleteUser(kratosIdentityAPI))
 
 	e.GET("/auth/login", Login(kratosClient))
 	e.GET("/auth/registration", Registration(kratosClient))
