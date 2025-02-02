@@ -1,7 +1,5 @@
 package templates
 
-import "strconv"
-
 import kratos "github.com/ory/kratos-client-go"
 
 templ Node(node kratos.UiNode) {
@@ -18,13 +16,15 @@ templ Node(node kratos.UiNode) {
         <input type="hidden" name={ node.Attributes.UiNodeInputAttributes.Name } value={ getInputNodeValue(node) }>
     } else {
         <div class="auth-input-container">
-            <label for={ node.Attributes.UiNodeInputAttributes.Name }>{ node.Meta.Label.Text }</label>
+            if node.Attributes.UiNodeInputAttributes.Type != "hidden" {
+                <label for={ node.Attributes.UiNodeInputAttributes.Name }>{ node.Meta.Label.Text }</label>
+            }
             <input
                 class={ templ.KV("error", len(node.Messages) > 0) }
-                type={ node.Attributes.UiNodeInputAttributes.Name }
+                type={ node.Attributes.UiNodeInputAttributes.Type }
                 id={ node.Attributes.UiNodeInputAttributes.Name }
                 name={ node.Attributes.UiNodeInputAttributes.Name }
-                required={ strconv.FormatBool(*node.Attributes.UiNodeInputAttributes.Required) }
+                required?={ node.Attributes.UiNodeInputAttributes.Required == boolPointer(true) }
                 autocomplete={ getInputNodeAutocomplete(node) }
                 value={ getInputNodeValue(node) }
             >

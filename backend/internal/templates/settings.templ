@@ -1,0 +1,27 @@
+package templates
+
+import "golang.org/x/text/cases"
+import "golang.org/x/text/language"
+
+import kratos "github.com/ory/kratos-client-go"
+
+templ Settings(flow kratos.UiContainer) {
+    @Layout("Account settings") {
+        <div class="auth-container">
+            <div class="auth-inner-container">
+                <h1>Account settings</h1>
+                for _, message := range flow.Messages {
+                    <span class="form-input-message">{ message.Text }</span>
+                }
+                for name, nodes := range organiseForms(flow) {
+                    <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
+                        <h2>{ cases.Title(language.English).String(name) }</h2>
+                        for _, node := range nodes {
+                            @Node(node)
+                        }
+                    </form>
+                }
+            </div>
+        </div>
+    }
+}

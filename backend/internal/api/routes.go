@@ -52,6 +52,7 @@ func AddRoutes(
 
 	e.GET("/auth/login", Login(kratosClient))
 	e.GET("/auth/registration", Registration(kratosClient))
+	e.GET("/auth/settings", Settings(kratosClient))
 	e.Static("/assets", "assets")
 }
 

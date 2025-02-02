@@ -29,7 +29,7 @@ selfservice:
       ui_url: http://login.hc.anowlbear.com:1323/error
 
     settings:
-      ui_url: http://login.hc.anowlbear.com:1323/settings
+      ui_url: http://hc.anowlbear.com:1323/auth/settings
       privileged_session_max_age: 15m
       required_aal: highest_available
 

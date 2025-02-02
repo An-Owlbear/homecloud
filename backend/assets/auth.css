@@ -23,12 +23,18 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+}
+
+.auth-inner-container {
+    width: 100%;
+    max-width: 450px;
 }
 
 .auth-form {
     width: 100%;
     max-width: 450px;
-    padding: 25px;
+    margin-bottom: 2rem;
 }
 
 .auth-form-footer {
@@ -75,5 +81,5 @@ html, body {
     color: #842029;
     border: 1px solid #f5c2c7;
     border-radius: 0.25rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
