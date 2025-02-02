@@ -49,10 +49,12 @@ func AddRoutes(
 
 	e.GET("/api/v1/users", ListUsers(kratosIdentityAPI))
 	e.DELETE("/api/v1/users/:id", DeleteUser(kratosIdentityAPI))
+	e.POST("/api/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
 
 	e.GET("/auth/login", Login(kratosClient))
 	e.GET("/auth/registration", Registration(kratosClient))
 	e.GET("/auth/settings", Settings(kratosClient))
+	e.GET("/auth/recovery", Recovery(kratosClient))
 	e.Static("/assets", "assets")
 }
 

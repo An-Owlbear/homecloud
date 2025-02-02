@@ -61,6 +61,11 @@ selfservice:
                 response:
                   parse: false
 
+    recovery:
+      ui_url: http://hc.anowlbear.com:1323/auth/recovery
+      enabled: true
+      use: code
+
     verification:
       enabled: true
       ui_url: http://login.hc.anowlbear.com:1323/verification

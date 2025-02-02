@@ -101,6 +101,26 @@ func Settings(kratosClient *kratos.APIClient) echo.HandlerFunc {
 	}
 }
 
+func Recovery(kratosClient *kratos.APIClient) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		flowId := c.QueryParam("flow")
+		if flowId == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid recovery link")
+		}
+
+		flow, _, err := kratosClient.FrontendAPI.GetRecoveryFlow(c.Request().Context()).
+			Id(flowId).
+			Cookie(c.Request().Header.Get("Cookie")).
+			Execute()
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid recovery link")
+		}
+
+		return render(c, http.StatusOK, templates.Recovery(flow.Ui))
+	}
+}
+
 func ListUsers(kratosAdminClient kratos.IdentityAPI) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		users, err := auth.ListUsers(c.Request().Context(), kratosAdminClient)
@@ -121,5 +141,26 @@ func DeleteUser(kratosIdentity kratos.IdentityAPI) echo.HandlerFunc {
 		}
 
 		return c.NoContent(http.StatusNoContent)
+	}
+}
+
+func ResetPassword(kratosAdmin kratos.IdentityAPI) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Creates the password reset code
+		userId := c.Param("id")
+		code, resp, err := kratosAdmin.
+			CreateRecoveryCodeForIdentity(c.Request().Context()).
+			CreateRecoveryCodeForIdentityBody(*kratos.NewCreateRecoveryCodeForIdentityBody(userId)).
+			Execute()
+
+		if err != nil {
+			if resp.StatusCode == http.StatusNotFound {
+				return echo.NewHTTPError(http.StatusNotFound, "User not found")
+			}
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to reset password")
+		}
+
+		// Returns response with code
+		return c.JSON(http.StatusOK, code)
 	}
 }
