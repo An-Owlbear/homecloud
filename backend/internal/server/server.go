@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4/middleware"
@@ -79,10 +80,12 @@ func CreateServer() *echo.Echo {
 	}
 	kratosAdmin := kratos.NewAPIClient(kratosAdminConfig)
 
-	// Setups of hard coded proxies
+	// Sets up backend API
 	hostsMap := apps.HostsMap{}
 	hosts := apps.NewHosts(hostsMap, hostConfig)
 	backendApi := echo.New()
+	backendApi.Use(config.ContextMiddleware)
+	backendApi.Use(auth.Middleware(kratosClient.FrontendAPI))
 	api.AddRoutes(
 		backendApi,
 		dockerClient,
@@ -95,6 +98,8 @@ func CreateServer() *echo.Echo {
 		hostConfig,
 	)
 	hostsMap[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
+
+	// Adds reverse proxies for ory services
 	hosts.AddProxy("hydra", "hydra", "4444")
 	hosts.AddProxy("login", "kratos-selfservice-ui-node", "4455")
 	hosts.AddProxy("kratos", "kratos", "4433")

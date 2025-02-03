@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	hydra "github.com/ory/hydra-client-go/v2"
 	kratos "github.com/ory/kratos-client-go"
@@ -31,25 +32,28 @@ func AddRoutes(
 	kratosIdentityAPI kratos.IdentityAPI,
 	hostConfig config.Host,
 ) {
-	e.GET("/", test(docker))
-	e.GET("/db", db_test(queries))
+	api := e.Group("/api")
+	api.Use(auth.RequireAuth)
 
-	e.POST("/api/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hostConfig))
-	e.POST("/api/v1/packages/update", CheckUpdates(storeClient))
+	api.GET("/", test(docker))
+	api.GET("/db", db_test(queries))
 
-	e.GET("/api/v1/apps", ListApps(queries))
-	e.POST("/api/v1/apps/:appId/start", StartApp(docker, queries, hosts))
-	e.POST("/api/v1/apps/:appId/stop", StopApp(docker))
-	e.POST("/api/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
-	e.POST("/api/v1/apps/update", UpdateApps(docker, storeClient, queries))
+	api.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hostConfig))
+	api.POST("/v1/packages/update", CheckUpdates(storeClient))
 
-	e.POST("/api/v1/invites/check", CheckInvitationCode(queries))
-	e.PUT("/api/v1/invites", CreateInviteCode(queries))
-	e.DELETE("/api/v1/invites", RemoveUsedCode(queries))
+	api.GET("/v1/apps", ListApps(queries))
+	api.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts))
+	api.POST("/v1/apps/:appId/stop", StopApp(docker))
+	api.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
+	api.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries))
 
-	e.GET("/api/v1/users", ListUsers(kratosIdentityAPI))
-	e.DELETE("/api/v1/users/:id", DeleteUser(kratosIdentityAPI))
-	e.POST("/api/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
+	api.POST("/v1/invites/check", CheckInvitationCode(queries))
+	api.PUT("/v1/invites", CreateInviteCode(queries))
+	api.DELETE("/v1/invites", RemoveUsedCode(queries))
+
+	api.GET("/v1/users", ListUsers(kratosIdentityAPI))
+	api.DELETE("/v1/users/:id", DeleteUser(kratosIdentityAPI))
+	api.POST("/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
 
 	e.GET("/auth/login", Login(kratosClient))
 	e.GET("/auth/registration", Registration(kratosClient))
