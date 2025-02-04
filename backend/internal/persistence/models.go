@@ -20,4 +20,5 @@ type App struct {
 type InviteCode struct {
 	Code       string
 	ExpiryDate time.Time
+	Roles      []byte
 }

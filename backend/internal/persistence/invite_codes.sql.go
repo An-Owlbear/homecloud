@@ -7,6 +7,7 @@ package persistence
 
 import (
 	"context"
+	"time"
 )
 
 const checkInviteCode = `-- name: CheckInviteCode :one
@@ -21,27 +22,43 @@ func (q *Queries) CheckInviteCode(ctx context.Context, code string) (bool, error
 }
 
 const createInviteCode = `-- name: CreateInviteCode :one
-INSERT INTO invite_codes (code, expiry_date)
-VALUES (hex(randomblob(16)), unixepoch() + ?1 * 3600)
+INSERT INTO invite_codes (code, expiry_date, roles)
+VALUES (hex(randomblob(16)), unixepoch() + ?1 * 3600, jsonb(?2))
 RETURNING code, expiry_date
 `
 
-func (q *Queries) CreateInviteCode(ctx context.Context, hours interface{}) (InviteCode, error) {
-	row := q.db.QueryRowContext(ctx, createInviteCode, hours)
-	var i InviteCode
+type CreateInviteCodeParams struct {
+	Hours     interface{}
+	Rolesjson interface{}
+}
+
+type CreateInviteCodeRow struct {
+	Code       string
+	ExpiryDate time.Time
+}
+
+func (q *Queries) CreateInviteCode(ctx context.Context, arg CreateInviteCodeParams) (CreateInviteCodeRow, error) {
+	row := q.db.QueryRowContext(ctx, createInviteCode, arg.Hours, arg.Rolesjson)
+	var i CreateInviteCodeRow
 	err := row.Scan(&i.Code, &i.ExpiryDate)
 	return i, err
 }
 
 const getInviteCode = `-- name: GetInviteCode :one
-SELECT code, expiry_date FROM invite_codes
+SELECT code, expiry_date, CAST(json(roles) AS TEXT) as roles FROM invite_codes
 WHERE code = ?1
 `
 
-func (q *Queries) GetInviteCode(ctx context.Context, code string) (InviteCode, error) {
+type GetInviteCodeRow struct {
+	Code       string
+	ExpiryDate time.Time
+	Roles      string
+}
+
+func (q *Queries) GetInviteCode(ctx context.Context, code string) (GetInviteCodeRow, error) {
 	row := q.db.QueryRowContext(ctx, getInviteCode, code)
-	var i InviteCode
-	err := row.Scan(&i.Code, &i.ExpiryDate)
+	var i GetInviteCodeRow
+	err := row.Scan(&i.Code, &i.ExpiryDate, &i.Roles)
 	return i, err
 }
 

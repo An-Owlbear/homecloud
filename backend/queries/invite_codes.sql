@@ -1,10 +1,10 @@
 -- name: GetInviteCode :one
-SELECT code, expiry_date FROM invite_codes
+SELECT code, expiry_date, CAST(json(roles) AS TEXT) as roles FROM invite_codes
 WHERE code = sqlc.arg(code);
 
 -- name: CreateInviteCode :one
-INSERT INTO invite_codes (code, expiry_date)
-VALUES (hex(randomblob(16)), unixepoch() + sqlc.arg(hours) * 3600)
+INSERT INTO invite_codes (code, expiry_date, roles)
+VALUES (hex(randomblob(16)), unixepoch() + sqlc.arg(hours) * 3600, jsonb(sqlc.arg(rolesJson)))
 RETURNING code, expiry_date;
 
 -- name: CheckInviteCode :one

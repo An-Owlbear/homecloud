@@ -32,28 +32,30 @@ func AddRoutes(
 	kratosIdentityAPI kratos.IdentityAPI,
 	hostConfig config.Host,
 ) {
-	api := e.Group("/api")
+	apiNoAuth := e.Group("/api")
+	api := apiNoAuth.Group("")
 	api.Use(auth.RequireAuth)
+	apiAdmin := api.Group("", auth.RequireRole("admin"))
 
 	api.GET("/", test(docker))
 	api.GET("/db", db_test(queries))
 
-	api.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hostConfig))
-	api.POST("/v1/packages/update", CheckUpdates(storeClient))
+	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hostConfig))
+	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient))
 
 	api.GET("/v1/apps", ListApps(queries))
-	api.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts))
-	api.POST("/v1/apps/:appId/stop", StopApp(docker))
-	api.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
-	api.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries))
+	apiAdmin.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts))
+	apiAdmin.POST("/v1/apps/:appId/stop", StopApp(docker))
+	apiAdmin.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
+	apiAdmin.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries))
 
-	api.POST("/v1/invites/check", CheckInvitationCode(queries))
-	api.PUT("/v1/invites", CreateInviteCode(queries))
-	api.DELETE("/v1/invites", RemoveUsedCode(queries))
+	apiNoAuth.POST("/v1/invites/check", CheckInvitationCode(queries))
+	apiAdmin.PUT("/v1/invites", CreateInviteCode(queries))
+	apiNoAuth.POST("/v1/invites/complete", CompleteInvite(queries, kratosIdentityAPI))
 
-	api.GET("/v1/users", ListUsers(kratosIdentityAPI))
-	api.DELETE("/v1/users/:id", DeleteUser(kratosIdentityAPI))
-	api.POST("/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
+	apiAdmin.GET("/v1/users", ListUsers(kratosIdentityAPI))
+	apiAdmin.DELETE("/v1/users/:id", DeleteUser(kratosIdentityAPI))
+	apiAdmin.POST("/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
 
 	e.GET("/auth/login", Login(kratosClient))
 	e.GET("/auth/registration", Registration(kratosClient))
