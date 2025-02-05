@@ -8,31 +8,76 @@ import (
 	"github.com/labstack/echo/v4"
 	hydra "github.com/ory/hydra-client-go/v2"
 	kratos "github.com/ory/kratos-client-go"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"path"
 )
 
+type OryRequest struct {
+	Flow           string `query:"flow"`
+	Aal            string `query:"aal"`
+	Refresh        string `query:"refresh"`
+	ReturnTo       string `query:"return_to"`
+	Organisation   string `query:"organisation"`
+	Via            string `query:"via"`
+	Code           string `query:"code"`
+	LoginChallenge string `query:"login_challenge"`
+}
+
 func Login(kratosClient *kratos.APIClient) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		flowId := c.QueryParam("flow")
-		if flowId == "" {
-			return c.Redirect(http.StatusMovedPermanently, "http://kratos.hc.anowlbear.com:1323/self-service/login/browser")
+		// Parses the query parameters in request
+		var request OryRequest
+		err := c.Bind(&request)
+		if err != nil {
+			slog.Error(err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid login request")
 		}
 
+		// Builds the redirect URL
+		queryParams := url.Values{
+			"aal":          {request.Aal},
+			"refresh":      {request.Refresh},
+			"return_to":    {request.ReturnTo},
+			"organisation": {request.Organisation},
+			"via":          {request.Via},
+		}
+
+		if request.LoginChallenge != "" {
+			queryParams.Add("login_challenge", request.LoginChallenge)
+		}
+
+		redirectUri := url.URL{
+			Scheme:   "http",
+			Host:     "kratos.hc.anowlbear.com:1323",
+			Path:     "/self-service/login/browser",
+			RawQuery: queryParams.Encode(),
+		}
+
+		redirectString := redirectUri.String()
+
+		// Redirects if flow is not set
+		if request.Flow == "" {
+			return c.Redirect(http.StatusFound, redirectString)
+		}
+
+		// Retrieves login flow
 		flow, resp, err := kratosClient.FrontendAPI.GetLoginFlow(c.Request().Context()).
-			Id(flowId).
+			Id(request.Flow).
 			Cookie(c.Request().Header.Get("Cookie")).
 			Execute()
 
+		// If login flow not found assume expired or missing and redirect
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return c.Redirect(http.StatusMovedPermanently, path.Join(kratosClient.GetConfig().Host, "/self-service/login/browser"))
+				return c.Redirect(http.StatusFound, redirectString)
 			}
 
 			return err
 		}
 
+		// If flow retrieved successfully render page
 		return render(c, http.StatusOK, templates.Login(flow.Ui))
 	}
 }

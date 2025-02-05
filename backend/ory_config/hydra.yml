@@ -6,7 +6,7 @@ urls:
   self:
     issuer: http://hydra.hc.anowlbear.com:1323
   consent: http://hc.anowlbear.com:1323/auth/oidc
-  login: http://login.hc.anowlbear.com:1323/login
+  login: http://hc.anowlbear.com:1323/auth/login
   logout: http://login.hc.anowlbear.com:1323/logout
   identity_provider:
     publicUrl: http://kratos.hc.anowlbear.com:1323
