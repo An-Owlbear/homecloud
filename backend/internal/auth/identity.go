@@ -6,8 +6,8 @@ import (
 )
 
 type Traits struct {
-	email    string
-	username string
+	Email string `mapstructure:"email" json:"email"`
+	Name  string `mapstructure:"name" json:"name"`
 }
 
 type MetadataPublic struct {
@@ -30,4 +30,14 @@ func ParseMetadataPublic(unparsed interface{}) (*MetadataPublic, error) {
 	}
 
 	return &decoded, nil
+}
+
+func ParseSessionData(unparsed interface{}, out interface{}) error {
+	asserted, ok := unparsed.(map[string]interface{})
+	if !ok {
+		return InvalidTypeError
+	}
+
+	err := mapstructure.Decode(asserted, out)
+	return err
 }

@@ -61,6 +61,7 @@ func AddRoutes(
 	e.GET("/auth/registration", Registration(kratosClient))
 	e.GET("/auth/settings", Settings(kratosClient))
 	e.GET("/auth/recovery", Recovery(kratosClient))
+	e.GET("/auth/oidc", OidcConsent(hydraAdmin))
 	e.Static("/assets", "assets")
 }
 

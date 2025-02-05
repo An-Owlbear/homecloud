@@ -5,7 +5,7 @@ serve:
 urls:
   self:
     issuer: http://hydra.hc.anowlbear.com:1323
-  consent: http://login.hc.anowlbear.com:1323/consent
+  consent: http://hc.anowlbear.com:1323/auth/oidc
   login: http://login.hc.anowlbear.com:1323/login
   logout: http://login.hc.anowlbear.com:1323/logout
   identity_provider:
