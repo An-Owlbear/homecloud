@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"path"
 )
 
 type OryRequest struct {
@@ -25,7 +24,7 @@ type OryRequest struct {
 	LoginChallenge string `query:"login_challenge"`
 }
 
-func Login(kratosClient *kratos.APIClient) echo.HandlerFunc {
+func Login(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Parses the query parameters in request
 		var request OryRequest
@@ -48,13 +47,9 @@ func Login(kratosClient *kratos.APIClient) echo.HandlerFunc {
 			queryParams.Add("login_challenge", request.LoginChallenge)
 		}
 
-		redirectUri := url.URL{
-			Scheme:   "http",
-			Host:     "kratos.hc.anowlbear.com:1323",
-			Path:     "/self-service/login/browser",
-			RawQuery: queryParams.Encode(),
-		}
-
+		redirectUri := oryConfig.Kratos.PublicAddress
+		redirectUri.Path = "/self-service/login/browser"
+		redirectUri.RawQuery = queryParams.Encode()
 		redirectString := redirectUri.String()
 
 		// Redirects if flow is not set
@@ -82,12 +77,17 @@ func Login(kratosClient *kratos.APIClient) echo.HandlerFunc {
 	}
 }
 
-func Registration(kratosClient *kratos.APIClient) echo.HandlerFunc {
+func Registration(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		inviteCode := c.QueryParam("code")
 		flowId := c.QueryParam("flow")
+
+		redirectUri := oryConfig.Kratos.PublicAddress
+		redirectUri.Path = "/self-service/registration/browser"
+		redirectUri.RawQuery = url.Values{"code": {inviteCode}}.Encode()
+
 		if flowId == "" {
-			return c.Redirect(http.StatusFound, "http://kratos.hc.anowlbear.com:1323/self-service/registration/browser?code="+inviteCode)
+			return c.Redirect(http.StatusFound, redirectUri.String())
 		}
 
 		flow, resp, err := kratosClient.FrontendAPI.GetRegistrationFlow(c.Request().Context()).
@@ -97,7 +97,7 @@ func Registration(kratosClient *kratos.APIClient) echo.HandlerFunc {
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return c.Redirect(http.StatusFound, "http://kratos.hc.anowlbear.com:1323/self-service/registration/browser?code="+inviteCode)
+				return c.Redirect(http.StatusFound, redirectUri.String())
 			}
 
 			return err
@@ -124,11 +124,15 @@ func Registration(kratosClient *kratos.APIClient) echo.HandlerFunc {
 	}
 }
 
-func Settings(kratosClient *kratos.APIClient) echo.HandlerFunc {
+func Settings(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		flowId := c.QueryParam("flow")
+
+		redirectUri := oryConfig.Kratos.PublicAddress
+		redirectUri.Path = "/self-service/settings/browser"
+
 		if flowId == "" {
-			return c.Redirect(http.StatusMovedPermanently, "http://kratos.hc.anowlbear.com:1323/self-service/settings/browser")
+			return c.Redirect(http.StatusMovedPermanently, redirectUri.String())
 		}
 
 		flow, resp, err := kratosClient.FrontendAPI.GetSettingsFlow(c.Request().Context()).
@@ -138,7 +142,7 @@ func Settings(kratosClient *kratos.APIClient) echo.HandlerFunc {
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return c.Redirect(http.StatusMovedPermanently, path.Join(kratosClient.GetConfig().Host, "/self-service/settings/browser"))
+				return c.Redirect(http.StatusMovedPermanently, redirectUri.String())
 			}
 
 			return err

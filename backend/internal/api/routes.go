@@ -57,9 +57,9 @@ func AddRoutes(
 	apiAdmin.DELETE("/v1/users/:id", DeleteUser(kratosIdentityAPI))
 	apiAdmin.POST("/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
 
-	e.GET("/auth/login", Login(kratosClient))
-	e.GET("/auth/registration", Registration(kratosClient))
-	e.GET("/auth/settings", Settings(kratosClient))
+	e.GET("/auth/login", Login(kratosClient, serverConfig.Ory))
+	e.GET("/auth/registration", Registration(kratosClient, serverConfig.Ory))
+	e.GET("/auth/settings", Settings(kratosClient, serverConfig.Ory))
 	e.GET("/auth/recovery", Recovery(kratosClient))
 	e.GET("/auth/oidc", OidcConsent(hydraAdmin))
 	e.Static("/assets", "assets")
