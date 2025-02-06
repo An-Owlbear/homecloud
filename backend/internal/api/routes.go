@@ -30,7 +30,7 @@ func AddRoutes(
 	hydraAdmin *hydra.APIClient,
 	kratosClient *kratos.APIClient,
 	kratosIdentityAPI kratos.IdentityAPI,
-	hostConfig config.Host,
+	serverConfig config.Config,
 ) {
 	apiNoAuth := e.Group("/api")
 	api := apiNoAuth.Group("")
@@ -40,7 +40,7 @@ func AddRoutes(
 	api.GET("/", test(docker))
 	api.GET("/db", db_test(queries))
 
-	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hostConfig))
+	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, serverConfig.Host))
 	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient))
 
 	api.GET("/v1/apps", ListApps(queries))

@@ -26,3 +26,6 @@ test target=default_test:
 		--entrypoint go \
 		golang:1.23 \
 		test -p 1 -run {{target}} ./...
+
+launcher:
+    go run "./cmd/launcher/main.go"

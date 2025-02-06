@@ -1,13 +1,23 @@
 package config
 
-type Host struct {
-	Host string
-	Port int
+type Config struct {
+	Host Host
+	Ory  Ory
 }
 
-func NewHost(host string, port int) Host {
-	return Host{
-		Host: host,
-		Port: port,
+func LoadConfig() (*Config, error) {
+	host, err := NewHost()
+	if err != nil {
+		return nil, err
 	}
+
+	ory, err := OryFromEnv()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{
+		Host: *host,
+		Ory:  *ory,
+	}, nil
 }

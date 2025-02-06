@@ -3,22 +3,20 @@ package server
 import (
 	"database/sql"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/auth"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/mattn/go-sqlite3"
-	kratos "github.com/ory/kratos-client-go"
-	"os"
-	"strconv"
-
 	"github.com/An-Owlbear/homecloud/backend/internal/api"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/mattn/go-sqlite3"
 	hydra "github.com/ory/hydra-client-go/v2"
+	kratos "github.com/ory/kratos-client-go"
+	"os"
 )
 
 func CreateServer() *echo.Echo {
@@ -28,11 +26,10 @@ func CreateServer() *echo.Echo {
 	}
 
 	// Loads the configuration
-	hostPort, err := strconv.Atoi(os.Getenv("HOMECLOUD_PORT"))
+	serverConfig, err := config.LoadConfig()
 	if err != nil {
 		panic(err)
 	}
-	hostConfig := config.NewHost(os.Getenv("HOMECLOUD_HOST"), hostPort)
 
 	// Sets up docker client
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -57,7 +54,7 @@ func CreateServer() *echo.Echo {
 	hydraAdminConfig := hydra.NewConfiguration()
 	hydraAdminConfig.Servers = []hydra.ServerConfiguration{
 		{
-			URL: "http://hydra:4445",
+			URL: serverConfig.Ory.Hydra.PrivateAddress.String(),
 		},
 	}
 	hydraAdmin := hydra.NewAPIClient(hydraAdminConfig)
@@ -66,7 +63,7 @@ func CreateServer() *echo.Echo {
 	kratosConfig := kratos.NewConfiguration()
 	kratosConfig.Servers = []kratos.ServerConfiguration{
 		{
-			URL: "http://kratos:4433",
+			URL: serverConfig.Ory.Kratos.PrivateAddress.String(),
 		},
 	}
 	kratosClient := kratos.NewAPIClient(kratosConfig)
@@ -75,14 +72,14 @@ func CreateServer() *echo.Echo {
 	kratosAdminConfig := kratos.NewConfiguration()
 	kratosAdminConfig.Servers = []kratos.ServerConfiguration{
 		{
-			URL: "http://kratos:4434",
+			URL: serverConfig.Ory.KratosAdmin.PrivateAddress.String(),
 		},
 	}
 	kratosAdmin := kratos.NewAPIClient(kratosAdminConfig)
 
 	// Sets up backend API
 	hostsMap := apps.HostsMap{}
-	hosts := apps.NewHosts(hostsMap, hostConfig)
+	hosts := apps.NewHosts(hostsMap, serverConfig.Host)
 	backendApi := echo.New()
 	backendApi.Use(config.ContextMiddleware)
 	backendApi.Use(auth.Middleware(kratosClient.FrontendAPI))
@@ -95,9 +92,9 @@ func CreateServer() *echo.Echo {
 		hydraAdmin,
 		kratosClient,
 		kratosAdmin.IdentityAPI,
-		hostConfig,
+		*serverConfig,
 	)
-	hostsMap[fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port)] = backendApi
+	hostsMap[fmt.Sprintf("%s:%d", serverConfig.Host.Host, serverConfig.Host.Port)] = backendApi
 
 	// Adds reverse proxies for ory services
 	hosts.AddProxy("hydra", "hydra", "4444")

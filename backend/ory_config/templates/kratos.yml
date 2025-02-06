@@ -4,17 +4,17 @@ dsn: memory
 
 serve:
   public:
-    base_url: http://kratos.hc.anowlbear.com:1323
+    base_url: {{.KratosUrl}}
     cors:
       enabled: false
   admin:
-    base_url: http://127.0.0.1:4434
+    base_url: {{.KratosAdminUrl}}
 
 selfservice:
-  default_browser_return_url: http://hc.anowlbear.com:1323
+  default_browser_return_url: {{.HostUrl}}
   allowed_return_urls:
     - http://login.hc.anowlbear.com:1323
-    - http://hc.anowlbear.com:1323
+    - {{.HostUrl}}
 
   methods:
     password:
@@ -29,25 +29,25 @@ selfservice:
       ui_url: http://login.hc.anowlbear.com:1323/error
 
     settings:
-      ui_url: http://hc.anowlbear.com:1323/auth/settings
+      ui_url: {{.HostUrl}}/auth/settings
       privileged_session_max_age: 15m
       required_aal: highest_available
 
     logout:
       after:
-        default_browser_return_url: http://hc.anowlbear.com:1323/auth/login
+        default_browser_return_url: {{.HostUrl}}/auth/login
 
     login:
-      ui_url: http://hc.anowlbear.com:1323/auth/login
+      ui_url: {{.HostUrl}}/auth/login
 
     registration:
-      ui_url: http://hc.anowlbear.com:1323/auth/registration
+      ui_url: {{.HostUrl}}/auth/registration
       after:
         password:
           hooks:
             - hook: web_hook
               config:
-                url: http://hc.anowlbear.com:1323/api/v1/invites/check
+                url: {{.HostUrl}}/api/v1/invites/check
                 method: POST
                 body: "file:///etc/config/kratos/invite_code.jsonnet"
                 response:
@@ -55,14 +55,14 @@ selfservice:
             - hook: session
             - hook: web_hook
               config:
-                url: http://hc.anowlbear.com:1323/api/v1/invites/complete
+                url: {{.HostUrl}}/api/v1/invites/complete
                 method: POST
                 body: "file:///etc/config/kratos/invite_code.jsonnet"
                 response:
                   parse: false
 
     recovery:
-      ui_url: http://hc.anowlbear.com:1323/auth/recovery
+      ui_url: {{.HostUrl}}/auth/recovery
       enabled: true
       use: code
 
@@ -90,12 +90,12 @@ oauth2_provider:
   url: http://hydra:4445
 
 cookies:
-  domain: hc.anowlbear.com
+  domain: {{.RootHost}}
   path: /
   same_site: Lax
 
 session:
   cookie:
-    domain: hc.anowlbear.com
+    domain: {{.RootHost}}
     path: /
     same_site: Strict

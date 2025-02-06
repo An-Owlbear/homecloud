@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/homecloud"
-  cmd = "go build -o ./tmp/homecloud ./cmd/homecloud.go"
+  cmd = "go build -o ./tmp/homecloud ./cmd/homecloud/main.go"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
