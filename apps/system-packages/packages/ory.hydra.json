@@ -1,0 +1,35 @@
+{
+  "schema": "v1.0",
+  "version": "v2.2.0",
+  "id": "ory.hydra",
+  "name": "hydra",
+  "author": "ory",
+  "description": "A headless identity management system",
+  "containers": [
+    {
+      "name": "hydra-migrate",
+      "image": "oryd/hydra:v2.2.0",
+      "command": "-c /etc/config/hydra/hydra.yml migrate sql -e --yes",
+      "restart": "on-failure",
+      "volumes": [
+        "homecloud-hydra:/var/lib/sqlite",
+        "./ory_config:/etc/config/hydra"
+      ],
+      "environment": {
+        "DSN": "sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc"
+      }
+    },
+    {
+      "name": "hydra",
+      "image": "oryd/hydra:v2.2.0",
+      "command": "serve -c /etc/config/hydra/hydra.yml",
+      "volumes": [
+        "homecloud-hydra:/var/lib/sqlite",
+        "./ory_config:/etc/config/hydra"
+      ],
+      "environment": {
+        "DSN": "sqlite:///var/lib/sqlite/db.sqlite?_fk=true"
+      }
+    }
+  ]
+}

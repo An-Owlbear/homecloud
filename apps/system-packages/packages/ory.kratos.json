@@ -1,0 +1,35 @@
+{
+  "schema": "v1.0",
+  "version": "v1.1.0",
+  "id": "ory.kratos",
+  "name": "kratos",
+  "author": "ory",
+  "description": "A headless identity management system",
+  "containers": [
+    {
+      "name": "kratos-migrate",
+      "image": "oryd/kratos:v1.1.0",
+      "command": "-c /etc/config/kratos/kratos.yml migrate sql -e --yes",
+      "restart": "on-failure",
+      "volumes": [
+        "homecloud-kratos:/var/lib/sqlite",
+        "./ory_config:/etc/config/kratos"
+      ],
+      "environment": {
+        "DSN": "sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc"
+      }
+    },
+    {
+      "name": "kratos",
+      "image": "oryd/kratos:v1.1.0",
+      "command": "serve -c /etc/config/kratos/kratos.yml",
+      "volumes": [
+        "homecloud-kratos:/var/lib/sqlite",
+        "./ory_config:/etc/config/kratos"
+      ],
+      "environment": {
+        "DSN": "sqlite:///var/lib/sqlite/db.sqlite?_fk=true"
+      }
+    }
+  ]
+}

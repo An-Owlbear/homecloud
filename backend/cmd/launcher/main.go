@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
 	"net/url"
 	"os"
@@ -84,6 +87,39 @@ func main() {
 			panic(err)
 		}
 		err = writer.Close()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Creates docker client
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		panic(err)
+	}
+	storeClient := apps.NewStoreClient(os.Getenv("SYSTEM_STORE_URL"))
+
+	// Installs ory hydra and kratos
+	for _, packageName := range []string{"ory.kratos", "ory.hydra"} {
+		// Checks if the app is already installed and continues if so
+		appInstalled, err := docker.IsAppInstalled(dockerClient, packageName)
+		if appInstalled {
+			fmt.Printf("%s is already installed\n", packageName)
+			continue
+		}
+
+		fmt.Printf("Installing %s\n", packageName)
+		kratosPackage, err := storeClient.GetPackage(packageName)
+		if err != nil {
+			panic(err)
+		}
+
+		err = docker.InstallApp(dockerClient, kratosPackage)
+		if err != nil {
+			panic(err)
+		}
+
+		err = docker.StartApp(dockerClient, packageName)
 		if err != nil {
 			panic(err)
 		}

@@ -85,6 +85,11 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			Labels:   map[string]string{APP_ID_LABEL: app.Id},
 		}
 
+		// Sets the command if given
+		if containerDef.Command != "" {
+			containerConfig.Cmd = strings.Split(containerDef.Command, " ")
+		}
+
 		// creates port mappings
 		portMap := nat.PortMap{}
 		for _, ports := range containerDef.Ports {
@@ -108,7 +113,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 
 			// if the mount is for a local file or folder skip
 			if strings.HasPrefix(volumeParts[0], "./") {
-				execPath, err := os.Executable()
+				execPath, err := os.Getwd()
 				if err != nil {
 					return err
 				}
@@ -130,10 +135,16 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			formattedVolumes = append(formattedVolumes, strings.Join(volumeParts, ":"))
 		}
 
+		// Gets restart policy, defaults to always
+		restart := container.RestartPolicyAlways
+		if containerDef.Restart != "" {
+			restart = container.RestartPolicyMode(containerDef.Restart)
+		}
+
 		hostConfig := &container.HostConfig{
 			NetworkMode: "bridge",
 			RestartPolicy: container.RestartPolicy{
-				Name: "always",
+				Name: restart,
 			},
 			PortBindings: portMap,
 			Binds:        formattedVolumes,
@@ -334,5 +345,16 @@ func IsImageDownloaded(dockerClient *client.Client, imageName string) (alreadyDo
 		}
 	}
 
+	return
+}
+
+// IsAppInstalled checks if an app of the given ID is installed
+func IsAppInstalled(dockerClient *client.Client, appId string) (installed bool, err error) {
+	containers, err := GetAppContainers(dockerClient, appId)
+	if err != nil {
+		return
+	}
+
+	installed = len(containers) > 0
 	return
 }

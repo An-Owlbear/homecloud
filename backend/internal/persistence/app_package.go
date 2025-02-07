@@ -15,6 +15,8 @@ type AppPackage struct {
 type PackageContainer struct {
 	Name             string            `json:"name"`
 	Image            string            `json:"image"`
+	Command          string            `json:"command"`
+	Restart          string            `json:"restart"`
 	Environment      map[string]string `json:"environment"`
 	Ports            []string          `json:"ports"`
 	Volumes          []string          `json:"volumes"`
