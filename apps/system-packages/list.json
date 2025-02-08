@@ -2,7 +2,7 @@
   {
     "id": "homecloud.app",
     "name": "homecloud",
-    "version": "v2.2.0",
+    "version": "v0.1.1",
     "author": "homecloud",
     "description": "A home server management app"
   },

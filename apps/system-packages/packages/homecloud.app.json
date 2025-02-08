@@ -1,6 +1,6 @@
 {
   "schema": "v1.0",
-  "version": "v2.2.0",
+  "version": "v0.1.1",
   "id": "homecloud.app",
   "name": "homecloud",
   "author": "homecloud",
@@ -8,7 +8,7 @@
   "containers": [
     {
       "name": "homecloud",
-      "image": "ghcr.io/an-owlbear/homecloud:v0.1.0",
+      "image": "ghcr.io/an-owlbear/homecloud:v0.1.1",
       "volumes": [
         "./.env:/app/.env",
         "/var/run/docker.sock:/var/run/docker.sock"
