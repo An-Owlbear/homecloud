@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/joho/godotenv"
+	"io"
 	"net/url"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 	"text/template"
 )
 
@@ -100,7 +106,7 @@ func main() {
 	storeClient := apps.NewStoreClient(os.Getenv("SYSTEM_STORE_URL"))
 
 	// Installs ory hydra and kratos
-	for _, packageName := range []string{"ory.kratos", "ory.hydra"} {
+	for _, packageName := range []string{"ory.kratos", "ory.hydra", "homecloud.app"} {
 		// Checks if the app is already installed and continues if so
 		appInstalled, err := docker.IsAppInstalled(dockerClient, packageName)
 		if appInstalled {
@@ -123,5 +129,46 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	fmt.Printf("Printing logs from homecloud container")
+
+	// Prints message after interrupt
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println("\n\n\nExiting launcher, homecloud container still running")
+		os.Exit(0)
+	}()
+
+	// Follows and prints logs for homecloud container
+	containers, err := docker.GetAppContainers(dockerClient, "homecloud.app")
+	if err != nil || len(containers) == 0 {
+		panic(err)
+	}
+
+	containerInspect, err := dockerClient.ContainerInspect(context.Background(), containers[0].ID)
+	if err != nil {
+		panic(err)
+	}
+
+	logs, err := dockerClient.ContainerLogs(context.Background(), containers[0].ID, container.LogsOptions{
+		Follow:     true,
+		ShowStderr: true,
+		ShowStdout: true,
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer logs.Close()
+
+	if containerInspect.Config.Tty {
+		_, err = io.Copy(os.Stdout, logs)
+	} else {
+		_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, logs)
+	}
+	if err != nil {
+		panic(err)
 	}
 }

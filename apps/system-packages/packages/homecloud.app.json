@@ -1,0 +1,18 @@
+{
+  "schema": "v1.0",
+  "version": "v2.2.0",
+  "id": "homecloud.app",
+  "name": "homecloud",
+  "author": "homecloud",
+  "description": "A home server management app",
+  "containers": [
+    {
+      "name": "homecloud",
+      "image": "ghcr.io/an-owlbear/homecloud:v0.1.0",
+      "volumes": [
+        "./.env:/app/.env",
+        "/var/run/docker.sock:/var/run/docker.sock"
+      ]
+    }
+  ]
+}
