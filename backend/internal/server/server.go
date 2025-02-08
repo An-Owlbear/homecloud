@@ -21,7 +21,7 @@ import (
 
 func CreateServer() *echo.Echo {
 	err := godotenv.Load()
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		panic(err)
 	}
 
