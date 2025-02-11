@@ -29,3 +29,12 @@ test target=default_test:
 
 launcher:
     go run "./cmd/launcher/main.go"
+
+build_launcher version os arch:
+    GOOS={{os}} GOARCH={{arch}} go build -o build/launcher ./cmd/launcher/main.go
+    mkdir -p build/ory_config
+    cp ory_config/identity.schema.json build/ory_config/
+    cp ory_config/invite_code.jsonnet build/ory_config/
+    cp -R ory_config/templates build/ory_config/
+    cp .env build/.env
+    cd build && gtar -cvzf homecloud-{{version}}-{{os}}-{{arch}}.tar.gz ory_config launcher .env --owner=0 --group=0 --no-same-owner --no-same-permissions
