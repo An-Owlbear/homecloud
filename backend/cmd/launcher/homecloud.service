@@ -1,0 +1,13 @@
+[Unit]
+Description=home server application
+After=network.target
+
+[Service]
+ExecStart=/home/debian/homecloud/launcher
+WorkingDirectory=/home/debian/homecloud
+Type=simple
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
