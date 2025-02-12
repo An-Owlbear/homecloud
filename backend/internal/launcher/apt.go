@@ -29,11 +29,7 @@ func CheckUpdates() (bool, error) {
 }
 
 func ApplyUpdates() error {
-	_, err := exec.Command("apt", "update").Output()
-	if err != nil {
-		return err
-	}
-	_, err = exec.Command("apt", "upgrade", "-y").Output()
+	_, err := exec.Command("apt", "upgrade", "-y").Output()
 	if err != nil {
 		return err
 	}

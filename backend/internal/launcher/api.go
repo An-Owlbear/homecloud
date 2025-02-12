@@ -5,6 +5,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os/exec"
 )
 
 func AddRoutes(
@@ -28,17 +29,34 @@ func CheckUpdateHandler() echo.HandlerFunc {
 
 func ApplyUpdatesHandler(dockerClient *client.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		//err := ApplyUpdates()
-		//if err != nil {
-		//	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		//}
+		updatesAvailable, err := CheckUpdates()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		if !updatesAvailable {
+			return c.String(http.StatusOK, "No updates available")
+		}
+
+		err = ApplyUpdates()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
 
 		// After returning function stop containers and restart system
 		c.Response().After(func() {
-			println("test")
-			StopContainers(dockerClient)
 		})
 
-		return c.String(http.StatusOK, "")
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
+		c.Response().WriteHeader(http.StatusOK)
+		c.Response().Write([]byte("Updated and restarting"))
+		c.Response().Flush()
+
+		go func() {
+			if err := exec.Command("reboot").Run(); err != nil {
+				c.Logger().Error("Failed to reboot: ", err.Error())
+			}
+		}()
+
+		return nil
 	}
 }
