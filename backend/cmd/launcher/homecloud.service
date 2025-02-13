@@ -3,8 +3,8 @@ Description=home server application
 After=network.target
 
 [Service]
-ExecStart=/home/debian/homecloud/launcher
-WorkingDirectory=/home/debian/homecloud
+ExecStart=/opt/homecloud/launcher
+WorkingDirectory=/opt/homecloud
 Type=simple
 Restart=always
 User=root
