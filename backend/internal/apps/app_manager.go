@@ -104,3 +104,21 @@ func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *
 
 	return nil
 }
+
+func SetupProxies(dockerClient *client.Client, queries *persistence.Queries, hosts *Hosts) error {
+	apps, err := queries.GetApps(context.Background())
+	if err != nil {
+		return err
+	}
+
+	// Ensures apps are properly started with proxies
+	for _, app := range apps {
+		// TODO: store desired app state in DB and only start apps that are intended to be running
+		err = StartApp(dockerClient, queries, hosts, app.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

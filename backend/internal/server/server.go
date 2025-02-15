@@ -77,9 +77,17 @@ func CreateServer() *echo.Echo {
 	}
 	kratosAdmin := kratos.NewAPIClient(kratosAdminConfig)
 
-	// Sets up backend API
+	// Sets up hosts config
 	hostsMap := apps.HostsMap{}
 	hosts := apps.NewHosts(hostsMap, serverConfig.Host)
+
+	// Sets up proxies for installed apps
+	err = apps.SetupProxies(dockerClient, queries, hosts)
+	if err != nil {
+		panic(err)
+	}
+
+	// Sets up backend API
 	backendApi := echo.New()
 	backendApi.Use(config.ContextMiddleware)
 	backendApi.Use(auth.Middleware(kratosClient.FrontendAPI))
