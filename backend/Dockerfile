@@ -14,3 +14,4 @@ FROM gcr.io/distroless/static-debian12
 COPY --from=builder /app/homecloud /app/homecloud
 WORKDIR /app
 ENTRYPOINT ["./homecloud"]
+EXPOSE 1323
