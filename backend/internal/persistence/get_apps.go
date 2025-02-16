@@ -13,6 +13,7 @@ type GetAppsRow struct {
 
 const getApp = `--name: GetApp :one
 SELECT id, json(schema) as schema, date_added FROM apps
+WHERE id = $1
 `
 
 // GetApp Retrieves a single app from the database
