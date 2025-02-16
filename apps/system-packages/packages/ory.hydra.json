@@ -1,6 +1,6 @@
 {
   "schema": "v1.0",
-  "version": "v2.2.0",
+  "version": "v2.2.1",
   "id": "ory.hydra",
   "name": "hydra",
   "author": "ory",
@@ -9,7 +9,7 @@
     {
       "name": "hydra-migrate",
       "image": "oryd/hydra:v2.2.0",
-      "command": "-c /etc/config/hydra/hydra.yml migrate sql -e --yes",
+      "command": "migrate -c /etc/config/hydra/hydra.yml sql -e --yes",
       "restart": "on-failure",
       "volumes": [
         "homecloud-hydra:/var/lib/sqlite",
@@ -22,7 +22,7 @@
     {
       "name": "hydra",
       "image": "oryd/hydra:v2.2.0",
-      "command": "serve -c /etc/config/hydra/hydra.yml",
+      "command": "serve -c /etc/config/hydra/hydra.yml all --dev",
       "volumes": [
         "homecloud-hydra:/var/lib/sqlite",
         "./ory_config:/etc/config/hydra"

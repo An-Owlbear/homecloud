@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"golang.org/x/mod/semver"
 	"io"
 	"os"
 )
@@ -17,18 +18,39 @@ var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
 func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient) error {
 	// Installs ory hydra and kratos
 	for _, packageName := range appPackages {
+		// Retrieves package definition
+		appPackage, err := storeClient.GetPackage(packageName)
+		if err != nil {
+			return err
+		}
+
 		// Checks if the app is already installed and continues if so
 		appInstalled, err := docker.IsAppInstalled(dockerClient, packageName)
 		if appInstalled {
-			fmt.Printf("%s is already installed\n", packageName)
-		} else {
-			fmt.Printf("Installing %s\n", packageName)
-			kratosPackage, err := storeClient.GetPackage(packageName)
+			appVersion, err := docker.GetAppVersion(dockerClient, packageName)
 			if err != nil {
 				return err
 			}
 
-			err = docker.InstallApp(dockerClient, kratosPackage)
+			// If app is outdated update it
+			if semver.Compare(appVersion, appPackage.Version) == -1 {
+				fmt.Printf("Updating %s\n", packageName)
+				err = docker.RemoveContainers(dockerClient, packageName)
+				if err != nil {
+					return err
+				}
+				err = docker.InstallApp(dockerClient, appPackage)
+				if err != nil {
+					return err
+				}
+			} else {
+				fmt.Printf("%s is already installed\n", packageName)
+			}
+		} else {
+			// Install app if it's not installed
+			fmt.Printf("Installing %s\n", packageName)
+
+			err = docker.InstallApp(dockerClient, appPackage)
 			if err != nil {
 				return err
 			}

@@ -33,8 +33,11 @@ const (
 )
 
 const APP_ID_LABEL = "AppID"
+const AppVersionLabel = "AppVersion"
 
-var TimeoutError = errors.New("Container didn't start in time")
+var TimeoutError = errors.New("container didn't start in time")
+var NotFoundError = errors.New("no containers for app found")
+var InvalidContainerError = errors.New("container has invalid configuration")
 
 func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 	// Creates the network if it doesn't already exist
@@ -42,7 +45,10 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 	networkInspect, err := dockerClient.NetworkInspect(context.Background(), app.Id, network.InspectOptions{})
 	if err != nil {
 		networkVar, err := dockerClient.NetworkCreate(context.Background(), app.Id, network.CreateOptions{
-			Labels: map[string]string{APP_ID_LABEL: app.Id},
+			Labels: map[string]string{
+				APP_ID_LABEL:    app.Id,
+				AppVersionLabel: app.Version,
+			},
 		})
 		if err != nil {
 			return err
@@ -82,7 +88,10 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			Image:    containerDef.Image,
 			Hostname: containerDef.Name,
 			Env:      env,
-			Labels:   map[string]string{APP_ID_LABEL: app.Id},
+			Labels: map[string]string{
+				APP_ID_LABEL:    app.Id,
+				AppVersionLabel: app.Version,
+			},
 		}
 
 		// Sets the command if given
@@ -357,4 +366,43 @@ func IsAppInstalled(dockerClient *client.Client, appId string) (installed bool, 
 
 	installed = len(containers) > 0
 	return
+}
+
+// IsAppRunning checks if an app is running
+func IsAppRunning(dockerClient *client.Client, appId string) (running bool, err error) {
+	containers, err := GetAppContainers(dockerClient, appId)
+	if err != nil {
+		return
+	}
+
+	if len(containers) == 0 {
+		return false, errors.New("no containers found")
+	}
+
+	for _, container := range containers {
+		if container.State != string(ContainerRunning) {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// GetAppVersion retrieves the version of the app based off the docker container metadata
+func GetAppVersion(dockerClient *client.Client, appId string) (version string, err error) {
+	containers, err := GetAppContainers(dockerClient, appId)
+	if err != nil {
+		return
+	}
+
+	if len(containers) == 0 {
+		return "", NotFoundError
+	}
+
+	appVersion, ok := containers[0].Labels[AppVersionLabel]
+	if !ok {
+		return "", InvalidContainerError
+	}
+
+	return appVersion, nil
 }
