@@ -6,6 +6,7 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"golang.org/x/mod/semver"
@@ -106,5 +107,17 @@ func FollowLogs(dockerClient *client.Client) error {
 	if err != nil {
 		panic(err)
 	}
+	return nil
+}
+
+// ConnectNetworks connects the backend to the ory networks. This assumes the containers are using the expected names
+func ConnectNetworks(dockerClient *client.Client) error {
+	for _, networkName := range []string{"ory.kratos", "ory.hydra"} {
+		err := dockerClient.NetworkConnect(context.Background(), networkName, "homecloud.app-homecloud", &network.EndpointSettings{})
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
