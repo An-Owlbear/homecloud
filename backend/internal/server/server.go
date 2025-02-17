@@ -1,8 +1,8 @@
 package server
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend"
 	"github.com/An-Owlbear/homecloud/backend/internal/api"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
@@ -42,7 +42,7 @@ func CreateServer() *echo.Echo {
 	}
 
 	// Sets of database connection
-	db, err := sql.Open("sqlite3", "file:tmp/data.db")
+	db, err := persistence.SetupDB("db/data.db", backend.Migrations)
 	if err != nil {
 		panic(err)
 	}
