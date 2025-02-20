@@ -1,0 +1,23 @@
+meta {
+  name: Add subdomain
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://fcqvpr26frccoy4bwu4x2cp2gq0buqyv.lambda-url.eu-west-2.on.aws/
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "device_id": "10c9443c-7fc8-4e2a-bab4-07d8b8ce33f8", 
+    "device_key": "WnY/nmLG+wvoHK2Hj3K7BA==",
+    "subdomain": "another"
+  }
+}

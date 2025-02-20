@@ -1,0 +1,8 @@
+deploy function profile region:
+    GOOS=linux GOARCH=arm64 go build -o build/bootstrap ./cmd/{{function}}/main.go
+    cd build && zip -FSr {{function}}.zip bootstrap
+    AWS_PAGER="" aws lambda update-function-code \
+        --function-name homecloud-{{function}} \
+        --zip-file fileb://build/{{function}}.zip \
+        --profile {{profile}} \
+        --region {{region}}
