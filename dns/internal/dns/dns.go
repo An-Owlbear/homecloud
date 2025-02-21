@@ -2,6 +2,7 @@ package dns
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -11,6 +12,8 @@ import (
 )
 
 var HostedZoneID = os.Getenv("HOSTED_ZONE_ID")
+
+var MissingRecordsError = errors.New("expected DNS records not found")
 
 func New(ctx context.Context) (*route53.Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
@@ -68,22 +71,28 @@ func RemoveRecord(ctx context.Context, client *route53.Client, subdomainBase str
 	}
 
 	for _, subdomain := range []string{subdomainBase, "*." + subdomainBase} {
+		fqdn := fmt.Sprintf("%s.%s", subdomain, *hostedZone.HostedZone.Name)
+
+		resourceRecords, err := client.ListResourceRecordSets(ctx, &route53.ListResourceRecordSetsInput{
+			HostedZoneId:    aws.String(HostedZoneID),
+			StartRecordName: aws.String(fqdn),
+			StartRecordType: types.RRTypeA,
+			MaxItems:        aws.Int32(1),
+		})
+		if err != nil {
+			return err
+		}
+		if len(resourceRecords.ResourceRecordSets) == 0 {
+			return MissingRecordsError
+		}
+
 		_, err = client.ChangeResourceRecordSets(ctx, &route53.ChangeResourceRecordSetsInput{
 			HostedZoneId: aws.String(HostedZoneID),
 			ChangeBatch: &types.ChangeBatch{
 				Changes: []types.Change{
 					{
-						Action: types.ChangeActionDelete,
-						ResourceRecordSet: &types.ResourceRecordSet{
-							Name: aws.String(fmt.Sprintf("%s.%s", subdomain, *hostedZone.HostedZone.Name)),
-							Type: types.RRTypeA,
-							TTL:  aws.Int64(300),
-							ResourceRecords: []types.ResourceRecord{
-								{
-									Value: aws.String(address),
-								},
-							},
-						},
+						Action:            types.ChangeActionDelete,
+						ResourceRecordSet: &resourceRecords.ResourceRecordSets[0],
 					},
 				},
 			},
