@@ -2,6 +2,7 @@ package launcher
 
 import (
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/networking"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -12,9 +13,11 @@ func AddRoutes(
 	e *echo.Echo,
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,
+	deviceConfig DeviceConfig,
 ) {
 	e.GET("/api/v1/update", CheckUpdateHandler())
 	e.POST("/api/v1/update", ApplyUpdatesHandler(dockerClient))
+	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(deviceConfig))
 }
 
 func CheckUpdateHandler() echo.HandlerFunc {
@@ -58,5 +61,35 @@ func ApplyUpdatesHandler(dockerClient *client.Client) echo.HandlerFunc {
 		}()
 
 		return nil
+	}
+}
+
+type SubdomainAPIRequest struct {
+	Subdomain string `json:"subdomain"`
+}
+
+func SetSubdomainHandler(deviceConfig DeviceConfig) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var req SubdomainAPIRequest
+		if err := c.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+		}
+
+		publicIP, err := networking.GetPublicIP()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to setup networking")
+		}
+
+		err = SetSubdomain(c.Request().Context(), SubdomainRequest{
+			DeviceId:  deviceConfig.DeviceId,
+			DeviceKey: deviceConfig.DeviceKey,
+			Subdomain: req.Subdomain,
+			IPAddress: publicIP,
+		})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Error setting subdomain")
+		}
+
+		return c.NoContent(http.StatusNoContent)
 	}
 }

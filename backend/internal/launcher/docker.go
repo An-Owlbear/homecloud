@@ -8,10 +8,12 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"golang.org/x/mod/semver"
 	"io"
 	"os"
+	"strings"
 )
 
 var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
@@ -114,7 +116,7 @@ func FollowLogs(dockerClient *client.Client) error {
 func ConnectNetworks(dockerClient *client.Client) error {
 	for _, networkName := range []string{"ory.kratos", "ory.hydra"} {
 		err := dockerClient.NetworkConnect(context.Background(), networkName, "homecloud.app-homecloud", &network.EndpointSettings{})
-		if err != nil {
+		if err != nil && !(errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")) {
 			return err
 		}
 	}

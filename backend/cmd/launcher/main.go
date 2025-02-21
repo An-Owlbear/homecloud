@@ -33,6 +33,8 @@ func main() {
 		panic(err)
 	}
 
+	deviceConfig := launcher.NewDeviceConfig()
+
 	// Setups up port configuration
 	hostConfig, err := config.NewHost()
 	if err != nil {
@@ -124,6 +126,6 @@ func main() {
 	}()
 
 	e := echo.New()
-	launcher.AddRoutes(e, dockerClient, storeClient)
+	launcher.AddRoutes(e, dockerClient, storeClient, deviceConfig)
 	e.Logger.Fatal(e.Start(":1324"))
 }
