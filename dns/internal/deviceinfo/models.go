@@ -11,6 +11,11 @@ type DeviceInfo struct {
 	Subdomain string `json:"subdomain" dynamodbav:"subdomain"`
 }
 
+type SubdomainIndex struct {
+	DeviceId  string `json:"device_id" dynamodbav:"device_id"`
+	Subdomain string `json:"subdomain" dynamodbav:"subdomain"`
+}
+
 func HashKey(key string) (string, error) {
 	hash, err := argon2id.CreateHash(key, argon2id.DefaultParams)
 	if err != nil {

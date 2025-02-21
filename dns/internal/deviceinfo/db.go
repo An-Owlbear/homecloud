@@ -39,7 +39,7 @@ func Get(ctx context.Context, client *dynamodb.Client, deviceId string) (deviceI
 	return
 }
 
-func SubdomainTaken(ctx context.Context, client *dynamodb.Client, subdomain string) (bool, error) {
+func SubdomainTaken(ctx context.Context, client *dynamodb.Client, deviceId string, subdomain string) (bool, error) {
 	result, err := client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(TableName),
 		IndexName:              aws.String("subdomain-index"),
@@ -54,7 +54,19 @@ func SubdomainTaken(ctx context.Context, client *dynamodb.Client, subdomain stri
 		return false, err
 	}
 
-	return len(result.Items) > 0, nil
+	if len(result.Items) > 0 {
+		var deviceInfo SubdomainIndex
+		err = attributevalue.UnmarshalMap(result.Items[0], &deviceInfo)
+		if err != nil {
+			return false, err
+		}
+
+		if deviceInfo.DeviceId != deviceId {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func Put(ctx context.Context, client *dynamodb.Client, deviceInfo DeviceInfo) error {
