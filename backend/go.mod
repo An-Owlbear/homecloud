@@ -8,6 +8,7 @@ require (
 	github.com/docker/go-connections v0.5.0
 	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/google/go-cmp v0.6.0
+	github.com/huin/goupnp v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.0
 	github.com/mattn/go-sqlite3 v1.14.24
@@ -15,6 +16,7 @@ require (
 	github.com/ory/kratos-client-go v1.2.1
 	github.com/pressly/goose/v3 v3.24.0
 	golang.org/x/mod v0.22.0
+	golang.org/x/sync v0.10.0
 	golang.org/x/text v0.21.0
 )
 
@@ -51,7 +53,6 @@ require (
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
