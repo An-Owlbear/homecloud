@@ -1,8 +1,12 @@
 package deviceinfo
 
 import (
+	"errors"
+
 	"github.com/alexedwards/argon2id"
 )
+
+var InvalidKeyError = errors.New("invalid key")
 
 // DeviceInfo stores information about a device
 type DeviceInfo struct {

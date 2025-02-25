@@ -4,28 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/An-Owlbear/homecloud/dns/internal/database"
 	"github.com/An-Owlbear/homecloud/dns/internal/deviceinfo"
 	"github.com/An-Owlbear/homecloud/dns/internal/dns"
 	"github.com/An-Owlbear/homecloud/dns/internal/lambdautils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/route53"
 )
-
-var SubdomainTakenError = errors.New("subdomain already in use")
 
 type Request struct {
 	DeviceId  string `json:"device_id"`
 	DeviceKey string `json:"device_key"`
-	Subdomain string `json:"subdomain"`
-	IPAddress string `json:"ip_address"`
+	Port      int    `json:"port"`
 }
 
-// Updates the subdomain for the given device id and key. A subdomain that is assigned to another
-// domain can't be used. Uses API Gateway request/response structs to work properly with function URLs
-// or AWS API gateway
+var PortCheckError = errors.New("invalid response from port forwarded address")
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Creates dynamodb and route53 client
 	db, err := database.Create(ctx)
 	if err != nil {
 		return lambdautils.ErrorResponse(err, 500)
@@ -41,7 +42,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return lambdautils.ErrorResponse(err, 400)
 	}
 
-	// Retrieves device info, ensures key matches
+	// checks the user is a valid user and ensures
 	deviceInfo, err := deviceinfo.Get(ctx, db, requestBody.DeviceId)
 	if err != nil {
 		return lambdautils.ErrorResponse(err, 400)
@@ -51,37 +52,25 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	if err != nil {
 		return lambdautils.ErrorResponse(err, 500)
 	}
-
 	if !hashMatches {
 		return lambdautils.ErrorResponse(deviceinfo.InvalidKeyError, 401)
 	}
 
-	// Sets subdomain if another device isn't already using it
-	subdomainTaken, err := deviceinfo.SubdomainTaken(ctx, db, requestBody.DeviceId, requestBody.Subdomain)
+	hostedZone, err := dnsClient.GetHostedZone(context.Background(), &route53.GetHostedZoneInput{
+		Id: aws.String(dns.HostedZoneID),
+	})
 	if err != nil {
 		return lambdautils.ErrorResponse(err, 500)
 	}
+	domain, _ := strings.CutSuffix(*hostedZone.HostedZone.Name, ".")
 
-	if subdomainTaken {
-		return lambdautils.ErrorResponse(SubdomainTakenError, 409)
-	}
-
-	if deviceInfo.Subdomain != "" {
-		err = dns.RemoveRecord(ctx, dnsClient, deviceInfo.Subdomain, requestBody.IPAddress)
-		if err != nil {
-			return lambdautils.ErrorResponse(err, 500)
-		}
-	}
-
-	deviceInfo.Subdomain = requestBody.Subdomain
-	err = deviceinfo.Put(ctx, db, deviceInfo)
+	requestUrl := fmt.Sprintf("http://%s.%s:%d/api/v1/check", deviceInfo.Subdomain, domain, requestBody.Port)
+	response, err := http.Get(requestUrl)
 	if err != nil {
 		return lambdautils.ErrorResponse(err, 500)
 	}
-
-	err = dns.SetRecord(ctx, dnsClient, deviceInfo.Subdomain, requestBody.IPAddress)
-	if err != nil {
-		return lambdautils.ErrorResponse(err, 500)
+	if response.StatusCode < 200 || response.StatusCode >= 500 {
+		return lambdautils.ErrorResponse(PortCheckError, 500)
 	}
 
 	return lambdautils.EmptyResponse(204)
