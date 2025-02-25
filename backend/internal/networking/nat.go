@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func TryMapPort(ctx context.Context, port uint16) error {
+func TryMapPort(ctx context.Context, externalPort uint16, internalPort uint16) error {
 	client, err := PickRouterClient(ctx)
 	if err != nil {
 		return err
@@ -15,7 +15,7 @@ func TryMapPort(ctx context.Context, port uint16) error {
 		return err
 	}
 
-	err = client.AddPortMapping("", port, "TCP", port, privateIP.String(), true, "Homecloud", 3600)
+	err = client.AddPortMapping("", externalPort, "TCP", internalPort, privateIP.String(), true, "Homecloud", 3600)
 	if err != nil {
 		return err
 	}

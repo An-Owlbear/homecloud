@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/An-Owlbear/homecloud/backend"
 	"github.com/An-Owlbear/homecloud/backend/internal/api"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
@@ -16,7 +18,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	hydra "github.com/ory/hydra-client-go/v2"
 	kratos "github.com/ory/kratos-client-go"
-	"os"
 )
 
 func CreateServer() *echo.Echo {

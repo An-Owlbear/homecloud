@@ -1,19 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/apps"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/launcher"
-	"github.com/docker/docker/client"
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
 	"net/url"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
 	"text/template"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/launcher"
+	"github.com/An-Owlbear/homecloud/backend/internal/networking"
+	"github.com/docker/docker/client"
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
 )
 
 const templateDir = "templates"
@@ -110,6 +113,12 @@ func main() {
 		panic(err)
 	}
 	err = launcher.ConnectNetworks(dockerClient)
+	if err != nil {
+		panic(err)
+	}
+
+	// Sets up port forwarding on local network
+	err = networking.TryMapPort(context.Background(), uint16(hostConfig.Port), uint16(hostConfig.Port))
 	if err != nil {
 		panic(err)
 	}
