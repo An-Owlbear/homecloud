@@ -2,6 +2,7 @@ package launcher
 
 import (
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/networking"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
@@ -13,7 +14,7 @@ func AddRoutes(
 	e *echo.Echo,
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,
-	deviceConfig DeviceConfig,
+	deviceConfig config.DeviceConfig,
 ) {
 	e.GET("/api/v1/update", CheckUpdateHandler())
 	e.POST("/api/v1/update", ApplyUpdatesHandler(dockerClient))
@@ -68,7 +69,7 @@ type SubdomainAPIRequest struct {
 	Subdomain string `json:"subdomain"`
 }
 
-func SetSubdomainHandler(deviceConfig DeviceConfig) echo.HandlerFunc {
+func SetSubdomainHandler(deviceConfig config.DeviceConfig) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req SubdomainAPIRequest
 		if err := c.Bind(&req); err != nil {

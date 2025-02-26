@@ -36,7 +36,7 @@ func main() {
 		panic(err)
 	}
 
-	deviceConfig := launcher.NewDeviceConfig()
+	deviceConfig := config.NewDeviceConfig()
 
 	// Setups up port configuration
 	hostConfig, err := config.NewHost()
@@ -118,7 +118,7 @@ func main() {
 	}
 
 	// Sets up port forwarding on local network
-	err = networking.TryMapPort(context.Background(), uint16(hostConfig.Port), uint16(hostConfig.Port))
+	err = networking.TryMapPort(context.Background(), uint16(hostConfig.Port), uint16(hostConfig.Port), deviceConfig)
 	if err != nil {
 		panic(err)
 	}

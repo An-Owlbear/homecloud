@@ -20,6 +20,12 @@ type RouterClient interface {
 		NewLeaseDuration uint32,
 	) (err error)
 
+	DeletePortMapping(
+		NewRemoteHost string,
+		NewExternalPort uint16,
+		NewProtocol string,
+	) (err error)
+
 	GetExternalIPAddress() (
 		NewExternalIPAddress string,
 		err error,
