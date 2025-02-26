@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"golang.org/x/crypto/acme/autocert"
 	"os"
 
 	"github.com/An-Owlbear/homecloud/backend"
@@ -133,5 +134,6 @@ func CreateServer() *echo.Echo {
 		return
 	})
 
+	e.AutoTLSManager.Cache = autocert.DirCache(".cache")
 	return e
 }

@@ -9,7 +9,7 @@ run:
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
 		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
-		-p 1323:1323 \
+		-p ${HOMECLOUD_PORT}:${HOMECLOUD_PORT} \
 		--name ${CONTAINER_NAME} \
 		cosmtrek/air \
 		-c ".air.toml"
