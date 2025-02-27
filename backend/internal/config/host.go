@@ -6,8 +6,9 @@ import (
 )
 
 type Host struct {
-	Host string
-	Port int
+	Host  string
+	Port  int
+	HTTPS bool
 }
 
 func NewHost() (*Host, error) {
@@ -16,8 +17,14 @@ func NewHost() (*Host, error) {
 		return nil, err
 	}
 
+	https, err := strconv.ParseBool(Getenv("USE_HTTPS", "true"))
+	if err != nil {
+		return nil, err
+	}
+
 	return &Host{
-		Host: os.Getenv("HOMECLOUD_HOST"),
-		Port: port,
+		Host:  os.Getenv("HOMECLOUD_HOST"),
+		Port:  port,
+		HTTPS: https,
 	}, nil
 }

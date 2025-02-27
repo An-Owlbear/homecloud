@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"golang.org/x/crypto/acme/autocert"
+	"log/slog"
 	"os"
 
 	"github.com/An-Owlbear/homecloud/backend"
@@ -21,7 +22,13 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 )
 
-func CreateServer() *echo.Echo {
+func CreateServer() {
+	// Loads configuration
+	if os.Getenv("ENVIRONMENT") == "DEV" {
+		if err := godotenv.Load(".dev.env"); err != nil {
+			panic(err)
+		}
+	}
 	err := godotenv.Load()
 	if err != nil && !os.IsNotExist(err) {
 		panic(err)
@@ -104,7 +111,11 @@ func CreateServer() *echo.Echo {
 		kratosAdmin.IdentityAPI,
 		*serverConfig,
 	)
-	hostsMap[fmt.Sprintf("%s:%d", serverConfig.Host.Host, serverConfig.Host.Port)] = backendApi
+	hostname := serverConfig.Host.Host
+	if serverConfig.Host.Port != 80 && serverConfig.Host.Port != 443 {
+		hostname = fmt.Sprintf("%s:%d", serverConfig.Host.Host, serverConfig.Host.Port)
+	}
+	hostsMap[hostname] = backendApi
 
 	// Adds reverse proxies for ory services
 	hosts.AddProxy("hydra", "hydra", "4444")
@@ -125,6 +136,8 @@ func CreateServer() *echo.Echo {
 
 	// Checks which HTTP server/proxy to send traffic to
 	e.Any("/*", func(c echo.Context) (err error) {
+		fmt.Println(c.Request().Host)
+		fmt.Println(hostsMap)
 		if host, ok := hostsMap[c.Request().Host]; ok {
 			host.ServeHTTP(c.Response(), c.Request())
 		} else {
@@ -134,6 +147,12 @@ func CreateServer() *echo.Echo {
 		return
 	})
 
-	e.AutoTLSManager.Cache = autocert.DirCache(".cache")
-	return e
+	if serverConfig.Host.HTTPS {
+		slog.Info("Starting server with HTTPS")
+		e.AutoTLSManager.Cache = autocert.DirCache(".cache")
+		e.Logger.Fatal(e.StartAutoTLS(":443"))
+	} else {
+		slog.Info("Starting server without HTTPS - THIS IS NOT SAFE FOR PRODUCTION ENVIRONMENTS")
+		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", serverConfig.Host.Port)))
+	}
 }

@@ -36,6 +36,11 @@ func (hosts *Hosts) AddProxy(hostAddress string, proxyAddress string, proxyPort 
 	}
 
 	proxyHost.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(targets)))
+
+	publicHost := fmt.Sprintf("%s.%s", hostAddress, hosts.config.Host)
+	if hosts.config.Port != 80 && hosts.config.Port != 443 {
+		publicHost = fmt.Sprintf("%s:%d", publicHost, hosts.config.Port)
+	}
 	hosts.hosts[fmt.Sprintf("%s.%s:%d", hostAddress, hosts.config.Host, hosts.config.Port)] = proxyHost
 
 	return nil

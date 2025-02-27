@@ -4,17 +4,17 @@ dsn: memory
 
 serve:
   public:
-    base_url: http://kratos.hc.anowlbear.com:1323
+    base_url: http://kratos.hc.anowlbear.com:443
     cors:
       enabled: false
   admin:
     base_url: http://127.0.0.1:4434
 
 selfservice:
-  default_browser_return_url: http://hc.anowlbear.com:1323
+  default_browser_return_url: http://hc.anowlbear.com:443
   allowed_return_urls:
     - http://login.hc.anowlbear.com:1323
-    - http://hc.anowlbear.com:1323
+    - http://hc.anowlbear.com:443
 
   methods:
     password:
@@ -29,25 +29,25 @@ selfservice:
       ui_url: http://login.hc.anowlbear.com:1323/error
 
     settings:
-      ui_url: http://hc.anowlbear.com:1323/auth/settings
+      ui_url: http://hc.anowlbear.com:443/auth/settings
       privileged_session_max_age: 15m
       required_aal: highest_available
 
     logout:
       after:
-        default_browser_return_url: http://hc.anowlbear.com:1323/auth/login
+        default_browser_return_url: http://hc.anowlbear.com:443/auth/login
 
     login:
-      ui_url: http://hc.anowlbear.com:1323/auth/login
+      ui_url: http://hc.anowlbear.com:443/auth/login
 
     registration:
-      ui_url: http://hc.anowlbear.com:1323/auth/registration
+      ui_url: http://hc.anowlbear.com:443/auth/registration
       after:
         password:
           hooks:
             - hook: web_hook
               config:
-                url: http://hc.anowlbear.com:1323/api/v1/invites/check
+                url: http://hc.anowlbear.com:443/api/v1/invites/check
                 method: POST
                 body: "file:///etc/config/kratos/invite_code.jsonnet"
                 response:
@@ -55,14 +55,14 @@ selfservice:
             - hook: session
             - hook: web_hook
               config:
-                url: http://hc.anowlbear.com:1323/api/v1/invites/complete
+                url: http://hc.anowlbear.com:443/api/v1/invites/complete
                 method: POST
                 body: "file:///etc/config/kratos/invite_code.jsonnet"
                 response:
                   parse: false
 
     recovery:
-      ui_url: http://hc.anowlbear.com:1323/auth/recovery
+      ui_url: http://hc.anowlbear.com:443/auth/recovery
       enabled: true
       use: code
 

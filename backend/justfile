@@ -5,11 +5,12 @@ run:
 	docker run -it --rm \
 		-w "/opt/homecloud" \
 		-e "air_wd=/opt/homecloud" \
+		-e "ENVIRONMENT=DEV" \
 		-v $(pwd):/opt/homecloud \
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
 		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
-		-p ${HOMECLOUD_PORT}:${HOMECLOUD_PORT} \
+		-p 1323:1323 \
 		--name ${CONTAINER_NAME} \
 		cosmtrek/air \
 		-c ".air.toml"
