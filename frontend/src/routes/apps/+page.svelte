@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { PageProps } from '../../../.svelte-kit/types/src/routes';
+	import type { PageProps } from './$types';
+	import App from './App.svelte';
 
 	const { data }: PageProps = $props();
 </script>
@@ -14,14 +15,14 @@
 		flex-wrap: wrap;
 		flex-direction: row;
 	}
-
-	.app {
-		display: flex;
-	}
 </style>
 
-<ul class="app-list">
-	{#each data.apps as app}
-		<li class="app">{app.name}</li>
-	{/each}
-</ul>
+<div class="w-full px-10 py-8 mx-auto">
+	<ul class="flex flex-wrap flex-row space-x-8">
+		{#each data.apps as app}
+			<li class="app">
+				<App app={app} />
+			</li>
+		{/each}
+	</ul>
+</div>
