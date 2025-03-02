@@ -4,7 +4,6 @@ import { goto } from '$app/navigation';
 
 export const load: PageLoad = async ({ fetch }) => {
 	const response = await fetch('/api/v1/apps');
-	console.log(response);
 	if (!response.ok) {
 		await goto('/auth/login');
 	}

@@ -6,11 +6,12 @@
 	import type { HomecloudApp } from '$lib/models';
 
 	const { data }: PageProps = $props();
+	const apps = $state([...data.apps])
 
 	const onUninstall = (app: HomecloudApp) => {
-		const index = data.apps.findIndex(app => app.id === app.id);
+		const index = apps.findIndex(a => a.id === app.id);
 		if (index > -1) {
-			data.apps.splice(index, 1);
+			apps.splice(index, 1);
 		}
 	}
 </script>
@@ -33,7 +34,7 @@
 </Navbar>
 <div class="container mx-auto my-10">
 	<ul class="flex flex-wrap flex-row space-x-8">
-		{#each data.apps as app}
+		{#each apps as app (app.id)}
 			<li class="app">
 				<App app={app} onUninstall={onUninstall} />
 			</li>
