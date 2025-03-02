@@ -136,8 +136,6 @@ func CreateServer() {
 
 	// Checks which HTTP server/proxy to send traffic to
 	e.Any("/*", func(c echo.Context) (err error) {
-		fmt.Println(c.Request().Host)
-		fmt.Println(hostsMap)
 		if host, ok := hostsMap[c.Request().Host]; ok {
 			host.ServeHTTP(c.Response(), c.Request())
 		} else {

@@ -75,12 +75,12 @@ func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *
 	}
 
 	// Start app containers
-	if err := docker.StartApp(dockerClient, app.ID); err != nil {
+	if err := docker.StartApp(dockerClient, appId); err != nil {
 		return err
 	}
 
 	// Retrieve containers and wait for them to finish starting
-	containers, err := docker.GetAppContainers(dockerClient, app.ID)
+	containers, err := docker.GetAppContainers(dockerClient, appId)
 	if err != nil {
 		return err
 	}

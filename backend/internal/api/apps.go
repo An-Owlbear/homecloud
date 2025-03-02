@@ -20,7 +20,7 @@ func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 		}
 
 		// returns them in a more compact format fit for lists
-		var resList []apps.PackageListItem
+		resList := make([]apps.PackageListItem, 0)
 		for _, app := range appList {
 			resList = append(resList, apps.PackageListItem{
 				Id:          app.ID,
