@@ -1,16 +1,44 @@
 <script lang="ts">
-	import { Card } from 'flowbite-svelte';
-	import { ArchiveSolid } from 'flowbite-svelte-icons';
+	import { Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
+	import { ArchiveSolid, DotsVerticalOutline } from 'flowbite-svelte-icons';
 	import type { HomecloudApp } from '$lib/models';
+	import { CheckAuthRedirect } from '$lib/api';
 
-	const { app }: {
+	const { app, onUninstall }: {
 		app: HomecloudApp
+		onUninstall: (app: HomecloudApp) => void
 	} = $props();
+
+	let uninstalling = $state(false);
+
+	const uninstall = async (event: MouseEvent) => {
+		event.preventDefault();
+		uninstalling = true;
+		const response = await fetch(`/api/v1/apps/${app.id}/uninstall`, {method: 'POST'})
+		if (!response.ok) {
+			await CheckAuthRedirect(response);
+		}
+		onUninstall(app);
+	}
 </script>
 
-<Card class="space-y-4">
-	<a href="http://{app.name}.hc.anowlbear.com:1323" target="_blank">
-		<ArchiveSolid class="w-31.25 h-31.25" />
-		<h1>{app.name}</h1>
-	</a>
-</Card>
+<div class="h-55 w-40">
+	<Card class="h-full space-y-4 has-[.app-options:hover]:bg-white dark:has-[.app-options:hover]:bg-gray-800" href={uninstalling ? undefined : `http://${app.name}.hc.anowlbear.com:1323`} target="_blank">
+		{#if uninstalling}
+			<Spinner size="xl" />
+			<span class="text-lg text-center">Uninstalling {app.name}</span>
+		{:else}
+			<ArchiveSolid class="w-30 h-30" />
+			<div class="flex flex-row justify-between items-center">
+				<span class="text-lg">{app.name}</span>
+				<Button pill color="alternative" class="app-options px-2 py-2 hover:cursor-pointer" on:click={(event) => event.preventDefault()}>
+					<DotsVerticalOutline size="md" />
+				</Button>
+				<Dropdown>
+					<DropdownItem class="app-options" href="http://{app.name}.hc.anowlbear.com:1323" target="_blank">Open app</DropdownItem>
+					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={uninstall}>Uninstall app</DropdownItem>
+				</Dropdown>
+			</div>
+		{/if}
+	</Card>
+</div>

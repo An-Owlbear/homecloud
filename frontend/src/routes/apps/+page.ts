@@ -1,4 +1,4 @@
-import type { PageLoad } from '../../../.svelte-kit/types/src/routes';
+import type { PageLoad } from './$types';
 import type { HomecloudApp } from '$lib/models';
 import { goto } from '$app/navigation';
 
