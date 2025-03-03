@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
-  import type { PageProps } from './$types';
+	import type { PageProps } from './$types';
 	import App from './App.svelte';
-	import { CogSolid, UserCircleSolid } from 'flowbite-svelte-icons';
+	import { CogSolid, ShoppingBagSolid, UserCircleSolid } from 'flowbite-svelte-icons';
 	import type { HomecloudApp } from '$lib/models';
 
 	const { data }: PageProps = $props();
-	const apps = $state([...data.apps])
+	const apps = $state([...data.apps]);
 
 	const onUninstall = (app: HomecloudApp) => {
 		const index = apps.findIndex(a => a.id === app.id);
 		if (index > -1) {
 			apps.splice(index, 1);
 		}
-	}
+	};
 </script>
 
 <Navbar>
@@ -22,6 +22,10 @@
 	</NavBrand>
 	<NavHamburger />
 	<NavUl>
+		<NavLi href="/store" class="flex flex-row items-center space-x-2">
+			<ShoppingBagSolid />
+			<span>App store</span>
+		</NavLi>
 		<NavLi href="/settings" class="flex flex-row items-center space-x-2">
 			<CogSolid />
 			<span>Settings</span>
