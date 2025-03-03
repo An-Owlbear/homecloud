@@ -250,9 +250,9 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 	for _, vol := range app.Containers[0].Volumes {
 		volParts := strings.Split(vol, ":")
 		if strings.HasPrefix(volParts[0], "./") {
-			execPath, err := os.Executable()
+			execPath, err := os.Getwd()
 			if err != nil {
-				t.Fatalf("Unexpected error gettign exec path: %s", err.Error())
+				t.Fatalf("Unexpected error getting exec path: %s", err.Error())
 			}
 			volParts[0] = filepath.Join(execPath, volParts[0][2:])
 		}

@@ -18,9 +18,23 @@ func TestUpdatePackageList(t *testing.T) {
 
 	expectedResults := []PackageListItem{
 		{
+			Id:          "immich-app.immich",
+			Name:        "immich",
+			Version:     "v1.124.3",
+			Author:      "immich-app",
+			Description: "High-performance self-hosted photo and video management solution",
+		},
+		{
+			Id:          "paperless-ngx.paperless-ngx",
+			Name:        "paperless-ngx",
+			Version:     "v1.0",
+			Author:      "paperless-ngx",
+			Description: " A community-supported supercharged version of paperless: scan, index and archive all your physical documents",
+		},
+		{
 			Id:          "traefik.whoami",
 			Name:        "whoami",
-			Version:     "v1.5",
+			Version:     "v1.6",
 			Author:      "traefik",
 			Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
 		},
@@ -42,7 +56,7 @@ func TestGetPackage(t *testing.T) {
 
 	expectedPackage := persistence.AppPackage{
 		Schema:      "v1.0",
-		Version:     "v1.5",
+		Version:     "v1.6",
 		Id:          "traefik.whoami",
 		Name:        "whoami",
 		Author:      "traefik",
@@ -53,6 +67,7 @@ func TestGetPackage(t *testing.T) {
 				Image:       "traefik/whoami:v1.10.3",
 				ProxyTarget: true,
 				ProxyPort:   "80",
+				Ports:       []string{"8001:80"},
 			},
 		},
 	}
@@ -66,7 +81,7 @@ func TestGetPackage(t *testing.T) {
 func TestGetUnknownPackage(t *testing.T) {
 	client := prepareClient()
 	_, err := client.GetPackage("fake.package")
-	expectedErr := "Invalid HTTP response 404"
+	expectedErr := "invalid HTTP response 404"
 
 	if err.Error() != expectedErr {
 		t.Fatalf("Unexpected error response\nExpected: %s\nActual: %s", expectedErr, err.Error())
@@ -77,5 +92,5 @@ func TestGetUnknownPackage(t *testing.T) {
 // update to use local web server
 func prepareClient() *StoreClient {
 	// URL to repository at a specific commit so new packages don't affect the tests
-	return NewStoreClient("https://raw.githubusercontent.com/An-Owlbear/homecloud/e1ddd9a14e400a53b943cd0934bbd60c897968f0/apps/list.json")
+	return NewStoreClient("https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps/list.json")
 }

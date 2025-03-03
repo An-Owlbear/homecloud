@@ -56,13 +56,13 @@ func (client *StoreClient) UpdatePackageList() error {
 
 func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.AppPackage, err error) {
 	// Retrieve package file
-	packagePath := strings.Trim(client.repoUrl, "list.json") + "packages/" + packageId + ".json"
+	packagePath := strings.Trim(client.repoUrl, "list.json") + "packages/" + packageId + "/schema.json"
 	resp, err := http.Get(packagePath)
 	if err != nil {
 		return
 	}
 	if resp.StatusCode != 200 {
-		err = fmt.Errorf("Invalid HTTP response %d", resp.StatusCode)
+		err = fmt.Errorf("invalid HTTP response %d", resp.StatusCode)
 		return
 	}
 
