@@ -19,6 +19,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func ListPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		err := storeClient.UpdatePackageList()
+		if err != nil {
+			return err
+		}
+		return c.JSONPretty(200, storeClient.Packages, "  ")
+	}
+}
+
 func AddPackage(
 	storeClient *apps.StoreClient,
 	queries *persistence.Queries,
