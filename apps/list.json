@@ -2,7 +2,7 @@
   {
     "id": "immich-app.immich",
     "name": "immich",
-    "version": "v1.124.2.1",
+    "version": "v1.124.3",
     "author": "immich-app",
     "description": "High-performance self-hosted photo and video management solution"
   },
