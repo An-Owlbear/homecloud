@@ -2,6 +2,7 @@ package docker_test
 
 import (
 	"context"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"testing"
 	"time"
 
@@ -46,7 +47,7 @@ func TestInstallApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app)
+	err = docker.InstallApp(dockerClient, app, config.Host{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -78,7 +79,7 @@ func TestStopApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app)
+	err = docker.InstallApp(dockerClient, app, config.Host{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -139,7 +140,7 @@ func TestStartApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app)
+	err = docker.InstallApp(dockerClient, app, config.Host{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -216,7 +217,7 @@ func TestUninstallApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app)
+	err = docker.InstallApp(dockerClient, app, config.Host{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}

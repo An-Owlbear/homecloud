@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -18,7 +19,7 @@ import (
 
 var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
 
-func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient) error {
+func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient, hostConfig config.Host) error {
 	// Installs ory hydra and kratos
 	for _, packageName := range appPackages {
 		// Retrieves package definition
@@ -42,7 +43,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient)
 				if err != nil {
 					return err
 				}
-				err = docker.InstallApp(dockerClient, appPackage)
+				err = docker.InstallApp(dockerClient, appPackage, hostConfig)
 				if err != nil {
 					return err
 				}
@@ -53,7 +54,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient)
 			// Install app if it's not installed
 			fmt.Printf("Installing %s\n", packageName)
 
-			err = docker.InstallApp(dockerClient, appPackage)
+			err = docker.InstallApp(dockerClient, appPackage, hostConfig)
 			if err != nil {
 				return err
 			}

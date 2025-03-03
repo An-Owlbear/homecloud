@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"os"
 	"path/filepath"
 	"testing"
@@ -68,7 +69,7 @@ func TestUpdateApps(t *testing.T) {
 	}
 
 	// Install and update app
-	err = docker.InstallApp(dockerClient, app)
+	err = docker.InstallApp(dockerClient, app, config.Host{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -90,7 +91,7 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error saving app to DB: %s", err.Error())
 	}
 
-	err = UpdateApps(dockerClient, storeClient, queries)
+	err = UpdateApps(dockerClient, storeClient, queries, config.Host{})
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
 	}
