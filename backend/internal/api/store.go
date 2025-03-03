@@ -88,7 +88,7 @@ func AddPackage(
 		}
 
 		// Install and sets up app containers
-		err = docker.InstallApp(dockerClient, app)
+		err = docker.InstallApp(dockerClient, app, hostConfig)
 		if err != nil {
 			return c.String(500, err.Error())
 		}
@@ -108,9 +108,9 @@ func CheckUpdates(storeClient *apps.StoreClient) echo.HandlerFunc {
 	}
 }
 
-func UpdateApps(dockerClient *client.Client, storeClient *apps.StoreClient, queries *persistence.Queries) echo.HandlerFunc {
+func UpdateApps(dockerClient *client.Client, storeClient *apps.StoreClient, queries *persistence.Queries, hostConfig config.Host) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := apps.UpdateApps(dockerClient, storeClient, queries)
+		err := apps.UpdateApps(dockerClient, storeClient, queries, hostConfig)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

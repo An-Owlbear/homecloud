@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"os"
 	"path/filepath"
@@ -39,7 +40,7 @@ var TimeoutError = errors.New("container didn't start in time")
 var NotFoundError = errors.New("no containers for app found")
 var InvalidContainerError = errors.New("container has invalid configuration")
 
-func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
+func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverHostConfig config.Host) error {
 	// Creates the network if it doesn't already exist
 	var networkId string
 	networkInspect, err := dockerClient.NetworkInspect(context.Background(), app.Id, network.InspectOptions{})
@@ -157,6 +158,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage) error {
 			},
 			PortBindings: portMap,
 			Binds:        formattedVolumes,
+			ExtraHosts:   []string{fmt.Sprintf("hydra.%s:host-gateway", serverHostConfig.Host)},
 		}
 
 		containerName := app.Id + "-" + containerDef.Name

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
@@ -13,7 +14,7 @@ import (
 )
 
 // UpdateApps updates the list of available apps and updates any outdated apps
-func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries) error {
+func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries, hostConfig config.Host) error {
 	err := storeClient.UpdatePackageList()
 	if err != nil {
 		return err
@@ -45,7 +46,7 @@ func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *
 				return err
 			}
 
-			err = docker.InstallApp(dockerClient, appPackage)
+			err = docker.InstallApp(dockerClient, appPackage, hostConfig)
 			if err != nil {
 				return err
 			}

@@ -43,7 +43,7 @@ func AddRoutes(
 	apiAdmin.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts))
 	apiAdmin.POST("/v1/apps/:appId/stop", StopApp(docker))
 	apiAdmin.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
-	apiAdmin.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries))
+	apiAdmin.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries, serverConfig.Host))
 
 	apiNoAuth.POST("/v1/invites/check", CheckInvitationCode(queries))
 	apiAdmin.PUT("/v1/invites", CreateInviteCode(queries))
