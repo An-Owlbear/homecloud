@@ -57,7 +57,11 @@ func CreateServer() {
 	}
 
 	queries := persistence.New(db)
-	storeClient := apps.NewStoreClient(os.Getenv("STORE_URL"))
+	storeClient := apps.NewStoreClient(serverConfig.Store)
+	err = storeClient.UpdatePackageList()
+	if err != nil {
+		panic(err)
+	}
 
 	// Sets up ory hydra client
 	hydraAdminConfig := hydra.NewConfiguration()

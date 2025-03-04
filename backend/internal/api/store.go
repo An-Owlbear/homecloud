@@ -29,6 +29,13 @@ func ListPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
 	}
 }
 
+func SearchPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		searchTerm := c.QueryParam("q")
+		return c.JSONPretty(200, storeClient.SearchPackages(searchTerm), "  ")
+	}
+}
+
 func AddPackage(
 	storeClient *apps.StoreClient,
 	queries *persistence.Queries,

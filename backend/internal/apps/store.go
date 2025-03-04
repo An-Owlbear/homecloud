@@ -3,6 +3,7 @@ package apps
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"net/http"
 	"strings"
@@ -20,20 +21,20 @@ type PackageListItem struct {
 }
 
 type StoreClient struct {
-	repoUrl  string
+	config   config.Store
 	Packages []PackageListItem
 }
 
-func NewStoreClient(repoUrl string) *StoreClient {
+func NewStoreClient(config config.Store) *StoreClient {
 	return &StoreClient{
-		repoUrl: repoUrl,
+		config: config,
 	}
 }
 
 // UpdatePackageList updates the package list contained in the StoreClient struct
 func (client *StoreClient) UpdatePackageList() error {
 	// Retrieve package list over HTTP
-	resp, err := http.Get(client.repoUrl)
+	resp, err := http.Get(client.config.StoreUrl)
 	if err != nil {
 		return err
 	}
@@ -53,7 +54,7 @@ func (client *StoreClient) UpdatePackageList() error {
 	}
 
 	for i := range client.Packages {
-		client.Packages[i].ImageUrl = strings.Trim(client.repoUrl, "list.json") + "packages/" + client.Packages[i].Id + "/icon.png"
+		client.Packages[i].ImageUrl = strings.Trim(client.config.StoreUrl, "list.json") + "packages/" + client.Packages[i].Id + "/icon.png"
 	}
 
 	return nil
@@ -61,7 +62,7 @@ func (client *StoreClient) UpdatePackageList() error {
 
 func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.AppPackage, err error) {
 	// Retrieve package file
-	packagePath := strings.Trim(client.repoUrl, "list.json") + "packages/" + packageId + "/schema.json"
+	packagePath := strings.Trim(client.config.StoreUrl, "list.json") + "packages/" + packageId + "/schema.json"
 	resp, err := http.Get(packagePath)
 	if err != nil {
 		return
@@ -83,4 +84,15 @@ func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.
 
 	err = json.Unmarshal(body, &appPackage)
 	return
+}
+
+func (client *StoreClient) SearchPackages(search string) []PackageListItem {
+	packages := make([]PackageListItem, 0)
+	searchTerm := strings.ToLower(strings.TrimSpace(search))
+	for _, appPackage := range client.Packages {
+		if strings.Contains(strings.ToLower(appPackage.Name), searchTerm) {
+			packages = append(packages, appPackage)
+		}
+	}
+	return packages
 }

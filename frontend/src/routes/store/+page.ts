@@ -1,14 +1,8 @@
 import type { PageLoad } from './$types';
-import { CheckAuthRedirect } from '$lib/api';
-import type { PackageListItem } from '$lib/models';
+import { searchPackages } from '$lib/api';
 
-export const load: PageLoad = async ({ fetch }) => {
-	const response = await fetch('/api/v1/packages');
-	if (!response.ok) {
-		await CheckAuthRedirect(response);
-	}
-
-	const packages = await response.json() as PackageListItem[];
+export const load: PageLoad = async ({ url }) => {
+	const packages = await searchPackages(url.searchParams.get('q') ?? '');
 	return {
 		packages: packages
 	}
