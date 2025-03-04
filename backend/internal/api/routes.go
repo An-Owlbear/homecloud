@@ -27,6 +27,7 @@ func AddRoutes(
 	hydraAdmin *hydra.APIClient,
 	kratosClient *kratos.APIClient,
 	kratosIdentityAPI kratos.IdentityAPI,
+	appDataHandler *persistence.AppDataHandler,
 	serverConfig config.Config,
 ) {
 	apiNoAuth := e.Group("/api")
@@ -37,7 +38,7 @@ func AddRoutes(
 	apiNoAuth.GET("/v1/check", PortForwardTest())
 
 	api.GET("/v1/packages", ListPackages(storeClient))
-	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, serverConfig.Host))
+	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, serverConfig.Host, appDataHandler))
 	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient))
 
 	api.GET("/v1/apps", ListApps(queries))
@@ -60,6 +61,7 @@ func AddRoutes(
 	e.GET("/auth/recovery", Recovery(kratosClient))
 	e.GET("/auth/oidc", OidcConsent(hydraAdmin))
 	e.Static("/assets", "assets")
+	e.GET("/assets/data/*", staticFilter(serverConfig.Storage.DataPath, "^db\\/data\\/.+\\/icon.png$"))
 }
 
 func PortForwardTest() echo.HandlerFunc {

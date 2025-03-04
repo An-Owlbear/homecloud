@@ -1,8 +1,10 @@
 package config
 
 type Config struct {
-	Host Host
-	Ory  Ory
+	Host    Host
+	Ory     Ory
+	Store   Store
+	Storage Storage
 }
 
 func LoadConfig() (*Config, error) {
@@ -16,8 +18,14 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	store := NewStore()
+
+	storage := NewStorage()
+
 	return &Config{
-		Host: *host,
-		Ory:  *ory,
+		Host:    *host,
+		Ory:     *ory,
+		Store:   *store,
+		Storage: *storage,
 	}, nil
 }

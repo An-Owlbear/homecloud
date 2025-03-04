@@ -86,6 +86,9 @@ func CreateServer() {
 	}
 	kratosAdmin := kratos.NewAPIClient(kratosAdminConfig)
 
+	// Sets up data storage handling
+	appDataHandler := persistence.NewAppDataHandler(serverConfig.Storage, serverConfig.Store)
+
 	// Sets up hosts config
 	hostsMap := apps.HostsMap{}
 	hosts := apps.NewHosts(hostsMap, serverConfig.Host)
@@ -109,6 +112,7 @@ func CreateServer() {
 		hydraAdmin,
 		kratosClient,
 		kratosAdmin.IdentityAPI,
+		appDataHandler,
 		*serverConfig,
 	)
 	hostname := serverConfig.Host.Host

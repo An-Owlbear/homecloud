@@ -7,7 +7,8 @@ export default defineConfig({
 	server: {
 		host: 'hc.anowlbear.com',
 		proxy: {
-			'/api': 'http://hc.anowlbear.com:1323'
+			'/api': 'http://hc.anowlbear.com:1323',
+			'/assets/data': 'http://hc.anowlbear.com:1323'
 		}
 	}
 });

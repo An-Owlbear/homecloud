@@ -35,6 +35,7 @@ func AddPackage(
 	dockerClient *client.Client,
 	hydraAdmin *hydra.APIClient,
 	hostConfig config.Host,
+	appDataHandler *persistence.AppDataHandler,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("appId")
@@ -93,6 +94,12 @@ func AddPackage(
 			ClientID:     sql.NullString{String: clientId, Valid: clientId != ""},
 			ClientSecret: sql.NullString{String: clientSecret, Valid: clientSecret != ""},
 		})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		// Downloads the app package and stores required files
+		err = appDataHandler.SavePackage(app.Id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
