@@ -50,25 +50,23 @@
 	}
 </script>
 
-<div class="h-55 w-40">
-	<Card class="h-full space-y-4 has-[.app-options:hover]:bg-white dark:has-[.app-options:hover]:bg-gray-800" href={loading ? undefined : `http://${app.name}.hc.anowlbear.com:1323`} target="_blank">
-		{#if loading}
-			<Spinner size="xl" />
-			<span class="text-lg text-center">{loadingMessage} {app.name}</span>
-		{:else}
-			<ArchiveSolid class="w-30 h-30" />
-			<div class="flex flex-row justify-between items-center">
-				<span class="text-lg">{app.name}</span>
-				<Button pill color="alternative" class="app-options px-2 py-2 hover:cursor-pointer" on:click={(event) => event.preventDefault()}>
-					<DotsVerticalOutline size="md" />
-				</Button>
-				<Dropdown bind:open={dropdown}>
-					<DropdownItem class="app-options" href="http://{app.name}.hc.anowlbear.com:1323" target="_blank">Open app</DropdownItem>
-					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
-					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
-					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={uninstall}>Uninstall app</DropdownItem>
-				</Dropdown>
-			</div>
-		{/if}
-	</Card>
-</div>
+<Card class="w-42 h-full overflow-hidden space-y-4 has-[.app-options:hover]:bg-white dark:has-[.app-options:hover]:bg-gray-800" href={loading ? undefined : `http://${app.name}.hc.anowlbear.com:1323`} target="_blank">
+	{#if loading}
+		<Spinner size="xl" />
+		<span class="text-lg text-center">{loadingMessage} {app.name}</span>
+	{:else}
+		<ArchiveSolid class="w-30 h-30" />
+		<div class="flex flex-row justify-between items-center">
+			<span class="text-md truncate">{app.name}</span>
+			<Button pill color="alternative" class="app-options px-1 py-1 hover:cursor-pointer" on:click={(event) => event.preventDefault()}>
+				<DotsVerticalOutline size="md" />
+			</Button>
+			<Dropdown bind:open={dropdown}>
+				<DropdownItem class="app-options" href="http://{app.name}.hc.anowlbear.com:1323" target="_blank">Open app</DropdownItem>
+				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
+				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
+				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={uninstall}>Uninstall app</DropdownItem>
+			</Dropdown>
+		</div>
+	{/if}
+</Card>

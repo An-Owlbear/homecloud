@@ -12,4 +12,5 @@ export type PackageListItem = {
 	version: string
 	author: string
 	description: string
+	image_url: string
 }

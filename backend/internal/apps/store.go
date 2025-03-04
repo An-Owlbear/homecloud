@@ -16,6 +16,7 @@ type PackageListItem struct {
 	Version     string `json:"version"`
 	Author      string `json:"author"`
 	Description string `json:"description"`
+	ImageUrl    string `json:"image_url"`
 }
 
 type StoreClient struct {
@@ -49,6 +50,10 @@ func (client *StoreClient) UpdatePackageList() error {
 	err = json.Unmarshal(body, &client.Packages)
 	if err != nil {
 		return err
+	}
+
+	for i := range client.Packages {
+		client.Packages[i].ImageUrl = strings.Trim(client.repoUrl, "list.json") + "packages/" + client.Packages[i].Id + "/icon.png"
 	}
 
 	return nil

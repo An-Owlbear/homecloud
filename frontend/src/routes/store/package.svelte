@@ -31,7 +31,7 @@
 </script>
 
 <Card horizontal class="max-w-none flex flex-row space-x-10 has-[.cancel-hover:hover]:bg-white dark:has-[.cancel-hover:hover]:bg-gray-800">
-	<ArchiveSolid class="w-20 h-20" />
+	<img src="{appPackage.image_url}" class="w-20 h-20" alt="icon for {appPackage.name}" />
 	<div class="flex flex-col">
 		<span class="text-xl">{appPackage.name}</span>
 		<span class="text-md">{appPackage.author}</span>
