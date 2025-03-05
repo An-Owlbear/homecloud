@@ -8,13 +8,14 @@
 	import { searchPackages } from '$lib/api';
 
 	const { data }: PageProps = $props();
-	let packages = $state([...data.packages])
-	let search = $state(page.url.searchParams.get('q') ?? '')
-	let searchUrl = $derived(page.url.searchParams.get('q') ?? '')
+	let packages = $state([...data.packages]);
+	let search = $state(page.url.searchParams.get('q') ?? '');
+	const initialUrl = page.url.searchParams.get('q') ?? '';
+	let searchUrl = $derived(page.url.searchParams.get('q') ?? '');
 
 	// Updates package list when search changes
 	$effect(() => {
-		if (search) {
+		if (search !== initialUrl) {
 			searchPackages(search).then(p => packages = p);
 		} else {
 			packages = [...data.packages];
