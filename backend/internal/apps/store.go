@@ -12,12 +12,13 @@ import (
 )
 
 type PackageListItem struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	Author      string `json:"author"`
-	Description string `json:"description"`
-	ImageUrl    string `json:"image_url"`
+	Id          string   `json:"id"`
+	Name        string   `json:"name"`
+	Version     string   `json:"version"`
+	Author      string   `json:"author"`
+	Description string   `json:"description"`
+	Categories  []string `json:"categories"`
+	ImageUrl    string   `json:"image_url"`
 }
 
 type StoreClient struct {

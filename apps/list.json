@@ -4,20 +4,31 @@
     "name": "immich",
     "version": "v1.124.3",
     "author": "immich-app",
-    "description": "High-performance self-hosted photo and video management solution"
+    "description": "High-performance self-hosted photo and video management solution",
+    "categories": [
+      "photos",
+      "organization"
+    ]
   },
   {
     "id": "paperless-ngx.paperless-ngx",
     "name": "paperless-ngx",
     "version": "v1.0",
     "author": "paperless-ngx",
-    "description": " A community-supported supercharged version of paperless: scan, index and archive all your physical documents"
+    "description": " A community-supported supercharged version of paperless: scan, index and archive all your physical documents",
+    "categories": [
+      "business",
+      "organization"
+    ]
   },
   {
     "id": "traefik.whoami",
     "name": "whoami",
     "version": "v1.6",
     "author": "traefik",
-    "description": "Tiny Go webserver that prints OS information and HTTP request to output."
+    "description": "Tiny Go webserver that prints OS information and HTTP request to output.",
+    "categories": [
+      "development"
+    ]
   }
 ]

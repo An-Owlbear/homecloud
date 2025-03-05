@@ -6,11 +6,12 @@ OUTPUT_FILE="list.json"
 results=""
 
 # Loop through all JSON files in the input directory
-for json_file in "$INPUT_DIR"/*.json; do
+for app_dir in "$INPUT_DIR"/*; do
     # Check if the file exists
+    json_file="$app_dir/schema.json"
     if [ -f "$json_file" ]; then
         # Extract id, name, version, author, and description using a single jq call
-        parsed_data=$(jq -c '{id: .id, name: .name, version: .version, author: .author, description: .description}' "$json_file")
+        parsed_data=$(jq -c '{id: .id, name: .name, version: .version, author: .author, description: .description, categories: .categories}' "$json_file")
 
         if [ -z "$results" ]; then
             results="$parsed_data"

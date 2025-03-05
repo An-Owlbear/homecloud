@@ -5,6 +5,7 @@
   "name": "immich",
   "author": "immich-app",
   "description": "High-performance self-hosted photo and video management solution",
+  "categories": ["photos", "organization"],
   "oidc_enabled": true,
   "oidc_scopes": [
     "openid",
