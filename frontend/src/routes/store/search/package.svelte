@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, Card, Spinner } from 'flowbite-svelte';
-	import { ArrowDownToBracketOutline, ArchiveSolid } from 'flowbite-svelte-icons';
+	import { ArrowDownToBracketOutline } from 'flowbite-svelte-icons';
 	import type { PackageListItem } from '$lib/models';
 	import { CheckAuthRedirect } from '$lib/api';
 

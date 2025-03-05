@@ -27,18 +27,16 @@
 	}
 </script>
 
-<div class="container mx-auto my-10">
-	<h1 class="text-5xl mb-5">Available apps</h1>
-	<form>
-		<Input placeholder="search" size="lg" class="mb-5" bind:value={search} onblur={updateUrl}>
-			<SearchOutline slot="left" class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-		</Input>
-	</form>
-	<ul class="space-y-3">
-		{#each packages as appPackage (appPackage.id)}
-			<li>
-				<Package appPackage={appPackage} />
-			</li>
-		{/each}
-	</ul>
-</div>
+<h1 class="text-5xl mb-5">Available apps</h1>
+<form>
+	<Input placeholder="search" size="lg" class="mb-5" bind:value={search} onblur={updateUrl}>
+		<SearchOutline slot="left" class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+	</Input>
+</form>
+<ul class="space-y-3">
+	{#each packages as appPackage (appPackage.id)}
+		<li>
+			<Package appPackage={appPackage} />
+		</li>
+	{/each}
+</ul>
