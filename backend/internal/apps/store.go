@@ -6,6 +6,8 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"net/http"
+	"slices"
+	"sort"
 	"strings"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
@@ -22,8 +24,9 @@ type PackageListItem struct {
 }
 
 type StoreClient struct {
-	config   config.Store
-	Packages []PackageListItem
+	config     config.Store
+	Packages   []PackageListItem
+	Categories []string
 }
 
 func NewStoreClient(config config.Store) *StoreClient {
@@ -54,8 +57,21 @@ func (client *StoreClient) UpdatePackageList() error {
 		return err
 	}
 
+	//  Loops through the list setting the icon URL and adding the categories to the global categories list
 	for i := range client.Packages {
 		client.Packages[i].ImageUrl = strings.Trim(client.config.StoreUrl, "list.json") + "packages/" + client.Packages[i].Id + "/icon.png"
+
+		for _, category := range client.Packages[i].Categories {
+			// If the list doesn't already contain the category insert it at the correct position alphabetically
+			if !slices.Contains(client.Categories, category) {
+				insertIndex := sort.Search(len(client.Categories), func(i int) bool {
+					return client.Categories[i] >= category
+				})
+				client.Categories = append(client.Categories, "")
+				copy(client.Categories[insertIndex+1:], client.Categories[insertIndex:])
+				client.Categories[insertIndex] = category
+			}
+		}
 	}
 
 	return nil

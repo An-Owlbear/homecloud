@@ -13,7 +13,11 @@
 
 	// Updates url when search changes
 	$effect(() => {
-		searchPackages(search).then(p => packages = p);
+		if (search) {
+			searchPackages(search).then(p => packages = p);
+		} else {
+			packages = [...data.packages];
+		}
 	})
 
 	const updateUrl = () => {

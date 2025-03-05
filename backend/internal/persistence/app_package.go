@@ -7,6 +7,7 @@ type AppPackage struct {
 	Name        string             `json:"name"`
 	Author      string             `json:"author"`
 	Description string             `json:"description"`
+	Categories  []string           `json:"categories"`
 	OidcEnabled bool               `json:"oidc_enabled"`
 	OidcScopes  []string           `json:"oidc_scopes"`
 	Containers  []PackageContainer `json:"containers"`
