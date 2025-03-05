@@ -10,8 +10,9 @@
 	const { data }: PageProps = $props();
 	let packages = $state([...data.packages])
 	let search = $state(page.url.searchParams.get('q') ?? '')
+	let searchUrl = $derived(page.url.searchParams.get('q') ?? '')
 
-	// Updates url when search changes
+	// Updates package list when search changes
 	$effect(() => {
 		if (search) {
 			searchPackages(search).then(p => packages = p);
@@ -20,6 +21,12 @@
 		}
 	})
 
+	// Updates search when url changes
+	$effect(() => {
+		search = searchUrl;
+	})
+
+	// Updates url, only used when specifically set to, as to not pollute the browser history
 	const updateUrl = () => {
 		goto('?' + new URLSearchParams({
 			q: search,
