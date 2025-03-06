@@ -19,7 +19,7 @@ import type { PageProps } from './$types';
 	</Button>
 </div>
 <Heading tag="h2" class="mb-4" customSize="text-3xl font-medium">Categories</Heading>
-<ul class="mb-4">
+<ul class="flex flex-row gap-2 mb-4">
 	{#each data.package.categories as category}
 		<Button pill color="light" href="/store/categories/{category}" class="capitalize">{category}</Button>
 	{/each}
