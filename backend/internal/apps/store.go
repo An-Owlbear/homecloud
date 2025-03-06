@@ -103,11 +103,14 @@ func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.
 	return
 }
 
-func (client *StoreClient) SearchPackages(search string) []PackageListItem {
+func (client *StoreClient) SearchPackages(search string, category string) []PackageListItem {
 	packages := make([]PackageListItem, 0)
 	searchTerm := strings.ToLower(strings.TrimSpace(search))
 	for _, appPackage := range client.Packages {
-		if strings.Contains(strings.ToLower(appPackage.Name), searchTerm) {
+		matchesSearch := strings.Contains(strings.ToLower(appPackage.Name), searchTerm)
+		matchesCategory := category == "" || slices.Contains(appPackage.Categories, category)
+
+		if matchesSearch && matchesCategory {
 			packages = append(packages, appPackage)
 		}
 	}

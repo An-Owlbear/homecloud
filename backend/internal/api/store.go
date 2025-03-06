@@ -29,10 +29,19 @@ func ListPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
 	}
 }
 
+type SearchParams struct {
+	SearchTerm string `query:"q"`
+	Category   string `query:"category"`
+}
+
 func SearchPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		searchTerm := c.QueryParam("q")
-		return c.JSONPretty(200, storeClient.SearchPackages(searchTerm), "  ")
+		var searchParams SearchParams
+		if err := c.Bind(&searchParams); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid search parameters")
+		}
+		packages := storeClient.SearchPackages(searchParams.SearchTerm, searchParams.Category)
+		return c.JSONPretty(200, packages, "  ")
 	}
 }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { SearchOutline } from 'flowbite-svelte-icons';
 	import type { PageProps } from './$types';
-	import Package from './package.svelte';
+	import Package from '$lib/store/package.svelte';
 	import { Input } from 'flowbite-svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
