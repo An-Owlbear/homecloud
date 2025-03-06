@@ -29,9 +29,24 @@ func ListPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
 	}
 }
 
+func GetPackage(storeClient *apps.StoreClient) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id := c.Param("id")
+		pkg, err := storeClient.GetListPackage(id)
+		if err != nil {
+			if errors.Is(err, apps.PackageNotFoundError) {
+				return echo.NewHTTPError(http.StatusNotFound, "package not found")
+			}
+			return err
+		}
+		return c.JSONPretty(200, pkg, "  ")
+	}
+}
+
 type SearchParams struct {
 	SearchTerm string `query:"q"`
 	Category   string `query:"category"`
+	Developer  string `query:"developer"`
 }
 
 func SearchPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
@@ -40,7 +55,7 @@ func SearchPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
 		if err := c.Bind(&searchParams); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid search parameters")
 		}
-		packages := storeClient.SearchPackages(searchParams.SearchTerm, searchParams.Category)
+		packages := storeClient.SearchPackages(searchParams.SearchTerm, searchParams.Category, searchParams.Developer)
 		return c.JSONPretty(200, packages, "  ")
 	}
 }

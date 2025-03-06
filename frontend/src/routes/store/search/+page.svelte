@@ -16,7 +16,7 @@
 	// Updates package list when search changes
 	$effect(() => {
 		if (search !== initialUrl) {
-			searchPackages(search).then(p => packages = p);
+			searchPackages({ q: search }).then(p => packages = p);
 		} else {
 			packages = [...data.packages];
 		}

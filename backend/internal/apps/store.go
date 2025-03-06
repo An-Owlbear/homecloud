@@ -2,6 +2,7 @@ package apps
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 )
+
+var PackageNotFoundError = errors.New("package not found")
 
 type PackageListItem struct {
 	Id          string   `json:"id"`
@@ -103,16 +106,26 @@ func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.
 	return
 }
 
-func (client *StoreClient) SearchPackages(search string, category string) []PackageListItem {
+func (client *StoreClient) SearchPackages(search string, category string, developer string) []PackageListItem {
 	packages := make([]PackageListItem, 0)
 	searchTerm := strings.ToLower(strings.TrimSpace(search))
 	for _, appPackage := range client.Packages {
 		matchesSearch := strings.Contains(strings.ToLower(appPackage.Name), searchTerm)
 		matchesCategory := category == "" || slices.Contains(appPackage.Categories, category)
+		matchesDeveloper := developer == "" || appPackage.Author == developer
 
-		if matchesSearch && matchesCategory {
+		if matchesSearch && matchesCategory && matchesDeveloper {
 			packages = append(packages, appPackage)
 		}
 	}
 	return packages
+}
+
+func (client *StoreClient) GetListPackage(packageId string) (PackageListItem, error) {
+	for _, appPackage := range client.Packages {
+		if appPackage.Id == packageId {
+			return appPackage, nil
+		}
+	}
+	return PackageListItem{}, PackageNotFoundError
 }

@@ -20,6 +20,16 @@ export const searchPackages = async (params: SearchParams): Promise<PackageListI
 	return await response.json() as PackageListItem[];
 }
 
+export const getPackage = async (id: string): Promise<PackageListItem> => {
+	const response = await fetch(`/api/v1/packages/${id}`);
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+		throw new Error(response.statusText);
+	}
+
+	return await response.json() as PackageListItem;
+}
+
 export const CheckAuthRedirect = async (response: Response) => {
 	if (response.status === 401) {
 		await goto('/auth/login');
