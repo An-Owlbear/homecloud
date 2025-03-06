@@ -15,3 +15,9 @@ export type PackageListItem = {
 	categories:  string[]
 	image_url: string
 }
+
+export type SearchParams = {
+	q?: string
+	category?: string
+	developer?: string
+}
