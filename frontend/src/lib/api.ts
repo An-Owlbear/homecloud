@@ -1,4 +1,4 @@
-import type { HomecloudApp, PackageListItem, SearchParams } from '$lib/models';
+import type { HomecloudApp, PackageListItem, SearchParams, User } from '$lib/models';
 import { goto } from '$app/navigation';
 
 export const GetApps = async (): Promise<HomecloudApp[]> => {
@@ -28,6 +28,15 @@ export const getPackage = async (id: string): Promise<PackageListItem> => {
 	}
 
 	return await response.json() as PackageListItem;
+}
+
+export const getUsers = async (): Promise<User[]> => {
+	const response = await fetch('/api/v1/users');
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+		throw new Error(response.statusText);
+	}
+	return await response.json() as User[];
 }
 
 export const CheckAuthRedirect = async (response: Response) => {

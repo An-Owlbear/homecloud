@@ -21,3 +21,14 @@ export type SearchParams = {
 	category?: string
 	developer?: string
 }
+
+export type User = {
+	id: string
+	metadata_public?: {
+		roles?: string[]
+	},
+	traits: {
+		email: string,
+		name: string
+	}
+}
