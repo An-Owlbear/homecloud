@@ -51,7 +51,7 @@ func AddRoutes(
 	apiAdmin.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries, serverConfig.Host))
 
 	apiNoAuth.POST("/v1/invites/check", CheckInvitationCode(queries))
-	apiAdmin.PUT("/v1/invites", CreateInviteCode(queries))
+	apiAdmin.POST("/v1/invites", CreateInviteCode(queries))
 	apiNoAuth.POST("/v1/invites/complete", CompleteInvite(queries, kratosIdentityAPI))
 
 	apiAdmin.GET("/v1/users", ListUsers(kratosIdentityAPI))

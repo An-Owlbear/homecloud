@@ -129,6 +129,11 @@ type createInviteCodeRequest struct {
 	ValidHours int `json:"valid_hours"`
 }
 
+type InviteCodeResponse struct {
+	Code       string    `json:"code"`
+	ExpiryDate time.Time `json:"expiry_date"`
+}
+
 func CreateInviteCode(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var request createInviteCodeRequest
@@ -145,6 +150,9 @@ func CreateInviteCode(queries *persistence.Queries) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Error creating token")
 		}
 
-		return c.JSON(http.StatusOK, result)
+		return c.JSON(http.StatusOK, InviteCodeResponse{
+			Code:       result.Code,
+			ExpiryDate: result.ExpiryDate,
+		})
 	}
 }

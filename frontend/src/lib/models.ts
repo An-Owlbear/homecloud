@@ -32,3 +32,8 @@ export type User = {
 		name: string
 	}
 }
+
+export type InviteCode = {
+	code: string,
+	expiry_date: Date
+}
