@@ -103,6 +103,38 @@ func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *
 		}
 	}
 
+	// Sets the status in the database
+	err = queries.SetStatus(context.Background(), persistence.SetStatusParams{
+		ID:     appId,
+		Status: string(docker.ContainerRunning),
+	})
+
+	return nil
+}
+
+// StopApp - stops the specified app and sets the status in the database
+func StopApp(dockerClient *client.Client, queries *persistence.Queries, appId string) error {
+	_, err := queries.GetApp(context.Background(), appId)
+	if err != nil {
+		return err
+	}
+
+	// Stops the containers of the app
+	err = docker.StopApp(dockerClient, appId)
+	if err != nil {
+		return err
+	}
+
+	// Sets the status in the database
+	err = queries.SetStatus(context.Background(), persistence.SetStatusParams{
+		ID:     appId,
+		Status: string(docker.ContainerExited),
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: instead of proxying app proxy static page instead
 	return nil
 }
 
@@ -114,10 +146,11 @@ func SetupProxies(dockerClient *client.Client, queries *persistence.Queries, hos
 
 	// Ensures apps are properly started with proxies
 	for _, app := range apps {
-		// TODO: store desired app state in DB and only start apps that are intended to be running
-		err = StartApp(dockerClient, queries, hosts, app.ID)
-		if err != nil {
-			return err
+		if app.Status == string(docker.ContainerRunning) {
+			err = StartApp(dockerClient, queries, hosts, app.ID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

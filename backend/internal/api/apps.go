@@ -11,6 +11,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type InstalledApp struct {
+	apps.PackageListItem
+	Status string `json:"status"`
+}
+
 func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Retrieves list of apps
@@ -20,14 +25,19 @@ func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 		}
 
 		// returns them in a more compact format fit for lists
-		resList := make([]apps.PackageListItem, 0)
+		resList := make([]InstalledApp, 0)
 		for _, app := range appList {
-			resList = append(resList, apps.PackageListItem{
-				Id:          app.ID,
-				Name:        app.Schema.Name,
-				Version:     app.Schema.Version,
-				Author:      app.Schema.Author,
-				Description: app.Schema.Description,
+			resList = append(resList, InstalledApp{
+				PackageListItem: apps.PackageListItem{
+					Id:          app.ID,
+					Name:        app.Schema.Name,
+					Version:     app.Schema.Version,
+					Author:      app.Schema.Author,
+					Description: app.Schema.Description,
+					Categories:  app.Schema.Categories,
+					ImageUrl:    "/assets/data/" + app.ID + "/icon.png",
+				},
+				Status: app.Status,
 			})
 		}
 
@@ -47,16 +57,16 @@ func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *
 	}
 }
 
-func StopApp(dockerClient *client.Client) echo.HandlerFunc {
+func StopApp(dockerClient *client.Client, queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		appId := c.Param("appId")
 		if appId == "" {
 			return c.String(400, "App ID must be set")
 		}
 
-		err := docker.StopApp(dockerClient, appId)
+		err := apps.StopApp(dockerClient, queries, appId)
 		if err != nil {
-			return c.String(500, err.Error())
+			return c.String(500, "Failed to stop app")
 		}
 
 		return c.String(200, "App stopped!")

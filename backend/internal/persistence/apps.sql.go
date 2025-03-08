@@ -40,6 +40,21 @@ func (q *Queries) RemoveApp(ctx context.Context, id string) (sql.Result, error) 
 	return q.db.ExecContext(ctx, removeApp, id)
 }
 
+const setStatus = `-- name: SetStatus :exec
+UPDATE apps SET status = ?1
+WHERE id = ?2
+`
+
+type SetStatusParams struct {
+	Status string
+	ID     string
+}
+
+func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) error {
+	_, err := q.db.ExecContext(ctx, setStatus, arg.Status, arg.ID)
+	return err
+}
+
 const updateApp = `-- name: UpdateApp :exec
 UPDATE apps SET schema = jsonb(?1)
 WHERE id = ?2

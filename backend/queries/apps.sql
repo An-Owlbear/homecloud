@@ -9,6 +9,10 @@ DELETE FROM apps where id = ?;
 UPDATE apps SET schema = jsonb(sqlc.arg(schema))
 WHERE id = sqlc.arg(id);
 
+-- name: SetStatus :exec
+UPDATE apps SET status = sqlc.arg(status)
+WHERE id = sqlc.arg(id);
+
 -- name: getAppUnparsed :one
 SELECT id, json(schema) as schema, date_added, status FROM apps
 WHERE id = sqlc.arg(id);
