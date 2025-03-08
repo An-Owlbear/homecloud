@@ -15,6 +15,7 @@ type App struct {
 	DateAdded    int64
 	ClientID     sql.NullString
 	ClientSecret sql.NullString
+	Status       string
 }
 
 type InviteCode struct {

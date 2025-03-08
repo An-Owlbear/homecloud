@@ -11,8 +11,8 @@ import (
 )
 
 const createApp = `-- name: CreateApp :exec
-INSERT INTO apps (id, schema, date_added, client_id, client_secret)
-VALUES (?1, jsonb(?2), unixepoch(), ?3, ?4)
+INSERT INTO apps (id, schema, date_added, client_id, client_secret, status)
+VALUES (?1, jsonb(?2), unixepoch(), ?3, ?4, 'running')
 `
 
 type CreateAppParams struct {
@@ -53,4 +53,67 @@ type UpdateAppParams struct {
 func (q *Queries) UpdateApp(ctx context.Context, arg UpdateAppParams) error {
 	_, err := q.db.ExecContext(ctx, updateApp, arg.Schema, arg.ID)
 	return err
+}
+
+const getAppUnparsed = `-- name: getAppUnparsed :one
+SELECT id, json(schema) as schema, date_added, status FROM apps
+WHERE id = ?1
+`
+
+type getAppUnparsedRow struct {
+	ID        string
+	Schema    interface{}
+	DateAdded int64
+	Status    string
+}
+
+func (q *Queries) getAppUnparsed(ctx context.Context, id string) (getAppUnparsedRow, error) {
+	row := q.db.QueryRowContext(ctx, getAppUnparsed, id)
+	var i getAppUnparsedRow
+	err := row.Scan(
+		&i.ID,
+		&i.Schema,
+		&i.DateAdded,
+		&i.Status,
+	)
+	return i, err
+}
+
+const getAppsUnparsed = `-- name: getAppsUnparsed :many
+SELECT id, json(schema) as schema, date_added, status FROM apps
+`
+
+type getAppsUnparsedRow struct {
+	ID        string
+	Schema    interface{}
+	DateAdded int64
+	Status    string
+}
+
+func (q *Queries) getAppsUnparsed(ctx context.Context) ([]getAppsUnparsedRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAppsUnparsed)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []getAppsUnparsedRow
+	for rows.Next() {
+		var i getAppsUnparsedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Schema,
+			&i.DateAdded,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
