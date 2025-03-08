@@ -45,7 +45,7 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error apply DB migrations: %s", err.Error())
 	}
 
-	storeClient := NewStoreClient("https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps/list.json")
+	storeClient := NewStoreClient(config.Store{StoreUrl: "https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps/list.json"})
 
 	app := persistence.AppPackage{
 		Schema:      "v1.0",

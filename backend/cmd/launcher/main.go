@@ -105,7 +105,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	storeClient := apps.NewStoreClient(os.Getenv("SYSTEM_STORE_URL"))
+	storeClient := apps.NewStoreClient(config.Store{StoreUrl: os.Getenv("SYSTEM_STORE_URL")})
 
 	// Starts containers and sets up networks
 	err = launcher.StartContainers(dockerClient, storeClient, *hostConfig)
