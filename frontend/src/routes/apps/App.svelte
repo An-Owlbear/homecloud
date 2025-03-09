@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
+	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 	import { DotsVerticalOutline } from 'flowbite-svelte-icons';
-	import type { HomecloudApp } from '$lib/models';
+	import { AppStatus, type HomecloudApp } from '$lib/models';
 	import { CheckAuthRedirect } from '$lib/api';
 
 	const { app, onUninstall }: {
@@ -35,6 +35,7 @@
 			await CheckAuthRedirect(response);
 		}
 		loading = false;
+		app.status = AppStatus.Exited;
 	}
 
 	const start = async (event: MouseEvent) => {
@@ -47,6 +48,7 @@
 			await CheckAuthRedirect(response);
 		}
 		loading = false;
+		app.status = AppStatus.Running;
 	}
 </script>
 
@@ -55,16 +57,24 @@
 		<Spinner size="xl" />
 		<span class="text-md text-center">{loadingMessage} {app.name}</span>
 	{:else}
-		<img src="/assets/data/{app.id}/icon.png" alt="Logo for {app.name}" class="w-30 h-30" />
-		<div class="flex flex-row justify-between items-center">
-			<span class="text-md truncate">{app.name}</span>
+		<img src={app.image_url} alt="Logo for {app.name}" class={['w-30', 'h-30', app.status === AppStatus.Exited && 'grayscale-100']} />
+		<span class="text-md truncate text-center">{app.name}</span>
+		<div class="flex flex-row justify-between items-center gap-3">
+			{#if app.status === AppStatus.Exited}
+				<Badge color="indigo" class="text-center py-2 grow">Stopped</Badge>
+			{:else if app.status === AppStatus.Running}
+				<Badge color="green" class="text-center py-2 grow">Running</Badge>
+			{/if}
 			<Button pill color="alternative" class="app-options px-1 py-1 hover:cursor-pointer" on:click={(event) => event.preventDefault()}>
 				<DotsVerticalOutline size="md" />
 			</Button>
 			<Dropdown bind:open={dropdown}>
 				<DropdownItem class="app-options" href="http://{app.name}.hc.anowlbear.com:1323" target="_blank">Open app</DropdownItem>
-				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
-				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
+				{#if app.status === AppStatus.Exited}
+					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
+				{:else if app.status === AppStatus.Running}
+					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
+				{/if}
 				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={uninstall}>Uninstall app</DropdownItem>
 			</Dropdown>
 		</div>

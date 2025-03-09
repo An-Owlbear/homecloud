@@ -4,6 +4,17 @@ export type HomecloudApp = {
 	version: string,
 	author: string,
 	description: string
+	image_url: string
+	status: AppStatus
+}
+
+export enum AppStatus {
+	Created = "created",
+	Restarting = "restarting",
+	Running = "running",
+	Paused = "paused",
+	Exited = "exited",
+	Dead = "dead"
 }
 
 export type PackageListItem = {
