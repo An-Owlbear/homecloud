@@ -1,9 +1,10 @@
 import type { HomecloudApp, InviteCode, PackageListItem, SearchParams, User } from '$lib/models';
 import { goto } from '$app/navigation';
 
-export const GetApps = async (): Promise<HomecloudApp[]> => {
+export const getApps = async (): Promise<HomecloudApp[]> => {
 	const response = await fetch('/api/v1/apps');
 	if (!response.ok) {
+		await CheckAuthRedirect(response);
 		throw new Error(response.statusText);
 	}
 
@@ -32,6 +33,14 @@ export const getPackage = async (id: string): Promise<PackageListItem> => {
 
 export const installPackage = async (id: string): Promise<void> => {
 	const response = await fetch(`/api/v1/packages/${id}/install`, { method: 'POST' });
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+		throw new Error(response.statusText);
+	}
+}
+
+export const uninstallApp = async (id: string): Promise<void> => {
+	const response = await fetch(`/api/v1/apps/${id}/uninstall`, { method: 'POST' });
 	if (!response.ok) {
 		await CheckAuthRedirect(response);
 		throw new Error(response.statusText);

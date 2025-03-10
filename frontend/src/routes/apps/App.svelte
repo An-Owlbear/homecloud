@@ -2,7 +2,7 @@
 	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
 	import { DotsVerticalOutline } from 'flowbite-svelte-icons';
 	import { AppStatus, type HomecloudApp } from '$lib/models';
-	import { CheckAuthRedirect } from '$lib/api';
+	import { CheckAuthRedirect, uninstallApp } from '$lib/api';
 
 	const { app, onUninstall }: {
 		app: HomecloudApp
@@ -18,10 +18,7 @@
 		dropdown = false;
 		loading = true;
 		loadingMessage = 'Uninstalling';
-		const response = await fetch(`/api/v1/apps/${app.id}/uninstall`, {method: 'POST'});
-		if (!response.ok) {
-			await CheckAuthRedirect(response);
-		}
+		await uninstallApp(app.id)
 		onUninstall(app);
 	}
 
