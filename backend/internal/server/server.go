@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"golang.org/x/crypto/acme/autocert"
 	"log/slog"
@@ -58,7 +59,7 @@ func CreateServer() {
 
 	queries := persistence.New(db)
 	storeClient := apps.NewStoreClient(serverConfig.Store)
-	err = storeClient.UpdatePackageList()
+	err = storeClient.UpdatePackageList(context.Background(), queries)
 	if err != nil {
 		panic(err)
 	}

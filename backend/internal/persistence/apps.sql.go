@@ -16,10 +16,10 @@ VALUES (?1, jsonb(?2), unixepoch(), ?3, ?4, 'running')
 `
 
 type CreateAppParams struct {
-	ID           string
-	Schema       interface{}
-	ClientID     sql.NullString
-	ClientSecret sql.NullString
+	ID           string         `json:"id"`
+	Schema       interface{}    `json:"schema"`
+	ClientID     sql.NullString `json:"client_id"`
+	ClientSecret sql.NullString `json:"client_secret"`
 }
 
 func (q *Queries) CreateApp(ctx context.Context, arg CreateAppParams) error {
@@ -46,8 +46,8 @@ WHERE id = ?2
 `
 
 type SetStatusParams struct {
-	Status string
-	ID     string
+	Status string `json:"status"`
+	ID     string `json:"id"`
 }
 
 func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) error {
@@ -61,8 +61,8 @@ WHERE id = ?2
 `
 
 type UpdateAppParams struct {
-	Schema interface{}
-	ID     string
+	Schema interface{} `json:"schema"`
+	ID     string      `json:"id"`
 }
 
 func (q *Queries) UpdateApp(ctx context.Context, arg UpdateAppParams) error {
@@ -76,10 +76,10 @@ WHERE id = ?1
 `
 
 type getAppUnparsedRow struct {
-	ID        string
-	Schema    interface{}
-	DateAdded int64
-	Status    string
+	ID        string      `json:"id"`
+	Schema    interface{} `json:"schema"`
+	DateAdded int64       `json:"date_added"`
+	Status    string      `json:"status"`
 }
 
 func (q *Queries) getAppUnparsed(ctx context.Context, id string) (getAppUnparsedRow, error) {
@@ -99,10 +99,10 @@ SELECT id, json(schema) as schema, date_added, status FROM apps
 `
 
 type getAppsUnparsedRow struct {
-	ID        string
-	Schema    interface{}
-	DateAdded int64
-	Status    string
+	ID        string      `json:"id"`
+	Schema    interface{} `json:"schema"`
+	DateAdded int64       `json:"date_added"`
+	Status    string      `json:"status"`
 }
 
 func (q *Queries) getAppsUnparsed(ctx context.Context) ([]getAppsUnparsedRow, error) {

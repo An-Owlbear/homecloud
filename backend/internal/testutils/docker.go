@@ -207,7 +207,7 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 		expectedEnv = append(expectedEnv, fmt.Sprintf("%s=%s", k, v))
 	}
 	if !reflect.DeepEqual(envVars, expectedEnv) {
-		t.Fatalf("Incorrect container environment variables\nExpected values: %+v\nActual values:%+v", envVars, expectedEnv)
+		t.Fatalf("Incorrect container environment variables\nExpected values: %+v\nActual values:%+v", expectedEnv, envVars)
 	}
 
 	// Tests the correct port mappings are done correctly

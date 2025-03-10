@@ -15,7 +15,7 @@ import (
 
 // UpdateApps updates the list of available apps and updates any outdated apps
 func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries, hostConfig config.Host) error {
-	err := storeClient.UpdatePackageList()
+	err := storeClient.UpdatePackageList(context.Background(), queries)
 	if err != nil {
 		return err
 	}
@@ -31,11 +31,16 @@ func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *
 		appsMap[app.ID] = app
 	}
 
-	for _, listApp := range storeClient.Packages {
+	packages, err := queries.GetPackages(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, listApp := range packages {
 		// If the app is installed and the new version is greater update
-		if app, ok := appsMap[listApp.Id]; ok && semver.Compare(listApp.Version, app.Schema.Version) == 1 {
+		if app, ok := appsMap[listApp.ID]; ok && semver.Compare(listApp.Version, app.Schema.Version) == 1 {
 			// Retrieve the full app package
-			appPackage, err := storeClient.GetPackage(listApp.Id)
+			appPackage, err := storeClient.GetPackage(listApp.ID)
 			if err != nil {
 				return err
 			}

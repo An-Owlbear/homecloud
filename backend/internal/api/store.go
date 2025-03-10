@@ -19,22 +19,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ListPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
+func ListPackages(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := storeClient.UpdatePackageList()
+		packages, err := queries.GetPackages(c.Request().Context())
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving packages")
 		}
-		return c.JSONPretty(200, storeClient.Packages, "  ")
+		return c.JSONPretty(200, packages, "  ")
 	}
 }
 
-func GetPackage(storeClient *apps.StoreClient) echo.HandlerFunc {
+func GetPackage(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
-		pkg, err := storeClient.GetListPackage(id)
+		pkg, err := queries.GetPackage(c.Request().Context(), id)
 		if err != nil {
-			if errors.Is(err, apps.PackageNotFoundError) {
+			if errors.Is(err, sql.ErrNoRows) {
 				return echo.NewHTTPError(http.StatusNotFound, "package not found")
 			}
 			return err
@@ -49,20 +49,28 @@ type SearchParams struct {
 	Developer  string `query:"developer"`
 }
 
-func SearchPackages(storeClient *apps.StoreClient) echo.HandlerFunc {
+func SearchPackages(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var searchParams SearchParams
-		if err := c.Bind(&searchParams); err != nil {
+		var params SearchParams
+		if err := c.Bind(&params); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid search parameters")
 		}
-		packages := storeClient.SearchPackages(searchParams.SearchTerm, searchParams.Category, searchParams.Developer)
+
+		packages, err := queries.SearchPackages(c.Request().Context(), params.SearchTerm, params.Category, params.Developer)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving packages")
+		}
 		return c.JSONPretty(200, packages, "  ")
 	}
 }
 
-func ListCategories(storeClient *apps.StoreClient) echo.HandlerFunc {
+func ListCategories(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSONPretty(200, storeClient.Categories, "  ")
+		categories, err := queries.GetCategories(c.Request().Context())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving categories")
+		}
+		return c.JSONPretty(200, categories, "  ")
 	}
 }
 
@@ -151,9 +159,9 @@ func AddPackage(
 	}
 }
 
-func CheckUpdates(storeClient *apps.StoreClient) echo.HandlerFunc {
+func CheckUpdates(storeClient *apps.StoreClient, queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := storeClient.UpdatePackageList()
+		err := storeClient.UpdatePackageList(c.Request().Context(), queries)
 		if err != nil {
 			return c.String(500, err.Error())
 		}

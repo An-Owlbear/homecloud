@@ -1,20 +1,16 @@
 package apps
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"net/http"
-	"slices"
-	"sort"
 	"strings"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 )
-
-var PackageNotFoundError = errors.New("package not found")
 
 type PackageListItem struct {
 	Id          string   `json:"id"`
@@ -27,9 +23,7 @@ type PackageListItem struct {
 }
 
 type StoreClient struct {
-	config     config.Store
-	Packages   []PackageListItem
-	Categories []string
+	config config.Store
 }
 
 func NewStoreClient(config config.Store) *StoreClient {
@@ -39,7 +33,7 @@ func NewStoreClient(config config.Store) *StoreClient {
 }
 
 // UpdatePackageList updates the package list contained in the StoreClient struct
-func (client *StoreClient) UpdatePackageList() error {
+func (client *StoreClient) UpdatePackageList(ctx context.Context, queries *persistence.Queries) error {
 	// Retrieve package list over HTTP
 	resp, err := http.Get(client.config.StoreUrl)
 	if err != nil {
@@ -55,25 +49,17 @@ func (client *StoreClient) UpdatePackageList() error {
 		return err
 	}
 
-	err = json.Unmarshal(body, &client.Packages)
+	var packages []persistence.FullPackageListItem
+	err = json.Unmarshal(body, &packages)
 	if err != nil {
 		return err
 	}
 
-	//  Loops through the list setting the icon URL and adding the categories to the global categories list
-	for i := range client.Packages {
-		client.Packages[i].ImageUrl = strings.Trim(client.config.StoreUrl, "list.json") + "packages/" + client.Packages[i].Id + "/icon.png"
-
-		for _, category := range client.Packages[i].Categories {
-			// If the list doesn't already contain the category insert it at the correct position alphabetically
-			if !slices.Contains(client.Categories, category) {
-				insertIndex := sort.Search(len(client.Categories), func(i int) bool {
-					return client.Categories[i] >= category
-				})
-				client.Categories = append(client.Categories, "")
-				copy(client.Categories[insertIndex+1:], client.Categories[insertIndex:])
-				client.Categories[insertIndex] = category
-			}
+	for _, appPackage := range packages {
+		appPackage.ImageUrl = strings.Trim(client.config.StoreUrl, "list.json") + "packages/" + appPackage.ID + "/icon.png"
+		err = queries.InsertPackage(ctx, appPackage)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -104,28 +90,4 @@ func (client *StoreClient) GetPackage(packageId string) (appPackage persistence.
 
 	err = json.Unmarshal(body, &appPackage)
 	return
-}
-
-func (client *StoreClient) SearchPackages(search string, category string, developer string) []PackageListItem {
-	packages := make([]PackageListItem, 0)
-	searchTerm := strings.ToLower(strings.TrimSpace(search))
-	for _, appPackage := range client.Packages {
-		matchesSearch := strings.Contains(strings.ToLower(appPackage.Name), searchTerm)
-		matchesCategory := category == "" || slices.Contains(appPackage.Categories, category)
-		matchesDeveloper := developer == "" || appPackage.Author == developer
-
-		if matchesSearch && matchesCategory && matchesDeveloper {
-			packages = append(packages, appPackage)
-		}
-	}
-	return packages
-}
-
-func (client *StoreClient) GetListPackage(packageId string) (PackageListItem, error) {
-	for _, appPackage := range client.Packages {
-		if appPackage.Id == packageId {
-			return appPackage, nil
-		}
-	}
-	return PackageListItem{}, PackageNotFoundError
 }

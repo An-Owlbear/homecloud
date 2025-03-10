@@ -37,12 +37,12 @@ func AddRoutes(
 
 	apiNoAuth.GET("/v1/check", PortForwardTest())
 
-	api.GET("/v1/packages", ListPackages(storeClient))
-	api.GET("/v1/packages/:id", GetPackage(storeClient))
-	api.GET("/v1/packages/search", SearchPackages(storeClient))
+	api.GET("/v1/packages", ListPackages(queries))
+	api.GET("/v1/packages/:id", GetPackage(queries))
+	api.GET("/v1/packages/search", SearchPackages(queries))
 	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, serverConfig.Host, appDataHandler))
-	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient))
-	api.GET("/v1/packages/categories", ListCategories(storeClient))
+	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient, queries))
+	api.GET("/v1/packages/categories", ListCategories(queries))
 
 	api.GET("/v1/apps", ListApps(queries))
 	apiAdmin.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts))

@@ -1,7 +1,10 @@
 package apps
 
 import (
+	"context"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
+	"github.com/google/go-cmp/cmp"
 	"reflect"
 	"testing"
 
@@ -12,42 +15,56 @@ const storeUrl = "https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723
 
 // Tests whether the retrieved list of packages is correct
 func TestUpdatePackageList(t *testing.T) {
+	queries := testutils.SetupDB(t)
+	defer testutils.CleanupDB()
+
 	client := prepareClient()
-	err := client.UpdatePackageList()
+	err := client.UpdatePackageList(context.Background(), queries)
 
 	if err != nil {
 		t.Fatalf("Unexpected error occured: %s", err.Error())
 	}
 
-	expectedResults := []PackageListItem{
+	expectedResults := []persistence.FullPackageListItem{
 		{
-			Id:          "immich-app.immich",
-			Name:        "immich",
-			Version:     "v1.124.3",
-			Author:      "immich-app",
-			Description: "High-performance self-hosted photo and video management solution",
-			ImageUrl:    storeUrl + "/packages/immich-app.immich/icon.png",
+			PackageListItem: persistence.PackageListItem{
+				ID:          "immich-app.immich",
+				Name:        "immich",
+				Version:     "v1.124.3",
+				Author:      "immich-app",
+				Description: "High-performance self-hosted photo and video management solution",
+				ImageUrl:    storeUrl + "/packages/immich-app.immich/icon.png",
+			},
 		},
 		{
-			Id:          "paperless-ngx.paperless-ngx",
-			Name:        "paperless-ngx",
-			Version:     "v1.0",
-			Author:      "paperless-ngx",
-			Description: " A community-supported supercharged version of paperless: scan, index and archive all your physical documents",
-			ImageUrl:    storeUrl + "/packages/paperless-ngx.paperless-ngx/icon.png",
+			PackageListItem: persistence.PackageListItem{
+				ID:          "paperless-ngx.paperless-ngx",
+				Name:        "paperless-ngx",
+				Version:     "v1.0",
+				Author:      "paperless-ngx",
+				Description: " A community-supported supercharged version of paperless: scan, index and archive all your physical documents",
+				ImageUrl:    storeUrl + "/packages/paperless-ngx.paperless-ngx/icon.png",
+			},
 		},
 		{
-			Id:          "traefik.whoami",
-			Name:        "whoami",
-			Version:     "v1.6",
-			Author:      "traefik",
-			Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
-			ImageUrl:    storeUrl + "/packages/traefik.whoami/icon.png",
+			PackageListItem: persistence.PackageListItem{
+				ID:          "traefik.whoami",
+				Name:        "whoami",
+				Version:     "v1.6",
+				Author:      "traefik",
+				Description: "Tiny Go webserver that prints OS information and HTTP request to output.",
+				ImageUrl:    storeUrl + "/packages/traefik.whoami/icon.png",
+			},
 		},
 	}
 
-	if !reflect.DeepEqual(expectedResults, client.Packages) {
-		t.Fatalf("Packages are not equal\nExpected packages: %+v\nActual data: %+v", expectedResults, client.Packages)
+	packages, err := queries.GetPackages(context.Background())
+	if err != nil {
+		t.Fatalf("Unexpected error occured: %s", err.Error())
+	}
+
+	if diff := cmp.Diff(expectedResults, packages); diff != "" {
+		t.Errorf("GetPackages() mismatch (-want +got):\n%s", diff)
 	}
 }
 

@@ -28,13 +28,13 @@ RETURNING code, expiry_date
 `
 
 type CreateInviteCodeParams struct {
-	Hours     interface{}
-	Rolesjson interface{}
+	Hours     interface{} `json:"hours"`
+	Rolesjson interface{} `json:"rolesjson"`
 }
 
 type CreateInviteCodeRow struct {
-	Code       string
-	ExpiryDate time.Time
+	Code       string    `json:"code"`
+	ExpiryDate time.Time `json:"expiry_date"`
 }
 
 func (q *Queries) CreateInviteCode(ctx context.Context, arg CreateInviteCodeParams) (CreateInviteCodeRow, error) {
@@ -50,9 +50,9 @@ WHERE code = ?1
 `
 
 type GetInviteCodeRow struct {
-	Code       string
-	ExpiryDate time.Time
-	Roles      string
+	Code       string    `json:"code"`
+	ExpiryDate time.Time `json:"expiry_date"`
+	Roles      string    `json:"roles"`
 }
 
 func (q *Queries) GetInviteCode(ctx context.Context, code string) (GetInviteCodeRow, error) {

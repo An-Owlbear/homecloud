@@ -10,16 +10,34 @@ import (
 )
 
 type App struct {
-	ID           string
-	Schema       []byte
-	DateAdded    int64
-	ClientID     sql.NullString
-	ClientSecret sql.NullString
-	Status       string
+	ID           string         `json:"id"`
+	Schema       []byte         `json:"schema"`
+	DateAdded    int64          `json:"date_added"`
+	ClientID     sql.NullString `json:"client_id"`
+	ClientSecret sql.NullString `json:"client_secret"`
+	Status       string         `json:"status"`
 }
 
 type InviteCode struct {
-	Code       string
-	ExpiryDate time.Time
-	Roles      []byte
+	Code       string    `json:"code"`
+	ExpiryDate time.Time `json:"expiry_date"`
+	Roles      []byte    `json:"roles"`
+}
+
+type PackageCategory struct {
+	Category string `json:"category"`
+}
+
+type PackageCategoryDefinition struct {
+	PackageID string `json:"package_id"`
+	Category  string `json:"category"`
+}
+
+type PackageListItem struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Author      string `json:"author"`
+	Description string `json:"description"`
+	ImageUrl    string `json:"image_url"`
 }
