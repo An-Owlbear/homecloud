@@ -39,3 +39,23 @@ build_launcher version os arch:
     cp -R ory_config/templates build/ory_config/
     cp .env build/.env
     cd build && gtar -cvzf homecloud-{{version}}-{{os}}-{{arch}}.tar.gz ory_config launcher .env --owner=0 --group=0 --no-same-owner --no-same-permissions
+
+deploy_docker_dev ssh_address version:
+    mkdir -p build/dev/docker
+    docker save -o build/dev/docker/homecloud-docker-dev.tar.gz ghcr.io/an-owlbear/homecloud:{{version}}
+    ssh {{ssh_address}} 'mkdir -p /tmp/docker'
+    scp build/dev/docker/homecloud-docker-dev.tar.gz {{ssh_address}}:/tmp/docker
+    ssh {{ssh_address}} 'docker load -i /tmp/docker/homecloud-docker-dev.tar.gz'
+
+deploy_dev ssh_address:
+    mkdir -p build/dev/ory_config
+    GOOS=linux GOARCH=arm64 go build -o build/dev/launcher ./cmd/launcher/main.go
+    cp ory_config/identity.schema.json build/dev/ory_config/
+    cp ory_config/invite_code.jsonnet build/dev/ory_config/
+    cp -R ory_config/templates build/dev/ory_config/
+    cp .env build/dev/.env
+    cp .dev.env build/dev/.dev.env
+    cd build/dev && gtar -cvzf homecloud-dev.tar.gz ory_config launcher .env .dev.env --owner=0 --group=0 --no-same-owner --no-same-permissions
+    ssh {{ssh_address}} 'mkdir -p /tmp/homecloud'
+    scp build/dev/homecloud-dev.tar.gz {{ssh_address}}:/tmp/homecloud
+    ssh -t {{ssh_address}} 'cd /tmp/homecloud; tar -xzf homecloud-dev.tar.gz; sudo ENVIRONMENT=DEV ./launcher;'
