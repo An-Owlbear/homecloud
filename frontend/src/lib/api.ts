@@ -30,6 +30,14 @@ export const getPackage = async (id: string): Promise<PackageListItem> => {
 	return await response.json() as PackageListItem;
 }
 
+export const installPackage = async (id: string): Promise<void> => {
+	const response = await fetch(`/api/v1/packages/${id}/install`, { method: 'POST' });
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+		throw new Error(response.statusText);
+	}
+}
+
 export const getUsers = async (): Promise<User[]> => {
 	const response = await fetch('/api/v1/users');
 	if (!response.ok) {
