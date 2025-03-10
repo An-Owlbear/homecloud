@@ -25,6 +25,7 @@ export type PackageListItem = {
 	description: string
 	categories:  string[]
 	image_url: string
+	installed: boolean
 }
 
 export type SearchParams = {

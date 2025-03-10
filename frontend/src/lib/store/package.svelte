@@ -37,8 +37,10 @@
 		<span class="text-md">{appPackage.author}</span>
 	</div>
 	<div class="grow"></div>
-	<Button class={['self-center', 'space-x-2', 'cancel-hover', !loading && 'hover:cursor-pointer']} onclick={install}>
-		{#if loading}
+	<Button class={['self-center', 'space-x-2', 'cancel-hover', !loading && 'hover:cursor-pointer']} disabled={appPackage.installed} onclick={install}>
+		{#if appPackage.installed}
+			<span class="text-lg">Installed</span>
+		{:else if loading}
 			<Spinner size={5} color="white" />
 			<span class="text-lg">{status}</span>
 		{:else}

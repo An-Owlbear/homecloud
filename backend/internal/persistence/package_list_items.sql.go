@@ -109,15 +109,17 @@ func (q *Queries) getPackageCategoryDefinitions(ctx context.Context, packageID s
 }
 
 const getPackageListItem = `-- name: getPackageListItem :one
-SELECT package_list_items.id, package_list_items.name, package_list_items.version, package_list_items.author, package_list_items.description, package_list_items.image_url, category
+SELECT package_list_items.id, package_list_items.name, package_list_items.version, package_list_items.author, package_list_items.description, package_list_items.image_url, category, CAST(CASE WHEN apps.id IS NOT NULL THEN TRUE ELSE FALSE END AS BOOLEAN) AS installed
 FROM package_list_items
 LEFT JOIN package_category_definitions ON package_list_items.id = package_category_definitions.package_id
-WHERE id = ?1
+LEFT JOIN apps ON package_list_items.id = apps.id
+WHERE package_list_items.id = ?1
 `
 
 type getPackageListItemRow struct {
 	PackageListItem PackageListItem `json:"package_list_item"`
 	Category        sql.NullString  `json:"category"`
+	Installed       bool            `json:"installed"`
 }
 
 func (q *Queries) getPackageListItem(ctx context.Context, id string) (getPackageListItemRow, error) {
@@ -131,21 +133,24 @@ func (q *Queries) getPackageListItem(ctx context.Context, id string) (getPackage
 		&i.PackageListItem.Description,
 		&i.PackageListItem.ImageUrl,
 		&i.Category,
+		&i.Installed,
 	)
 	return i, err
 }
 
 const getPackageListItems = `-- name: getPackageListItems :many
 
-SELECT package_list_items.id, package_list_items.name, package_list_items.version, package_list_items.author, package_list_items.description, package_list_items.image_url, category
+SELECT package_list_items.id, package_list_items.name, package_list_items.version, package_list_items.author, package_list_items.description, package_list_items.image_url, category, CAST(CASE WHEN apps.id IS NOT NULL THEN TRUE ELSE FALSE END AS BOOLEAN) AS installed
 FROM package_list_items
 LEFT JOIN package_category_definitions ON package_list_items.id = package_category_definitions.package_id
-ORDER BY id
+LEFT JOIN apps ON package_list_items.id = apps.id
+ORDER BY package_list_items.id
 `
 
 type getPackageListItemsRow struct {
 	PackageListItem PackageListItem `json:"package_list_item"`
 	Category        sql.NullString  `json:"category"`
+	Installed       bool            `json:"installed"`
 }
 
 // functions relating to retrieving packages
@@ -166,6 +171,7 @@ func (q *Queries) getPackageListItems(ctx context.Context) ([]getPackageListItem
 			&i.PackageListItem.Description,
 			&i.PackageListItem.ImageUrl,
 			&i.Category,
+			&i.Installed,
 		); err != nil {
 			return nil, err
 		}
@@ -186,14 +192,15 @@ WITH has_category AS (
     FROM package_category_definitions
     GROUP BY package_id
 )
-SELECT package_list_items.id, package_list_items.name, package_list_items.version, package_list_items.author, package_list_items.description, package_list_items.image_url, category
+SELECT package_list_items.id, package_list_items.name, package_list_items.version, package_list_items.author, package_list_items.description, package_list_items.image_url, category, CAST(CASE WHEN apps.id IS NOT NULL THEN TRUE ELSE FALSE END AS BOOLEAN) AS installed
 FROM package_list_items
 LEFT JOIN has_category ON package_list_items.id = has_category.package_id
 LEFT JOIN package_category_definitions ON package_list_items.id = package_category_definitions.package_id
-WHERE (?1 = '' OR lower(id) LIKE '%' || lower(?1) || '%')
+LEFT JOIN apps ON package_list_items.id = apps.id
+WHERE (?1 = '' OR lower(package_list_items.id) LIKE '%' || lower(?1) || '%')
 AND (?2 = '' OR author = ?2)
 AND has_category = 1
-ORDER BY id
+ORDER BY package_list_items.id
 `
 
 type searchPackageListItemsParams struct {
@@ -205,6 +212,7 @@ type searchPackageListItemsParams struct {
 type searchPackageListItemsRow struct {
 	PackageListItem PackageListItem `json:"package_list_item"`
 	Category        sql.NullString  `json:"category"`
+	Installed       bool            `json:"installed"`
 }
 
 func (q *Queries) searchPackageListItems(ctx context.Context, arg searchPackageListItemsParams) ([]searchPackageListItemsRow, error) {
@@ -224,6 +232,7 @@ func (q *Queries) searchPackageListItems(ctx context.Context, arg searchPackageL
 			&i.PackageListItem.Description,
 			&i.PackageListItem.ImageUrl,
 			&i.Category,
+			&i.Installed,
 		); err != nil {
 			return nil, err
 		}

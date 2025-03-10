@@ -8,6 +8,7 @@ import (
 type FullPackageListItem struct {
 	PackageListItem
 	Categories []string `json:"categories"`
+	Installed  bool     `json:"installed"`
 }
 
 func (q *Queries) InsertPackage(ctx context.Context, insertQuery FullPackageListItem) error {
@@ -59,6 +60,7 @@ func (q *Queries) handlePackageResult(result []getPackageListItemsRow) []FullPac
 			currentId = result.PackageListItem.ID
 			packages = append(packages, FullPackageListItem{
 				PackageListItem: result.PackageListItem,
+				Installed:       result.Installed,
 			})
 		}
 		if result.Category.Valid {

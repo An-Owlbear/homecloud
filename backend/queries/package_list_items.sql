@@ -32,16 +32,18 @@ WHERE package_id = sqlc.arg(package_id);
 --
 
 -- name: getPackageListItems :many
-SELECT sqlc.embed(package_list_items), category
+SELECT sqlc.embed(package_list_items), category, CAST(CASE WHEN apps.id IS NOT NULL THEN TRUE ELSE FALSE END AS BOOLEAN) AS installed
 FROM package_list_items
 LEFT JOIN package_category_definitions ON package_list_items.id = package_category_definitions.package_id
-ORDER BY id;
+LEFT JOIN apps ON package_list_items.id = apps.id
+ORDER BY package_list_items.id;
 
 -- name: getPackageListItem :one
-SELECT sqlc.embed(package_list_items), category
+SELECT sqlc.embed(package_list_items), category, CAST(CASE WHEN apps.id IS NOT NULL THEN TRUE ELSE FALSE END AS BOOLEAN) AS installed
 FROM package_list_items
 LEFT JOIN package_category_definitions ON package_list_items.id = package_category_definitions.package_id
-WHERE id = sqlc.arg(id);
+LEFT JOIN apps ON package_list_items.id = apps.id
+WHERE package_list_items.id = sqlc.arg(id);
 
 -- name: searchPackageListItems :many
 WITH has_category AS (
@@ -49,14 +51,15 @@ WITH has_category AS (
     FROM package_category_definitions
     GROUP BY package_id
 )
-SELECT sqlc.embed(package_list_items), category
+SELECT sqlc.embed(package_list_items), category, CAST(CASE WHEN apps.id IS NOT NULL THEN TRUE ELSE FALSE END AS BOOLEAN) AS installed
 FROM package_list_items
 LEFT JOIN has_category ON package_list_items.id = has_category.package_id
 LEFT JOIN package_category_definitions ON package_list_items.id = package_category_definitions.package_id
-WHERE (sqlc.arg(id) = '' OR lower(id) LIKE '%' || lower(sqlc.arg(id)) || '%')
+LEFT JOIN apps ON package_list_items.id = apps.id
+WHERE (sqlc.arg(id) = '' OR lower(package_list_items.id) LIKE '%' || lower(sqlc.arg(id)) || '%')
 AND (sqlc.arg(author) = '' OR author = sqlc.arg(author))
 AND has_category = 1
-ORDER BY id;
+ORDER BY package_list_items.id;
 
 -- name: GetCategories :many
 SELECT category FROM package_categories;
