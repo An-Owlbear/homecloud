@@ -73,6 +73,8 @@ export const inviteUser = async (): Promise<InviteCode> => {
 	return await response.json() as InviteCode;
 }
 
+export const checkUpdates = async (): Promise<boolean> => {}
+
 export const CheckAuthRedirect = async (response: Response) => {
 	if (response.status === 401) {
 		await goto('/auth/login');

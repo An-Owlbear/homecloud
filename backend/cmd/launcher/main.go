@@ -31,6 +31,11 @@ type OryTemplateParams struct {
 }
 
 func main() {
+	if os.Getenv("ENVIRONMENT") == "DEV" {
+		if err := godotenv.Load(".dev.env"); err != nil {
+			panic(err)
+		}
+	}
 	err := godotenv.Load()
 	if err != nil {
 		panic(err)
@@ -118,9 +123,11 @@ func main() {
 	}
 
 	// Sets up port forwarding on local network
-	err = networking.TryMapPort(context.Background(), uint16(hostConfig.Port), uint16(hostConfig.Port), deviceConfig)
-	if err != nil {
-		panic(err)
+	if hostConfig.PortForward {
+		err = networking.TryMapPort(context.Background(), uint16(hostConfig.Port), uint16(hostConfig.Port), deviceConfig)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	fmt.Printf("Printing logs from homecloud container")
