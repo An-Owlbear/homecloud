@@ -11,7 +11,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint ."
+		"lint": "prettier --check . && eslint .",
+		"deploy_dev": "rsync -a . homecloud@homecloud.local:/tmp/homecloud_frontend --exclude '/.git' --filter='dir-merge,- .gitignore'"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",

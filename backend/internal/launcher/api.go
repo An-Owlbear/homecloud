@@ -21,13 +21,17 @@ func AddRoutes(
 	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(deviceConfig))
 }
 
+type checkUpdateResponse struct {
+	UpdateRequired bool `json:"update_required"`
+}
+
 func CheckUpdateHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		updates, err := CheckUpdates()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, updates)
+		return c.JSON(http.StatusOK, checkUpdateResponse{UpdateRequired: updates})
 	}
 }
 

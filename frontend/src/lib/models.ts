@@ -49,3 +49,7 @@ export type InviteCode = {
 	code: string,
 	expiry_date: Date
 }
+
+export type UpdateCheckResponse = {
+	update_required: boolean
+}

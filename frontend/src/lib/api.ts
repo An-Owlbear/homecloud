@@ -1,4 +1,4 @@
-import type { HomecloudApp, InviteCode, PackageListItem, SearchParams, User } from '$lib/models';
+import type { HomecloudApp, InviteCode, PackageListItem, SearchParams, UpdateCheckResponse, User } from '$lib/models';
 import { goto } from '$app/navigation';
 
 export const getApps = async (): Promise<HomecloudApp[]> => {
@@ -73,7 +73,22 @@ export const inviteUser = async (): Promise<InviteCode> => {
 	return await response.json() as InviteCode;
 }
 
-export const checkUpdates = async (): Promise<boolean> => {}
+export const checkUpdates = async (): Promise<UpdateCheckResponse> => {
+	const response = await fetch('/api/v1/update');
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+		// throw new Error(response.statusText);
+	}
+	return await response.json() as UpdateCheckResponse;
+}
+
+export const updateSystem = async (): Promise<void> => {
+	const response = await fetch('/api/v1/update', { method: 'POST' });
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+		throw new Error(response.statusText);
+	}
+}
 
 export const CheckAuthRedirect = async (response: Response) => {
 	if (response.status === 401) {
