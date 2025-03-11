@@ -158,7 +158,9 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverH
 			},
 			PortBindings: portMap,
 			Binds:        formattedVolumes,
-			ExtraHosts:   append(containerDef.ExtraHosts, fmt.Sprintf("hydra.%s:host-gateway", serverHostConfig.Host)),
+			ExtraHosts: append(containerDef.ExtraHosts,
+				fmt.Sprintf("hydra.%s:host-gateway", serverHostConfig.Host),
+				fmt.Sprintf("%s:host-gateway", serverHostConfig.Host)),
 		}
 
 		containerName := app.Id + "-" + containerDef.Name
