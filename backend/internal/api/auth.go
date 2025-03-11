@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/An-Owlbear/homecloud/backend/internal/templates"
 	"github.com/labstack/echo/v4"
 	hydra "github.com/ory/hydra-client-go/v2"
@@ -274,5 +275,30 @@ func OidcConsent(hydraClient *hydra.APIClient) echo.HandlerFunc {
 		}
 
 		return c.Redirect(http.StatusFound, accept.RedirectTo)
+	}
+}
+
+func InitialSetup(kratosAdmin kratos.IdentityAPI, queries *persistence.Queries) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		users, err := auth.ListUsers(c.Request().Context(), kratosAdmin)
+		if err != nil {
+			slog.Error(err.Error())
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to list users")
+		}
+
+		if len(users) != 0 {
+			return echo.NewHTTPError(http.StatusInternalServerError, "First user already created")
+		}
+
+		inviteCode, err := queries.CreateInviteCode(c.Request().Context(), persistence.CreateInviteCodeParams{
+			Hours:     1,
+			Rolesjson: "[\"admin\", \"user\"]",
+		})
+		if err != nil {
+			slog.Error(err.Error())
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create invite code")
+		}
+
+		return c.Redirect(http.StatusFound, "/auth/registration?code="+inviteCode.Code)
 	}
 }

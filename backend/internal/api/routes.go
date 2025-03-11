@@ -64,6 +64,7 @@ func AddRoutes(
 	e.GET("/auth/settings", Settings(kratosClient, serverConfig.Ory))
 	e.GET("/auth/recovery", Recovery(kratosClient))
 	e.GET("/auth/oidc", OidcConsent(hydraAdmin))
+	e.GET("/auth/setup", InitialSetup(kratosIdentityAPI, queries))
 	e.Static("/assets", "assets")
 	e.GET("/assets/data/*", staticFilter(serverConfig.Storage.DataPath, "^db\\/data\\/.+\\/icon.png$"))
 
