@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/acme/autocert"
 	"log/slog"
+	"net/url"
 	"os"
 
 	"github.com/An-Owlbear/homecloud/backend"
@@ -104,6 +105,14 @@ func CreateServer() {
 		panic(err)
 	}
 
+	// Sets up proxy for launcher on host
+	launcherUrl, err := url.Parse(serverConfig.Launcher.Url)
+	if err != nil {
+		panic(err)
+	}
+	launcherTargets := []*middleware.ProxyTarget{{URL: launcherUrl}}
+	launcherProxy := middleware.Proxy(middleware.NewRoundRobinBalancer(launcherTargets))
+
 	// Sets up backend API
 	backendApi := echo.New()
 	backendApi.Use(config.ContextMiddleware)
@@ -119,6 +128,7 @@ func CreateServer() {
 		kratosAdmin.IdentityAPI,
 		appDataHandler,
 		*serverConfig,
+		launcherProxy,
 	)
 	hostname := serverConfig.Host.Host
 	if serverConfig.Host.Port != 80 && serverConfig.Host.Port != 443 {

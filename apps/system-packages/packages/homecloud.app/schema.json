@@ -1,6 +1,6 @@
 {
   "schema": "v1.0",
-  "version": "v0.1.4",
+  "version": "v0.1.5",
   "id": "homecloud.app",
   "name": "homecloud",
   "author": "homecloud",
@@ -8,15 +8,22 @@
   "containers": [
     {
       "name": "homecloud",
-      "image": "ghcr.io/an-owlbear/homecloud:v0.1.4",
+      "image": "ghcr.io/an-owlbear/homecloud:v0.1.5",
       "volumes": [
         "./.env:/app/.env",
+        "./.dev.env:/app/.dev.env",
         "/var/run/docker.sock:/var/run/docker.sock",
         "homecloud-db:/app/db"
       ],
       "ports": [
         "1323:1323"
-      ]
+      ],
+      "extra_hosts": [
+        "launcher.homecloud.internal:host-gateway"
+      ],
+      "environment": {
+        "ENVIRONMENT": "DEV"
+      }
     }
   ]
 }

@@ -21,6 +21,7 @@ type PackageContainer struct {
 	Environment      map[string]string `json:"environment"`
 	Ports            []string          `json:"ports"`
 	Volumes          []string          `json:"volumes"`
+	ExtraHosts       []string          `json:"extra_hosts"`
 	ProxyTarget      bool              `json:"proxy_target"`
 	ProxyPort        string            `json:"proxy_port"`
 	OidcRedirectUris []string          `json:"oidc_redirect_uris"`

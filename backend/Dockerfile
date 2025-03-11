@@ -14,6 +14,7 @@ RUN go build -a -ldflags "-extldflags -static" -o homecloud ./cmd/homecloud/main
 
 FROM gcr.io/distroless/static-debian12
 COPY --from=builder /app/homecloud /app/homecloud
+COPY assets /app
 WORKDIR /app
 ENTRYPOINT ["./homecloud"]
 EXPOSE 1323

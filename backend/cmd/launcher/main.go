@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/labstack/echo/v4/middleware"
 	"net/url"
 	"os"
 	"os/signal"
@@ -42,6 +43,10 @@ func main() {
 	}
 
 	deviceConfig := config.NewDeviceConfig()
+	launcherConfig, err := config.NewLauncher()
+	if err != nil {
+		panic(err)
+	}
 
 	// Setups up port configuration
 	hostConfig, err := config.NewHost()
@@ -113,7 +118,7 @@ func main() {
 	storeClient := apps.NewStoreClient(config.Store{StoreUrl: os.Getenv("SYSTEM_STORE_URL")})
 
 	// Starts containers and sets up networks
-	err = launcher.StartContainers(dockerClient, storeClient, *hostConfig)
+	err = launcher.StartContainers(dockerClient, storeClient, *hostConfig, *launcherConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -142,6 +147,15 @@ func main() {
 	}()
 
 	e := echo.New()
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus: true,
+		LogURI:    true,
+		LogHost:   true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			fmt.Printf("REQUEST URI: %s%s, status: %v\n", v.Host, v.URI, v.Status)
+			return nil
+		},
+	}))
 	launcher.AddRoutes(e, dockerClient, storeClient, deviceConfig)
 	e.Logger.Fatal(e.Start(":1324"))
 }

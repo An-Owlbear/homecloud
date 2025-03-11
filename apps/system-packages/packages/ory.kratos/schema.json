@@ -22,7 +22,7 @@
     {
       "name": "kratos",
       "image": "oryd/kratos:v1.1.0",
-      "command": "serve -c /etc/config/kratos/kratos.yml",
+      "command": "serve -c /etc/config/kratos/kratos.yml --dev",
       "volumes": [
         "homecloud-kratos:/var/lib/sqlite",
         "./ory_config:/etc/config/kratos"

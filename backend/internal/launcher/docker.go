@@ -19,7 +19,7 @@ import (
 
 var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
 
-func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient, hostConfig config.Host) error {
+func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient, hostConfig config.Host, launcherConfig config.Launcher) error {
 	// Installs ory hydra and kratos
 	for _, packageName := range appPackages {
 		// Retrieves package definition
@@ -37,7 +37,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 			}
 
 			// If app is outdated update it
-			if semver.Compare(appVersion, appPackage.Version) == -1 {
+			if launcherConfig.AlwaysUpdate || semver.Compare(appVersion, appPackage.Version) == -1 {
 				fmt.Printf("Updating %s\n", packageName)
 				err = docker.RemoveContainers(dockerClient, packageName)
 				if err != nil {
@@ -49,6 +49,9 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 				}
 			} else {
 				fmt.Printf("%s is already installed\n", packageName)
+				if err := docker.StopApp(dockerClient, packageName); err != nil {
+					return err
+				}
 			}
 		} else {
 			// Install app if it's not installed

@@ -29,6 +29,7 @@ func AddRoutes(
 	kratosIdentityAPI kratos.IdentityAPI,
 	appDataHandler *persistence.AppDataHandler,
 	serverConfig config.Config,
+	launcherProxy echo.MiddlewareFunc,
 ) {
 	apiNoAuth := e.Group("/api")
 	api := apiNoAuth.Group("")
@@ -65,6 +66,10 @@ func AddRoutes(
 	e.GET("/auth/oidc", OidcConsent(hydraAdmin))
 	e.Static("/assets", "assets")
 	e.GET("/assets/data/*", staticFilter(serverConfig.Storage.DataPath, "^db\\/data\\/.+\\/icon.png$"))
+
+	// Proxies update urls to launcher on host system
+	launcherApi := apiAdmin.Group("/v1/update")
+	launcherApi.Use(launcherProxy)
 }
 
 func PortForwardTest() echo.HandlerFunc {

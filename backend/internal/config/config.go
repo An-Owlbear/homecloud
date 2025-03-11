@@ -1,10 +1,11 @@
 package config
 
 type Config struct {
-	Host    Host
-	Ory     Ory
-	Store   Store
-	Storage Storage
+	Host     Host
+	Ory      Ory
+	Store    Store
+	Storage  Storage
+	Launcher Launcher
 }
 
 func LoadConfig() (*Config, error) {
@@ -19,13 +20,17 @@ func LoadConfig() (*Config, error) {
 	}
 
 	store := NewStore()
-
 	storage := NewStorage()
+	launcher, err := NewLauncher()
+	if err != nil {
+		return nil, err
+	}
 
 	return &Config{
-		Host:    *host,
-		Ory:     *ory,
-		Store:   *store,
-		Storage: *storage,
+		Host:     *host,
+		Ory:      *ory,
+		Store:    *store,
+		Storage:  *storage,
+		Launcher: *launcher,
 	}, nil
 }

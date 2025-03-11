@@ -145,6 +145,7 @@ func Settings(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Handler
 				return c.Redirect(http.StatusMovedPermanently, redirectUri.String())
 			}
 
+			slog.Error(err.Error())
 			return err
 		}
 
