@@ -3,8 +3,10 @@ package api
 import (
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/labstack/echo/v4/middleware"
 	hydra "github.com/ory/hydra-client-go/v2"
 	kratos "github.com/ory/kratos-client-go"
+	"strings"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
@@ -71,6 +73,20 @@ func AddRoutes(
 	// Proxies update urls to launcher on host system
 	launcherApi := apiAdmin.Group("/v1/update")
 	launcherApi.Use(launcherProxy)
+
+	// Serves static SPA files
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "spa",
+		HTML5: true,
+		Skipper: func(c echo.Context) bool {
+			for _, prefix := range []string{"/api", "/auth", "/assets"} {
+				if strings.HasPrefix(c.Path(), prefix) {
+					return true
+				}
+			}
+			return false
+		},
+	}))
 }
 
 func PortForwardTest() echo.HandlerFunc {
