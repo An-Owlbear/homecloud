@@ -10,8 +10,10 @@ run:
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
 		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
+		--network=homecloud.app \
 		-p 1323:1323 \
-		--name ${CONTAINER_NAME} \
+		--name homecloud.app-dev \
+		--network homecloud-proxy-dev \
 		cosmtrek/air \
 		-c ".air.toml"
 
@@ -40,6 +42,9 @@ build_launcher version os arch:
     cp .env build/.env
     cd build && gtar -cvzf homecloud-{{version}}-{{os}}-{{arch}}.tar.gz ory_config launcher .env --owner=0 --group=0 --no-same-owner --no-same-permissions
 
+build_docker version:
+    docker buildx build -t ghcr.io/an-owlbear/homecloud:{{version}} .
+
 deploy_docker_dev ssh_address version:
     mkdir -p build/dev/docker
     docker save -o build/dev/docker/homecloud-docker-dev.tar.gz ghcr.io/an-owlbear/homecloud:{{version}}
@@ -59,3 +64,7 @@ deploy_dev ssh_address:
     ssh {{ssh_address}} 'mkdir -p /tmp/homecloud'
     scp build/dev/homecloud-dev.tar.gz {{ssh_address}}:/tmp/homecloud
     ssh -t {{ssh_address}} 'cd /tmp/homecloud; tar -xzf homecloud-dev.tar.gz; sudo ENVIRONMENT=DEV ./launcher;'
+
+build_deploy ssh_address version:
+    @just build_docker {{version}}
+    @just deploy_docker_dev {{ssh_address}} {{version}}

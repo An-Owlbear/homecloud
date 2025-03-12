@@ -172,7 +172,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverH
 		}
 		if containerDef.ProxyTarget {
 			// adds the network shared with homecloud api to the network config
-			networkingConfig.EndpointsConfig["homecloud-proxy"] = &network.EndpointSettings{NetworkID: "homecloud-proxy"}
+			networkingConfig.EndpointsConfig["homecloud.app"] = &network.EndpointSettings{NetworkID: "homecloud.app"}
 		}
 
 		result, err := dockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, networkingConfig, nil, containerName)
@@ -320,22 +320,6 @@ func UntilState(dockerClient *client.Client, containerId string, state State, ti
 	}
 
 	return TimeoutError
-}
-
-func EnsureProxyNetwork(dockerClient *client.Client) error {
-	// creates network if it doesn't exist already
-	if _, err := dockerClient.NetworkInspect(context.Background(), "homecloud-proxy", network.InspectOptions{}); err != nil {
-		if _, err := dockerClient.NetworkCreate(context.Background(), "homecloud-proxy", network.CreateOptions{}); err != nil {
-			return err
-		}
-	}
-
-	// connects container to network
-	if err := dockerClient.NetworkConnect(context.Background(), "homecloud-proxy", os.Getenv("CONTAINER_NAME"), &network.EndpointSettings{}); err != nil {
-		return nil
-	}
-
-	return nil
 }
 
 // AppFilter simple function for creating

@@ -127,8 +127,10 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 		return
 	}
 
-	err = docker.EnsureProxyNetwork(dockerClient)
+	// Creates network on dind client
+	_, err = dockerClient.NetworkCreate(context.Background(), "homecloud.app", network.CreateOptions{})
 	if err != nil {
+		err = fmt.Errorf("couldn't created network in dind container: %w", err)
 		return
 	}
 

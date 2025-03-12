@@ -13,7 +13,6 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
@@ -48,9 +47,6 @@ func CreateServer() {
 		panic(err)
 	}
 	defer dockerClient.Close()
-	if err := docker.EnsureProxyNetwork(dockerClient); err != nil {
-		panic(err)
-	}
 
 	// Sets of database connection
 	db, err := persistence.SetupDB("db/data.db", backend.Migrations)
