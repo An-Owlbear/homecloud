@@ -19,7 +19,7 @@ import (
 
 var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
 
-func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient, hostConfig config.Host, launcherConfig config.Launcher) error {
+func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient, hostConfig config.Host, storageConfig config.Storage, launcherConfig config.Launcher) error {
 	// Installs ory hydra and kratos
 	for _, packageName := range appPackages {
 		// Retrieves package definition
@@ -43,7 +43,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 				if err != nil {
 					return err
 				}
-				err = docker.InstallApp(dockerClient, appPackage, hostConfig)
+				err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
 				if err != nil {
 					return err
 				}
@@ -57,7 +57,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 			// Install app if it's not installed
 			fmt.Printf("Installing %s\n", packageName)
 
-			err = docker.InstallApp(dockerClient, appPackage, hostConfig)
+			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
 			if err != nil {
 				return err
 			}

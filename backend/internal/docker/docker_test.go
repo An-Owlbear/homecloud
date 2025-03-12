@@ -2,7 +2,6 @@ package docker_test
 
 import (
 	"context"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"testing"
 	"time"
 
@@ -47,12 +46,13 @@ func TestInstallApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app, config.Host{})
+	storageConfig := testutils.SetupTempStorage()
+	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
 
-	testutils.HelpTestAppPackage(dockerClient, app, t)
+	testutils.HelpTestAppPackage(dockerClient, app, storageConfig, t)
 }
 
 func TestStopApp(t *testing.T) {
@@ -79,7 +79,8 @@ func TestStopApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app, config.Host{})
+	storageConfig := testutils.SetupTempStorage()
+	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -140,7 +141,8 @@ func TestStartApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app, config.Host{})
+	storageConfig := testutils.SetupTempStorage()
+	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -217,7 +219,8 @@ func TestUninstallApp(t *testing.T) {
 		},
 	}
 
-	err = docker.InstallApp(dockerClient, app, config.Host{})
+	storageConfig := testutils.SetupTempStorage()
+	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}

@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/labstack/echo/v4/middleware"
+	"io"
 	"net/url"
 	"os"
 	"os/signal"
 	"path"
+	"path/filepath"
 	"syscall"
 	"text/template"
 
@@ -47,6 +49,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	storageConfig := config.NewStorage()
 
 	// Setups up port configuration
 	hostConfig, err := config.NewHost()
@@ -110,6 +114,40 @@ func main() {
 		}
 	}
 
+	// Copies required files to ory data folders
+	for app, files := range map[string][]string{
+		"ory.kratos":    {"ory_config/kratos.yml", "ory_config/identity.schema.json", "ory_config/invite_code.jsonnet"},
+		"ory.hydra":     {"ory_config/hydra.yml"},
+		"homecloud.app": {".env", ".dev.env"},
+	} {
+		dataPath := path.Join(storageConfig.DataPath, app, "data")
+		if _, err := os.Stat(dataPath); err != nil {
+			err = os.MkdirAll(dataPath, 0755)
+			if err != nil {
+				panic(err)
+			}
+		}
+		for _, file := range files {
+			if err := os.MkdirAll(filepath.Dir(path.Join(dataPath, file)), 0755); err != nil {
+				panic(err)
+			}
+			writer, err := os.Create(path.Join(dataPath, file))
+			if err != nil {
+				panic(err)
+			}
+			reader, err := os.Open(file)
+			if err != nil {
+				panic(err)
+			}
+			_, err = io.Copy(writer, reader)
+			if err != nil {
+				panic(err)
+			}
+			reader.Close()
+			writer.Close()
+		}
+	}
+
 	// Creates docker client
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -118,7 +156,7 @@ func main() {
 	storeClient := apps.NewStoreClient(config.Store{StoreUrl: os.Getenv("SYSTEM_STORE_URL")})
 
 	// Starts containers and sets up networks
-	err = launcher.StartContainers(dockerClient, storeClient, *hostConfig, *launcherConfig)
+	err = launcher.StartContainers(dockerClient, storeClient, *hostConfig, *storageConfig, *launcherConfig)
 	if err != nil {
 		panic(err)
 	}

@@ -80,6 +80,7 @@ func AddPackage(
 	dockerClient *client.Client,
 	hydraAdmin *hydra.APIClient,
 	hostConfig config.Host,
+	storageConfig config.Storage,
 	appDataHandler *persistence.AppDataHandler,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -150,7 +151,7 @@ func AddPackage(
 		}
 
 		// Install and sets up app containers
-		err = docker.InstallApp(dockerClient, app, hostConfig)
+		err = docker.InstallApp(dockerClient, app, hostConfig, storageConfig)
 		if err != nil {
 			return c.String(500, err.Error())
 		}
@@ -170,9 +171,9 @@ func CheckUpdates(storeClient *apps.StoreClient, queries *persistence.Queries) e
 	}
 }
 
-func UpdateApps(dockerClient *client.Client, storeClient *apps.StoreClient, queries *persistence.Queries, hostConfig config.Host) echo.HandlerFunc {
+func UpdateApps(dockerClient *client.Client, storeClient *apps.StoreClient, queries *persistence.Queries, hostConfig config.Host, storageConfig config.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := apps.UpdateApps(dockerClient, storeClient, queries, hostConfig)
+		err := apps.UpdateApps(dockerClient, storeClient, queries, hostConfig, storageConfig)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

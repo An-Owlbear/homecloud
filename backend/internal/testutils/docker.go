@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"maps"
 	"os"
@@ -29,6 +30,13 @@ import (
 )
 
 var hostClient *client.Client
+
+var BasicHostConfig = config.Host{
+	Host:        "example.com",
+	Port:        80,
+	HTTPS:       true,
+	PortForward: true,
+}
 
 // CreateDindClient creates a containerised docker environment for testing. This environment should be
 // removed using CleanupDocker at the end
@@ -151,7 +159,7 @@ func CleanupDind() {
 	}
 }
 
-func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage, t *testing.T) {
+func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage, storageConfig config.Storage, t *testing.T) {
 	// Retrieves the network created for the app to check it and for later use
 	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
 		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", docker.APP_ID_LABEL, app.Id))),
@@ -254,7 +262,7 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 			if err != nil {
 				t.Fatalf("Unexpected error getting exec path: %s", err.Error())
 			}
-			volParts[0] = filepath.Join(execPath, volParts[0][2:])
+			volParts[0] = filepath.Join(execPath, storageConfig.DataPath, app.Id, "data", volParts[0][2:])
 		}
 		checkVols[volParts[0]] = volParts[1]
 	}

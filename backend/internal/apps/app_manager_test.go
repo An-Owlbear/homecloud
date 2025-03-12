@@ -46,6 +46,7 @@ func TestUpdateApps(t *testing.T) {
 	}
 
 	storeClient := NewStoreClient(config.Store{StoreUrl: "https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps/list.json"})
+	storageConfig := testutils.SetupTempStorage()
 
 	app := persistence.AppPackage{
 		Schema:      "v1.0",
@@ -69,7 +70,7 @@ func TestUpdateApps(t *testing.T) {
 	}
 
 	// Install and update app
-	err = docker.InstallApp(dockerClient, app, config.Host{})
+	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -91,7 +92,7 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error saving app to DB: %s", err.Error())
 	}
 
-	err = UpdateApps(dockerClient, storeClient, queries, config.Host{})
+	err = UpdateApps(dockerClient, storeClient, queries, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
 	}
@@ -102,7 +103,7 @@ func TestUpdateApps(t *testing.T) {
 	app.Containers[0].ProxyPort = "80"
 	app.Containers[0].ProxyTarget = true
 	app.Containers[0].Environment = nil
-	testutils.HelpTestAppPackage(dockerClient, app, t)
+	testutils.HelpTestAppPackage(dockerClient, app, storageConfig, t)
 
 	// Check DB is updated properly
 	dbApp, err := queries.GetApp(context.Background(), app.Id)

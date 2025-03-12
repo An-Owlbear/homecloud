@@ -14,7 +14,7 @@ import (
 )
 
 // UpdateApps updates the list of available apps and updates any outdated apps
-func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries, hostConfig config.Host) error {
+func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries, hostConfig config.Host, storageConfig config.Storage) error {
 	err := storeClient.UpdatePackageList(context.Background(), queries)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *
 				return err
 			}
 
-			err = docker.InstallApp(dockerClient, appPackage, hostConfig)
+			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
 			if err != nil {
 				return err
 			}

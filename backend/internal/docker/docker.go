@@ -40,7 +40,7 @@ var TimeoutError = errors.New("container didn't start in time")
 var NotFoundError = errors.New("no containers for app found")
 var InvalidContainerError = errors.New("container has invalid configuration")
 
-func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverHostConfig config.Host) error {
+func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverHostConfig config.Host, storageConfig config.Storage) error {
 	// Creates the network if it doesn't already exist
 	var networkId string
 	networkInspect, err := dockerClient.NetworkInspect(context.Background(), app.Id, network.InspectOptions{})
@@ -79,7 +79,7 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverH
 			}
 		}
 
-		// sets up the envionmrnet variables for the container
+		// sets up the environment variables for the container
 		var env []string
 		for key, value := range containerDef.Environment {
 			env = append(env, fmt.Sprintf("%s=%s", key, value))
@@ -121,14 +121,15 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverH
 		for _, vol := range containerDef.Volumes {
 			volumeParts := strings.Split(vol, ":")
 
-			// if the mount is for a local file or folder skip
+			// mounts to app specific data folder if mount is local file
 			if strings.HasPrefix(volumeParts[0], "./") {
 				execPath, err := os.Getwd()
 				if err != nil {
 					return err
 				}
 
-				volumeParts[0] = filepath.Join(execPath, volumeParts[0][2:])
+				// local files are converted to map to the data folder - e.g. ./config.json becomes data_dir/app_id/data/config.json
+				volumeParts[0] = filepath.Join(execPath, storageConfig.DataPath, app.Id, "data", volumeParts[0][2:])
 			} else if !strings.HasPrefix(volumeParts[0], "/") {
 				// Checks if the volume exists before creating
 				if _, err = dockerClient.VolumeInspect(context.Background(), volumeParts[0]); err != nil {
