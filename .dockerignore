@@ -1,0 +1,8 @@
+dns/
+backend/cache/
+**/.idea/
+backend/build/
+frontend/build/
+backend/spa/
+backend/tmp/
+frontend/node_modules/
