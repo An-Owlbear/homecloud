@@ -3,13 +3,16 @@ package persistence
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 type AppDataHandler struct {
@@ -72,6 +75,65 @@ func (h *AppDataHandler) SavePackage(appId string) error {
 			}
 			outFile.Close()
 		}
+	}
+
+	return nil
+}
+
+type PackageTemplateParams struct {
+	OAuthClientID     string
+	OAuthClientSecret string
+	OAuthIssuerUrl    string
+	HostUrl           string
+}
+
+func (h *AppDataHandler) RenderTemplates(
+	ctx context.Context,
+	queries *Queries,
+	oryConfig config.Ory,
+	hostConfig config.Host,
+	appId string,
+) error {
+	dataPath := filepath.Join(h.storageConfig.DataPath, appId, "data")
+	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+		return nil
+	}
+
+	err := filepath.Walk(dataPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && filepath.Ext(path) == ".tmpl" {
+			appInfo, err := queries.GetAppOAuth(ctx, appId)
+
+			templateFile, err := template.ParseFiles(path)
+			if err != nil {
+				return err
+			}
+
+			writer, err := os.Create(strings.TrimSuffix(path, ".tmpl"))
+			if err != nil {
+				return err
+			}
+
+			templateParams := PackageTemplateParams{
+				OAuthClientID:     appInfo.ClientID.String,
+				OAuthClientSecret: appInfo.ClientSecret.String,
+				OAuthIssuerUrl:    oryConfig.Hydra.PublicAddress.String(),
+				HostUrl:           hostConfig.Url.String(),
+			}
+
+			if err := templateFile.Execute(writer, templateParams); err != nil {
+				return err
+			}
+			if err := writer.Close(); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil

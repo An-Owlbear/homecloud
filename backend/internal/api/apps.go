@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"log/slog"
 	"net/http"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
@@ -45,12 +47,20 @@ func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 	}
 }
 
-func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *apps.Hosts) echo.HandlerFunc {
+func StartApp(
+	dockerClient *client.Client,
+	queries *persistence.Queries,
+	hosts *apps.Hosts,
+	appDataHandler *persistence.AppDataHandler,
+	hostConfig config.Host,
+	oryConfig config.Ory,
+) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		appId := c.Param("appId")
-		err := apps.StartApp(dockerClient, queries, hosts, appId)
+		err := apps.StartApp(dockerClient, queries, hosts, appDataHandler, hostConfig, oryConfig, appId)
 		if err != nil {
-			return c.String(500, err.Error())
+			slog.Error("Error starting app:", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to start app")
 		}
 
 		return c.String(200, "App started!")

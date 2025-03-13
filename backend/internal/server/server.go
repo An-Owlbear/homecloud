@@ -96,7 +96,7 @@ func CreateServer() {
 	hosts := apps.NewHosts(hostsMap, serverConfig.Host)
 
 	// Sets up proxies for installed apps
-	err = apps.SetupProxies(dockerClient, queries, hosts)
+	err = apps.SetupProxies(dockerClient, queries, hosts, appDataHandler, serverConfig.Host, serverConfig.Ory)
 	if err != nil {
 		panic(err)
 	}
@@ -140,11 +140,16 @@ func CreateServer() {
 	// Sets up global logging
 	e := echo.New()
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogStatus: true,
-		LogURI:    true,
-		LogHost:   true,
+		LogStatus:   true,
+		LogURI:      true,
+		LogHost:     true,
+		LogError:    true,
+		HandleError: true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			fmt.Printf("REQUEST URI: %s%s, status: %v\n", v.Host, v.URI, v.Status)
+			if v.Error != nil {
+				fmt.Printf("Error: %s\n", v.Error.Error())
+			}
 			return nil
 		},
 	}))

@@ -32,6 +32,24 @@ func (q *Queries) CreateApp(ctx context.Context, arg CreateAppParams) error {
 	return err
 }
 
+const getAppOAuth = `-- name: GetAppOAuth :one
+SELECT id, client_id, client_secret FROM apps
+WHERE id = ?1
+`
+
+type GetAppOAuthRow struct {
+	ID           string         `json:"id"`
+	ClientID     sql.NullString `json:"client_id"`
+	ClientSecret sql.NullString `json:"client_secret"`
+}
+
+func (q *Queries) GetAppOAuth(ctx context.Context, id string) (GetAppOAuthRow, error) {
+	row := q.db.QueryRowContext(ctx, getAppOAuth, id)
+	var i GetAppOAuthRow
+	err := row.Scan(&i.ID, &i.ClientID, &i.ClientSecret)
+	return i, err
+}
+
 const removeApp = `-- name: RemoveApp :execresult
 DELETE FROM apps where id = ?
 `

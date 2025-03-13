@@ -19,3 +19,7 @@ WHERE id = sqlc.arg(id);
 
 -- name: getAppsUnparsed :many
 SELECT id, json(schema) as schema, date_added, status FROM apps;
+
+-- name: GetAppOAuth :one
+SELECT id, client_id, client_secret FROM apps
+WHERE id = sqlc.arg(id);

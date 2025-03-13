@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 )
@@ -10,6 +12,7 @@ type Host struct {
 	Port        int
 	HTTPS       bool
 	PortForward bool
+	Url         url.URL
 }
 
 func NewHost() (*Host, error) {
@@ -24,11 +27,26 @@ func NewHost() (*Host, error) {
 	}
 
 	portForward, err := strconv.ParseBool(Getenv("PORT_FORWARD", "true"))
+	if err != nil {
+		return nil, err
+	}
+
+	host := os.Getenv("HOMECLOUD_HOST")
+	scheme := "https"
+	if !https {
+		scheme = "http"
+	}
+
+	hostUrl := url.URL{
+		Scheme: scheme,
+		Host:   fmt.Sprintf("%s:%d", host, port),
+	}
 
 	return &Host{
-		Host:        os.Getenv("HOMECLOUD_HOST"),
+		Host:        host,
 		Port:        port,
 		HTTPS:       https,
 		PortForward: portForward,
+		Url:         hostUrl,
 	}, nil
 }

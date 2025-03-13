@@ -14,7 +14,13 @@ import (
 )
 
 // UpdateApps updates the list of available apps and updates any outdated apps
-func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *persistence.Queries, hostConfig config.Host, storageConfig config.Storage) error {
+func UpdateApps(
+	dockerClient *client.Client,
+	storeClient *StoreClient,
+	queries *persistence.Queries,
+	hostConfig config.Host,
+	storageConfig config.Storage,
+) error {
 	err := storeClient.UpdatePackageList(context.Background(), queries)
 	if err != nil {
 		return err
@@ -74,8 +80,22 @@ func UpdateApps(dockerClient *client.Client, storeClient *StoreClient, queries *
 	return nil
 }
 
-func StartApp(dockerClient *client.Client, queries *persistence.Queries, hosts *Hosts, appId string) error {
+func StartApp(
+	dockerClient *client.Client,
+	queries *persistence.Queries,
+	hosts *Hosts,
+	appDataHandler *persistence.AppDataHandler,
+	hostConfig config.Host,
+	oryConfig config.Ory,
+	appId string,
+) error {
 	app, err := queries.GetApp(context.Background(), appId)
+	if err != nil {
+		return err
+	}
+
+	// Renders the templates in the config files
+	err = appDataHandler.RenderTemplates(context.Background(), queries, oryConfig, hostConfig, appId)
 	if err != nil {
 		return err
 	}
@@ -143,7 +163,14 @@ func StopApp(dockerClient *client.Client, queries *persistence.Queries, appId st
 	return nil
 }
 
-func SetupProxies(dockerClient *client.Client, queries *persistence.Queries, hosts *Hosts) error {
+func SetupProxies(
+	dockerClient *client.Client,
+	queries *persistence.Queries,
+	hosts *Hosts,
+	appDataHandler *persistence.AppDataHandler,
+	hostConfig config.Host,
+	oryConfig config.Ory,
+) error {
 	apps, err := queries.GetApps(context.Background())
 	if err != nil {
 		return err
@@ -152,7 +179,7 @@ func SetupProxies(dockerClient *client.Client, queries *persistence.Queries, hos
 	// Ensures apps are properly started with proxies
 	for _, app := range apps {
 		if app.Status == string(docker.ContainerRunning) {
-			err = StartApp(dockerClient, queries, hosts, app.ID)
+			err = StartApp(dockerClient, queries, hosts, appDataHandler, hostConfig, oryConfig, app.ID)
 			if err != nil {
 				return err
 			}
