@@ -54,6 +54,8 @@ services:
         target: /etc/config/kratos
     networks:
       - homecloud-proxy-dev
+    extra_hosts:
+      - hc.anowlbear.com:host-gateway
   hydra:
     image: oryd/hydra:v2.2.0
     ports:
@@ -76,6 +78,8 @@ services:
       - hydra-migrate
     networks:
       - homecloud-proxy-dev
+    extra_hosts:
+      - hc.anowlbear.com:host-gateway
   hydra-migrate:
     image: oryd/hydra:v2.2.0
     environment:
