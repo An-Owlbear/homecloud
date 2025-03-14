@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -40,7 +39,12 @@ var TimeoutError = errors.New("container didn't start in time")
 var NotFoundError = errors.New("no containers for app found")
 var InvalidContainerError = errors.New("container has invalid configuration")
 
-func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverHostConfig config.Host, storageConfig config.Storage) error {
+func InstallApp(
+	dockerClient *client.Client,
+	app persistence.AppPackage,
+	serverHostConfig config.Host,
+	storageConfig config.Storage,
+) error {
 	// Creates the network if it doesn't already exist
 	var networkId string
 	networkInspect, err := dockerClient.NetworkInspect(context.Background(), app.Id, network.InspectOptions{})
@@ -123,13 +127,8 @@ func InstallApp(dockerClient *client.Client, app persistence.AppPackage, serverH
 
 			// mounts to app specific data folder if mount is local file
 			if strings.HasPrefix(volumeParts[0], "./") {
-				execPath, err := os.Getwd()
-				if err != nil {
-					return err
-				}
-
 				// local files are converted to map to the data folder - e.g. ./config.json becomes data_dir/app_id/data/config.json
-				volumeParts[0] = filepath.Join(execPath, storageConfig.DataPath, app.Id, "data", volumeParts[0][2:])
+				volumeParts[0] = filepath.Join(storageConfig.GetAppDataMountPath(app.Id), volumeParts[0][2:])
 			} else if !strings.HasPrefix(volumeParts[0], "/") {
 				// Checks if the volume exists before creating
 				if _, err = dockerClient.VolumeInspect(context.Background(), volumeParts[0]); err != nil {
@@ -303,7 +302,13 @@ func GetAppContainers(dockerClient *client.Client, appId string) (containers []t
 }
 
 // UntilState waits until the given container is started
-func UntilState(dockerClient *client.Client, containerId string, state State, timeout time.Duration, interval time.Duration) error {
+func UntilState(
+	dockerClient *client.Client,
+	containerId string,
+	state State,
+	timeout time.Duration,
+	interval time.Duration,
+) error {
 	currentTimeout := time.Duration(0)
 	for currentTimeout < timeout {
 		info, err := dockerClient.ContainerInspect(context.Background(), containerId)

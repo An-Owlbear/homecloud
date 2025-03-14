@@ -42,12 +42,14 @@
       "image": "ghcr.io/immich-app/immich-server:v1.124.2",
       "volumes": [
         "uploads:/usr/src/app/upload",
-        "/etc/localtime:/etc/localtime:ro"
+        "/etc/localtime:/etc/localtime:ro",
+        "./immich.json:/usr/src/app/custom_config.json"
       ],
       "environment": {
         "DB_USERNAME": "postgres",
         "DB_PASSWORD": "postgres",
-        "DB_DATABASE_NAME": "immich"
+        "DB_DATABASE_NAME": "immich",
+        "IMMICH_CONFIG_FILE": "/usr/src/app/custom_config.json"
       },
       "proxy_target": true,
       "proxy_port": "2283",

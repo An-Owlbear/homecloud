@@ -161,7 +161,12 @@ func CleanupDind() {
 	}
 }
 
-func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage, storageConfig config.Storage, t *testing.T) {
+func HelpTestAppPackage(
+	dockerClient *client.Client,
+	app persistence.AppPackage,
+	storageConfig config.Storage,
+	t *testing.T,
+) {
 	// Retrieves the network created for the app to check it and for later use
 	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
 		Filters: filters.NewArgs(filters.Arg("label", fmt.Sprintf("%s=%s", docker.APP_ID_LABEL, app.Id))),
@@ -260,11 +265,10 @@ func HelpTestAppPackage(dockerClient *client.Client, app persistence.AppPackage,
 	for _, vol := range app.Containers[0].Volumes {
 		volParts := strings.Split(vol, ":")
 		if strings.HasPrefix(volParts[0], "./") {
-			execPath, err := os.Getwd()
 			if err != nil {
 				t.Fatalf("Unexpected error getting exec path: %s", err.Error())
 			}
-			volParts[0] = filepath.Join(execPath, storageConfig.DataPath, app.Id, "data", volParts[0][2:])
+			volParts[0] = filepath.Join(storageConfig.GetAppDataMountPath(app.Id), volParts[0][2:])
 		}
 		checkVols[volParts[0]] = volParts[1]
 	}

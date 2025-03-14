@@ -20,7 +20,12 @@ func LoadConfig() (*Config, error) {
 	}
 
 	store := NewStore()
-	storage := NewStorage()
+
+	storage, err := NewStorage(false)
+	if err != nil {
+		return nil, err
+	}
+
 	launcher, err := NewLauncher()
 	if err != nil {
 		return nil, err

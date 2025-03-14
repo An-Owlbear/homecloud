@@ -59,7 +59,7 @@ func StartApp(
 		appId := c.Param("appId")
 		err := apps.StartApp(dockerClient, queries, hosts, appDataHandler, hostConfig, oryConfig, appId)
 		if err != nil {
-			slog.Error("Error starting app:", err)
+			slog.Error("Error starting app:" + err.Error())
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to start app")
 		}
 
@@ -96,7 +96,7 @@ func UninstallApp(queries *persistence.Queries, dockerClient *client.Client) ech
 		// Returns 404 if no rows are deleted - e.g. no app is found
 		rows, err := result.RowsAffected()
 		if err != nil && rows == 0 {
-			c.String(404, appId+" not found")
+			return c.String(404, appId+" not found")
 		}
 
 		// Uninstalls the app deleting the docker resources

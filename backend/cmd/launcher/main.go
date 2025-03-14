@@ -50,7 +50,10 @@ func main() {
 		panic(err)
 	}
 
-	storageConfig := config.NewStorage()
+	storageConfig, err := config.NewStorage(true)
+	if err != nil {
+		panic(err)
+	}
 
 	// Setups up port configuration
 	hostConfig, err := config.NewHost()

@@ -6,6 +6,7 @@ run:
 		-w "/opt/homecloud" \
 		-e "air_wd=/opt/homecloud" \
 		-e "ENVIRONMENT=DEV" \
+		-e "HOMECLOUD_APP_DIR=/Users/george/projects/dissertation/home-server-system/backend" \
 		-v $(pwd):/opt/homecloud \
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
