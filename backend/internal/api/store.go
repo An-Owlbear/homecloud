@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -56,7 +57,12 @@ func SearchPackages(queries *persistence.Queries) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid search parameters")
 		}
 
-		packages, err := queries.SearchPackages(c.Request().Context(), params.SearchTerm, params.Category, params.Developer)
+		packages, err := queries.SearchPackages(
+			c.Request().Context(),
+			params.SearchTerm,
+			params.Category,
+			params.Developer,
+		)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Error retrieving packages")
 		}
@@ -79,6 +85,7 @@ func AddPackage(
 	queries *persistence.Queries,
 	dockerClient *client.Client,
 	hydraAdmin *hydra.APIClient,
+	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
 	appDataHandler *persistence.AppDataHandler,
@@ -96,7 +103,7 @@ func AddPackage(
 		}
 
 		// Converts to json string for storing in DB
-		json, err := json.Marshal(app)
+		schemaString, err := json.Marshal(app)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -118,13 +125,24 @@ func AddPackage(
 				// If the redirect uri starts with a slash append the actual host
 				for _, redirectUri := range appContainer.OidcRedirectUris {
 					if strings.HasPrefix(redirectUri, "/") {
-						redirectUri = fmt.Sprintf("http://%s.%s:%d%s", app.Name, hostConfig.Host, hostConfig.Port, redirectUri)
+						redirectUri = fmt.Sprintf(
+							"http://%s.%s:%d%s",
+							app.Name,
+							hostConfig.Host,
+							hostConfig.Port,
+							redirectUri,
+						)
 					}
 					redirectUris = append(redirectUris, redirectUri)
 				}
 			}
 
-			oidcClient, err := auth.SetupAppAuth(hydraAdmin, app.Name, strings.Join(app.OidcScopes[:], " "), redirectUris)
+			oidcClient, err := auth.SetupAppAuth(
+				hydraAdmin,
+				app.Name,
+				strings.Join(app.OidcScopes[:], " "),
+				redirectUris,
+			)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			}
@@ -133,13 +151,30 @@ func AddPackage(
 			clientSecret = oidcClient.GetClientSecret()
 		}
 
+		// Applies the variables to the template
+		var templatedApp bytes.Buffer
+		err = persistence.ApplyAppTemplate(
+			string(schemaString),
+			&templatedApp,
+			clientId,
+			clientSecret,
+			oryConfig,
+			hostConfig,
+			storageConfig,
+		)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
 		// Creates app in DB
-		err = queries.CreateApp(context.Background(), persistence.CreateAppParams{
-			ID:           app.Id,
-			Schema:       string(json),
-			ClientID:     sql.NullString{String: clientId, Valid: clientId != ""},
-			ClientSecret: sql.NullString{String: clientSecret, Valid: clientSecret != ""},
-		})
+		err = queries.CreateApp(
+			context.Background(), persistence.CreateAppParams{
+				ID:           app.Id,
+				Schema:       templatedApp.String(),
+				ClientID:     sql.NullString{String: clientId, Valid: clientId != ""},
+				ClientSecret: sql.NullString{String: clientSecret, Valid: clientSecret != ""},
+			},
+		)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -171,9 +206,16 @@ func CheckUpdates(storeClient *apps.StoreClient, queries *persistence.Queries) e
 	}
 }
 
-func UpdateApps(dockerClient *client.Client, storeClient *apps.StoreClient, queries *persistence.Queries, hostConfig config.Host, storageConfig config.Storage) echo.HandlerFunc {
+func UpdateApps(
+	dockerClient *client.Client,
+	storeClient *apps.StoreClient,
+	queries *persistence.Queries,
+	oryConfig config.Ory,
+	hostConfig config.Host,
+	storageConfig config.Storage,
+) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := apps.UpdateApps(dockerClient, storeClient, queries, hostConfig, storageConfig)
+		err := apps.UpdateApps(dockerClient, storeClient, queries, oryConfig, hostConfig, storageConfig)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

@@ -23,7 +23,7 @@
       ],
       "environment": {
         "ENVIRONMENT": "DEV",
-        "HOMECLOUD_APP_DIR": "/Users/george/projects/dissertation/home-server-system/backend"
+        "HOMECLOUD_APP_DIR": "{{.HomecloudAppDir}}"
       }
     }
   ]

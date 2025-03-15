@@ -150,3 +150,46 @@ func (q *Queries) getAppsUnparsed(ctx context.Context) ([]getAppsUnparsedRow, er
 	}
 	return items, nil
 }
+
+const getAppsWithCredsUnparsed = `-- name: getAppsWithCredsUnparsed :many
+SELECT id, json(schema) as schema, date_added, client_Id, client_secret, status from apps
+`
+
+type getAppsWithCredsUnparsedRow struct {
+	ID           string         `json:"id"`
+	Schema       interface{}    `json:"schema"`
+	DateAdded    int64          `json:"date_added"`
+	ClientID     sql.NullString `json:"client_id"`
+	ClientSecret sql.NullString `json:"client_secret"`
+	Status       string         `json:"status"`
+}
+
+func (q *Queries) getAppsWithCredsUnparsed(ctx context.Context) ([]getAppsWithCredsUnparsedRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAppsWithCredsUnparsed)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []getAppsWithCredsUnparsedRow
+	for rows.Next() {
+		var i getAppsWithCredsUnparsedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Schema,
+			&i.DateAdded,
+			&i.ClientID,
+			&i.ClientSecret,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

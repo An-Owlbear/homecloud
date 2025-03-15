@@ -44,3 +44,25 @@ func (q *Queries) GetApps(ctx context.Context) ([]GetAppsRow, error) {
 	}
 	return rows, nil
 }
+
+type AppWithCreds struct {
+	getAppsWithCredsUnparsedRow
+	Schema AppPackage
+}
+
+func (q *Queries) GetAppsWithCreds(ctx context.Context) ([]AppWithCreds, error) {
+	unparsedRows, err := q.getAppsWithCredsUnparsed(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var rows []AppWithCreds
+	for _, unparsedRow := range unparsedRows {
+		row := AppWithCreds{getAppsWithCredsUnparsedRow: unparsedRow}
+		if err := json.Unmarshal([]byte(unparsedRow.Schema.(string)), &row.Schema); err != nil {
+			return rows, err
+		}
+		rows = append(rows, row)
+	}
+	return rows, nil
+}

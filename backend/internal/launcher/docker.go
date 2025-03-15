@@ -1,11 +1,14 @@
 package launcher
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -19,11 +22,22 @@ import (
 
 var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
 
-func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient, hostConfig config.Host, storageConfig config.Storage, launcherConfig config.Launcher) error {
+func StartContainers(
+	dockerClient *client.Client,
+	storeClient *apps.StoreClient,
+	oryConfig config.Ory,
+	hostConfig config.Host,
+	storageConfig config.Storage,
+	launcherConfig config.Launcher,
+) error {
 	// Installs ory hydra and kratos
 	for _, packageName := range appPackages {
 		// Retrieves package definition
 		appPackage, err := storeClient.GetPackage(packageName)
+		if err != nil {
+			return err
+		}
+		appPackageString, err := json.Marshal(appPackage)
 		if err != nil {
 			return err
 		}
@@ -43,7 +57,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 				if err != nil {
 					return err
 				}
-				err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
+				err = TemplateInstall(dockerClient, string(appPackageString), oryConfig, hostConfig, storageConfig)
 				if err != nil {
 					return err
 				}
@@ -57,7 +71,7 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 			// Install app if it's not installed
 			fmt.Printf("Installing %s\n", packageName)
 
-			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
+			err = TemplateInstall(dockerClient, string(appPackageString), oryConfig, hostConfig, storageConfig)
 			if err != nil {
 				return err
 			}
@@ -72,15 +86,24 @@ func StartContainers(dockerClient *client.Client, storeClient *apps.StoreClient,
 	return nil
 }
 
-func StopContainers(dockerClient *client.Client) error {
-	for _, packageName := range appPackages {
-		err := docker.StopApp(dockerClient, packageName)
-		if err != nil {
-			return err
-		}
+func TemplateInstall(
+	dockerClient *client.Client,
+	appSchema string,
+	oryConfig config.Ory,
+	hostConfig config.Host,
+	storageConfig config.Storage,
+) error {
+	var templatedApp bytes.Buffer
+	err := persistence.ApplyAppTemplate(appSchema, &templatedApp, "", "", oryConfig, hostConfig, storageConfig)
+	if err != nil {
+		return err
+	}
+	var parsedTemplate persistence.AppPackage
+	if err := json.Unmarshal(templatedApp.Bytes(), &parsedTemplate); err != nil {
+		return err
 	}
 
-	return nil
+	return docker.InstallApp(dockerClient, parsedTemplate, hostConfig, storageConfig)
 }
 
 func FollowLogs(dockerClient *client.Client) error {
@@ -95,11 +118,13 @@ func FollowLogs(dockerClient *client.Client) error {
 		panic(err)
 	}
 
-	logs, err := dockerClient.ContainerLogs(context.Background(), containers[0].ID, container.LogsOptions{
-		Follow:     true,
-		ShowStderr: true,
-		ShowStdout: true,
-	})
+	logs, err := dockerClient.ContainerLogs(
+		context.Background(), containers[0].ID, container.LogsOptions{
+			Follow:     true,
+			ShowStderr: true,
+			ShowStdout: true,
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +144,12 @@ func FollowLogs(dockerClient *client.Client) error {
 // ConnectNetworks connects the backend to the ory networks. This assumes the containers are using the expected names
 func ConnectNetworks(dockerClient *client.Client) error {
 	for _, networkName := range []string{"ory.kratos", "ory.hydra"} {
-		err := dockerClient.NetworkConnect(context.Background(), networkName, "homecloud.app-homecloud", &network.EndpointSettings{})
+		err := dockerClient.NetworkConnect(
+			context.Background(),
+			networkName,
+			"homecloud.app-homecloud",
+			&network.EndpointSettings{},
+		)
 		if err != nil && !(errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")) {
 			return err
 		}

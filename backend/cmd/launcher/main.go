@@ -159,7 +159,11 @@ func main() {
 	storeClient := apps.NewStoreClient(config.Store{StoreUrl: os.Getenv("SYSTEM_STORE_URL")})
 
 	// Starts containers and sets up networks
-	err = launcher.StartContainers(dockerClient, storeClient, *hostConfig, *storageConfig, *launcherConfig)
+	oryConfig, err := config.OryFromEnv()
+	if err != nil {
+		panic(err)
+	}
+	err = launcher.StartContainers(dockerClient, storeClient, *oryConfig, *hostConfig, *storageConfig, *launcherConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -170,7 +174,12 @@ func main() {
 
 	// Sets up port forwarding on local network
 	if hostConfig.PortForward {
-		err = networking.TryMapPort(context.Background(), uint16(hostConfig.Port), uint16(hostConfig.Port), deviceConfig)
+		err = networking.TryMapPort(
+			context.Background(),
+			uint16(hostConfig.Port),
+			uint16(hostConfig.Port),
+			deviceConfig,
+		)
 		if err != nil {
 			panic(err)
 		}
@@ -188,15 +197,19 @@ func main() {
 	}()
 
 	e := echo.New()
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogStatus: true,
-		LogURI:    true,
-		LogHost:   true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			fmt.Printf("REQUEST URI: %s%s, status: %v\n", v.Host, v.URI, v.Status)
-			return nil
-		},
-	}))
+	e.Use(
+		middleware.RequestLoggerWithConfig(
+			middleware.RequestLoggerConfig{
+				LogStatus: true,
+				LogURI:    true,
+				LogHost:   true,
+				LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+					fmt.Printf("REQUEST URI: %s%s, status: %v\n", v.Host, v.URI, v.Status)
+					return nil
+				},
+			},
+		),
+	)
 	launcher.AddRoutes(e, dockerClient, storeClient, deviceConfig)
 	e.Logger.Fatal(e.Start(":1324"))
 }

@@ -84,15 +84,17 @@ func TestUpdateApps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error encoding app schema: %s", err.Error())
 	}
-	err = queries.CreateApp(context.Background(), persistence.CreateAppParams{
-		ID:     app.Id,
-		Schema: schemaJson,
-	})
+	err = queries.CreateApp(
+		context.Background(), persistence.CreateAppParams{
+			ID:     app.Id,
+			Schema: schemaJson,
+		},
+	)
 	if err != nil {
 		t.Fatalf("Unexpected error saving app to DB: %s", err.Error())
 	}
 
-	err = UpdateApps(dockerClient, storeClient, queries, testutils.BasicHostConfig, storageConfig)
+	err = UpdateApps(dockerClient, storeClient, queries, config.Ory{}, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
 	}

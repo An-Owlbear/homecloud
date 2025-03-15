@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,6 +19,7 @@ func UpdateApps(
 	dockerClient *client.Client,
 	storeClient *StoreClient,
 	queries *persistence.Queries,
+	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
 ) error {
@@ -26,13 +28,13 @@ func UpdateApps(
 		return err
 	}
 
-	apps, err := queries.GetApps(context.Background())
+	apps, err := queries.GetAppsWithCreds(context.Background())
 	if err != nil {
 		return err
 	}
 
 	// converts result to map
-	appsMap := make(map[string]persistence.GetAppsRow)
+	appsMap := make(map[string]persistence.AppWithCreds)
 	for _, app := range apps {
 		appsMap[app.ID] = app
 	}
@@ -66,11 +68,26 @@ func UpdateApps(
 			if err != nil {
 				return err
 			}
+			var templatedString bytes.Buffer
+			err = persistence.ApplyAppTemplate(
+				string(schemaJson),
+				&templatedString,
+				app.ClientID.String,
+				app.ClientSecret.String,
+				oryConfig,
+				hostConfig,
+				storageConfig,
+			)
+			if err != nil {
+				return err
+			}
 
-			err = queries.UpdateApp(context.Background(), persistence.UpdateAppParams{
-				ID:     app.ID,
-				Schema: schemaJson,
-			})
+			err = queries.UpdateApp(
+				context.Background(), persistence.UpdateAppParams{
+					ID:     app.ID,
+					Schema: templatedString.String(),
+				},
+			)
 			if err != nil {
 				return err
 			}
@@ -112,7 +129,13 @@ func StartApp(
 	}
 
 	for _, appContainer := range containers {
-		err = docker.UntilState(dockerClient, appContainer.ID, docker.ContainerRunning, time.Second*20, time.Millisecond*10)
+		err = docker.UntilState(
+			dockerClient,
+			appContainer.ID,
+			docker.ContainerRunning,
+			time.Second*20,
+			time.Millisecond*10,
+		)
 		if err != nil {
 			return err
 		}
@@ -121,7 +144,11 @@ func StartApp(
 	// Check if any containers need proxying and proxy if needed
 	for _, packageContainer := range app.Schema.Containers {
 		if packageContainer.ProxyTarget {
-			err = hosts.AddProxy(app.Schema.Name, fmt.Sprintf("%s-%s", app.Schema.Id, packageContainer.Name), packageContainer.ProxyPort)
+			err = hosts.AddProxy(
+				app.Schema.Name,
+				fmt.Sprintf("%s-%s", app.Schema.Id, packageContainer.Name),
+				packageContainer.ProxyPort,
+			)
 			if err != nil {
 				return err
 			}
@@ -129,10 +156,12 @@ func StartApp(
 	}
 
 	// Sets the status in the database
-	err = queries.SetStatus(context.Background(), persistence.SetStatusParams{
-		ID:     appId,
-		Status: string(docker.ContainerRunning),
-	})
+	err = queries.SetStatus(
+		context.Background(), persistence.SetStatusParams{
+			ID:     appId,
+			Status: string(docker.ContainerRunning),
+		},
+	)
 
 	return nil
 }
@@ -151,10 +180,12 @@ func StopApp(dockerClient *client.Client, queries *persistence.Queries, appId st
 	}
 
 	// Sets the status in the database
-	err = queries.SetStatus(context.Background(), persistence.SetStatusParams{
-		ID:     appId,
-		Status: string(docker.ContainerExited),
-	})
+	err = queries.SetStatus(
+		context.Background(), persistence.SetStatusParams{
+			ID:     appId,
+			Status: string(docker.ContainerExited),
+		},
+	)
 	if err != nil {
 		return err
 	}

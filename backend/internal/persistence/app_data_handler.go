@@ -12,7 +12,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 )
 
 type AppDataHandler struct {
@@ -80,13 +79,6 @@ func (h *AppDataHandler) SavePackage(appId string) error {
 	return nil
 }
 
-type PackageTemplateParams struct {
-	OAuthClientID     string
-	OAuthClientSecret string
-	OAuthIssuerUrl    string
-	HostUrl           string
-}
-
 func (h *AppDataHandler) RenderTemplates(
 	ctx context.Context,
 	queries *Queries,
@@ -106,7 +98,7 @@ func (h *AppDataHandler) RenderTemplates(
 		if !info.IsDir() && filepath.Ext(path) == ".tmpl" {
 			appInfo, err := queries.GetAppOAuth(ctx, appId)
 
-			templateFile, err := template.ParseFiles(path)
+			templateFile, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -116,14 +108,7 @@ func (h *AppDataHandler) RenderTemplates(
 				return err
 			}
 
-			templateParams := PackageTemplateParams{
-				OAuthClientID:     appInfo.ClientID.String,
-				OAuthClientSecret: appInfo.ClientSecret.String,
-				OAuthIssuerUrl:    oryConfig.Hydra.PublicAddress.String(),
-				HostUrl:           hostConfig.Url.String(),
-			}
-
-			if err := templateFile.Execute(writer, templateParams); err != nil {
+			if err := ApplyAppTemplate(string(templateFile), writer, appInfo.ClientID.String, appInfo.ClientSecret.String, oryConfig, hostConfig, h.storageConfig); err != nil {
 				return err
 			}
 			if err := writer.Close(); err != nil {
