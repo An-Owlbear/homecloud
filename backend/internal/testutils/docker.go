@@ -38,6 +38,8 @@ var BasicHostConfig = config.Host{
 	PortForward: true,
 }
 
+const SharedDirectory = "/tmp/homecloud_testing"
+
 // CreateDindClient creates a containerised docker environment for testing. This environment should be
 // removed using CleanupDocker at the end
 // This method is much slower and therefore may be worse for normal development. Investigate
@@ -87,6 +89,17 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 		&container.HostConfig{
 			Privileged:  true,
 			NetworkMode: "bridge",
+			PortBindings: nat.PortMap{
+				"2375/tcp": []nat.PortBinding{
+					{
+						HostIP:   "0.0.0.0",
+						HostPort: "2375",
+					},
+				},
+			},
+			Binds: []string{
+				fmt.Sprintf("%s:%s", SharedDirectory, SharedDirectory),
+			},
 		},
 		&network.NetworkingConfig{
 			EndpointsConfig: map[string]*network.EndpointSettings{

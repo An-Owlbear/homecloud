@@ -26,6 +26,7 @@ test target=default_test:
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
 		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
+		-v /tmp/homecloud_testing:/tmp/homecloud_testing \
 		--name "homecloud-tester" \
 		--entrypoint go \
 		golang:1.23 \
