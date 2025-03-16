@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/labstack/echo/v4/middleware"
 	"io"
 	"net/url"
 	"os"
@@ -13,13 +12,15 @@ import (
 	"syscall"
 	"text/template"
 
+	"github.com/docker/docker/client"
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/launcher"
 	"github.com/An-Owlbear/homecloud/backend/internal/networking"
-	"github.com/docker/docker/client"
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
 )
 
 const templateDir = "templates"

@@ -1,11 +1,13 @@
 package auth
 
 import (
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/labstack/echo/v4"
-	kratos "github.com/ory/kratos-client-go"
 	"net/http"
 	"slices"
+
+	"github.com/labstack/echo/v4"
+	kratos "github.com/ory/kratos-client-go"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 // Middleware sets the session in the context

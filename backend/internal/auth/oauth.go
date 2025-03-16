@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	hydra "github.com/ory/hydra-client-go/v2"
 )
 

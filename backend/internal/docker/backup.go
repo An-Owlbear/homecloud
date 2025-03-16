@@ -5,12 +5,14 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"os"
+	"path/filepath"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
-	"os"
-	"path/filepath"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 func BackupVolume(

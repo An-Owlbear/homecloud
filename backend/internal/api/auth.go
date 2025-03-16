@@ -2,16 +2,18 @@ package api
 
 import (
 	"encoding/json"
+	"log/slog"
+	"net/http"
+	"net/url"
+
+	"github.com/labstack/echo/v4"
+	hydra "github.com/ory/hydra-client-go/v2"
+	kratos "github.com/ory/kratos-client-go"
+
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/An-Owlbear/homecloud/backend/internal/templates"
-	"github.com/labstack/echo/v4"
-	hydra "github.com/ory/hydra-client-go/v2"
-	kratos "github.com/ory/kratos-client-go"
-	"log/slog"
-	"net/http"
-	"net/url"
 )
 
 type OryRequest struct {

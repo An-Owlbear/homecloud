@@ -7,18 +7,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/auth"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/storage"
-	hydra "github.com/ory/hydra-client-go/v2"
 	"net/http"
 	"strings"
 
-	"github.com/An-Owlbear/homecloud/backend/internal/apps"
-	"github.com/An-Owlbear/homecloud/backend/internal/docker"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
+	hydra "github.com/ory/hydra-client-go/v2"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 )
 
 func ListPackages(queries *persistence.Queries) echo.HandlerFunc {

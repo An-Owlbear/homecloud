@@ -1,8 +1,9 @@
 package templates
 
 import (
-	kratos "github.com/ory/kratos-client-go"
 	"maps"
+
+	kratos "github.com/ory/kratos-client-go"
 )
 
 func boolPointer(b bool) *bool {

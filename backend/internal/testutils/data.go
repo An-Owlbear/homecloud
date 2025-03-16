@@ -3,12 +3,14 @@ package testutils
 import (
 	"archive/tar"
 	"compress/gzip"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/google/go-cmp/cmp"
 	"io"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 func SetupTempStorage() config.Storage {

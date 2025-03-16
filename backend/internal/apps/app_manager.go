@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	"time"
 
-	"github.com/An-Owlbear/homecloud/backend/internal/docker"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"golang.org/x/mod/semver"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 )
 
 // UpdateApps updates the list of available apps and updates any outdated apps

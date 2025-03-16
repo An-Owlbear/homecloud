@@ -2,14 +2,16 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/An-Owlbear/homecloud/backend/internal/auth"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
-	"github.com/labstack/echo/v4"
-	kratos "github.com/ory/kratos-client-go"
 	"io"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	kratos "github.com/ory/kratos-client-go"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 )
 
 type invitationCodeRequest struct {

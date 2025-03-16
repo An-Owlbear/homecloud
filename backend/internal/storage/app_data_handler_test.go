@@ -1,10 +1,11 @@
 package storage
 
 import (
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 func TestSavePackage(t *testing.T) {

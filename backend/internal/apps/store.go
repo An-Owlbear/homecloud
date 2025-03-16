@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"net/http"
 	"strings"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 )
 

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	kratos "github.com/ory/kratos-client-go"
 )
 

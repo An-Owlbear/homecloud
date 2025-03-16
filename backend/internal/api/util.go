@@ -2,12 +2,13 @@ package api
 
 import (
 	"fmt"
-	"github.com/a-h/templ"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/a-h/templ"
+	"github.com/labstack/echo/v4"
 )
 
 func render(c echo.Context, code int, t templ.Component) error {

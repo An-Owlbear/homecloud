@@ -4,19 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/pressly/goose/v3"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 	"github.com/An-Owlbear/homecloud/backend/internal/util"
-	"github.com/google/go-cmp/cmp"
-	"github.com/pressly/goose/v3"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestUpdateApps(t *testing.T) {

@@ -1,13 +1,15 @@
 package launcher
 
 import (
+	"net/http"
+	"os/exec"
+
+	"github.com/docker/docker/client"
+	"github.com/labstack/echo/v4"
+
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/networking"
-	"github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
-	"net/http"
-	"os/exec"
 )
 
 func AddRoutes(

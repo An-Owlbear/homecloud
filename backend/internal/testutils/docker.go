@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"maps"
 	"os"
@@ -15,9 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/An-Owlbear/homecloud/backend/internal/docker"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
-	"github.com/An-Owlbear/homecloud/backend/internal/util"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
@@ -27,6 +23,11 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/joho/godotenv"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/util"
 )
 
 var hostClient *client.Client

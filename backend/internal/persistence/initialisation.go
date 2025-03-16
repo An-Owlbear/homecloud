@@ -3,8 +3,9 @@ package persistence
 import (
 	"database/sql"
 	"embed"
-	"github.com/pressly/goose/v3"
 	"os"
+
+	"github.com/pressly/goose/v3"
 )
 
 // SetupDB sets up the database for the given path, running migrations if required

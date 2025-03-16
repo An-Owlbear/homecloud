@@ -2,13 +2,14 @@ package apps
 
 import (
 	"context"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
-	"github.com/google/go-cmp/cmp"
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 )
 
 const storeUrl = "https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps"

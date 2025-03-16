@@ -4,8 +4,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +11,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 )
 
 type AppDataHandler struct {

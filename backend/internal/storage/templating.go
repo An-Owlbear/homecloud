@@ -2,10 +2,11 @@ package storage
 
 import (
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"io"
 	"text/template"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 )
 
 type PackageTemplateParams struct {

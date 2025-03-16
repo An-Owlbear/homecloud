@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"net/http"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 var PortForwardError = errors.New("couldn't setup port forwarding properly")

@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/An-Owlbear/homecloud/backend/internal/docker"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
-	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 )
 
 func TestInstallApp(t *testing.T) {

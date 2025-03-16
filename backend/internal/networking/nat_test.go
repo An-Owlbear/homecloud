@@ -2,8 +2,9 @@ package networking
 
 import (
 	"context"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"testing"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 // IMPORTANT - this test will likely be inconsistent depending on your network

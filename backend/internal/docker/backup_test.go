@@ -3,16 +3,18 @@ package docker_test
 import (
 	"context"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/docker"
-	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/volume"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/volume"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
+	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 )
 
 func TestBackup(t *testing.T) {

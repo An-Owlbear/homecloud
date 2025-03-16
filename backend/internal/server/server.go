@@ -3,18 +3,10 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/storage"
-	"golang.org/x/crypto/acme/autocert"
 	"log/slog"
 	"net/url"
 	"os"
 
-	"github.com/An-Owlbear/homecloud/backend"
-	"github.com/An-Owlbear/homecloud/backend/internal/api"
-	"github.com/An-Owlbear/homecloud/backend/internal/apps"
-	"github.com/An-Owlbear/homecloud/backend/internal/auth"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
-	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -22,6 +14,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	hydra "github.com/ory/hydra-client-go/v2"
 	kratos "github.com/ory/kratos-client-go"
+	"golang.org/x/crypto/acme/autocert"
+
+	"github.com/An-Owlbear/homecloud/backend"
+	"github.com/An-Owlbear/homecloud/backend/internal/api"
+	"github.com/An-Owlbear/homecloud/backend/internal/apps"
+	"github.com/An-Owlbear/homecloud/backend/internal/auth"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 )
 
 func CreateServer() {

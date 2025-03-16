@@ -2,10 +2,12 @@ package apps
 
 import (
 	"fmt"
-	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"net/url"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/url"
+
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
 type HostsMap map[string]*echo.Echo

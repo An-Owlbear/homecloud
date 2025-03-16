@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+
 	"github.com/go-viper/mapstructure/v2"
 )
 
