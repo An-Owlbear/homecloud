@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	hydra "github.com/ory/hydra-client-go/v2"
 	"net/http"
 	"strings"
@@ -88,7 +89,7 @@ func AddPackage(
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
-	appDataHandler *persistence.AppDataHandler,
+	appDataHandler *storage.AppDataHandler,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("appId")
@@ -153,7 +154,7 @@ func AddPackage(
 
 		// Applies the variables to the template
 		var templatedApp bytes.Buffer
-		err = persistence.ApplyAppTemplate(
+		err = storage.ApplyAppTemplate(
 			string(schemaString),
 			&templatedApp,
 			app,

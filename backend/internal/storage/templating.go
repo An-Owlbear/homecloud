@@ -1,8 +1,9 @@
-package persistence
+package storage
 
 import (
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"io"
 	"text/template"
 )
@@ -21,7 +22,7 @@ type PackageTemplateParams struct {
 func ApplyAppTemplate(
 	input string,
 	output io.Writer,
-	app AppPackage,
+	app persistence.AppPackage,
 	oauthClientID string,
 	oauthClientSecret string,
 	oryConfig config.Ory,

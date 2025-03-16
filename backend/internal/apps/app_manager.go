@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
@@ -69,7 +70,7 @@ func UpdateApps(
 				return err
 			}
 			var templatedString bytes.Buffer
-			err = persistence.ApplyAppTemplate(
+			err = storage.ApplyAppTemplate(
 				string(schemaJson),
 				&templatedString,
 				appPackage,
@@ -102,7 +103,7 @@ func StartApp(
 	dockerClient *client.Client,
 	queries *persistence.Queries,
 	hosts *Hosts,
-	appDataHandler *persistence.AppDataHandler,
+	appDataHandler *storage.AppDataHandler,
 	hostConfig config.Host,
 	oryConfig config.Ory,
 	appId string,
@@ -199,7 +200,7 @@ func SetupProxies(
 	dockerClient *client.Client,
 	queries *persistence.Queries,
 	hosts *Hosts,
-	appDataHandler *persistence.AppDataHandler,
+	appDataHandler *storage.AppDataHandler,
 	hostConfig config.Host,
 	oryConfig config.Ory,
 ) error {

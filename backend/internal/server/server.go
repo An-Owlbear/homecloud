@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	"golang.org/x/crypto/acme/autocert"
 	"log/slog"
 	"net/url"
@@ -89,7 +90,7 @@ func CreateServer() {
 	kratosAdmin := kratos.NewAPIClient(kratosAdminConfig)
 
 	// Sets up data storage handling
-	appDataHandler := persistence.NewAppDataHandler(serverConfig.Storage, serverConfig.Store)
+	appDataHandler := storage.NewAppDataHandler(serverConfig.Storage, serverConfig.Store)
 
 	// Sets up hosts config
 	hostsMap := apps.HostsMap{}

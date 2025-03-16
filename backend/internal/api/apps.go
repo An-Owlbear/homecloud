@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	hydra "github.com/ory/hydra-client-go/v2"
 	"log/slog"
 	"net/http"
@@ -54,7 +55,7 @@ func StartApp(
 	dockerClient *client.Client,
 	queries *persistence.Queries,
 	hosts *apps.Hosts,
-	appDataHandler *persistence.AppDataHandler,
+	appDataHandler *storage.AppDataHandler,
 	hostConfig config.Host,
 	oryConfig config.Ory,
 ) echo.HandlerFunc {

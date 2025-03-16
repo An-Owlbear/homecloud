@@ -1,4 +1,4 @@
-package persistence
+package storage
 
 import (
 	"github.com/An-Owlbear/homecloud/backend/internal/config"

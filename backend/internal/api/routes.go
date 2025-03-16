@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/An-Owlbear/homecloud/backend/internal/auth"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	"github.com/labstack/echo/v4/middleware"
 	hydra "github.com/ory/hydra-client-go/v2"
 	kratos "github.com/ory/kratos-client-go"
@@ -29,7 +30,7 @@ func AddRoutes(
 	hydraAdmin *hydra.APIClient,
 	kratosClient *kratos.APIClient,
 	kratosIdentityAPI kratos.IdentityAPI,
-	appDataHandler *persistence.AppDataHandler,
+	appDataHandler *storage.AppDataHandler,
 	serverConfig config.Config,
 	launcherProxy echo.MiddlewareFunc,
 ) {

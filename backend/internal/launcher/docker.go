@@ -9,6 +9,7 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -95,7 +96,7 @@ func TemplateInstall(
 	}
 
 	var templatedApp bytes.Buffer
-	err = persistence.ApplyAppTemplate(string(appSchema), &templatedApp, appPackage, "", "", oryConfig, hostConfig, storageConfig)
+	err = storage.ApplyAppTemplate(string(appSchema), &templatedApp, appPackage, "", "", oryConfig, hostConfig, storageConfig)
 	if err != nil {
 		return err
 	}

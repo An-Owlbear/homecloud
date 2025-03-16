@@ -1,10 +1,11 @@
-package persistence
+package storage
 
 import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	"github.com/An-Owlbear/homecloud/backend/internal/persistence"
 	"io"
 	"net/http"
 	"net/url"
@@ -81,7 +82,7 @@ func (h *AppDataHandler) SavePackage(appId string) error {
 
 func (h *AppDataHandler) RenderTemplates(
 	ctx context.Context,
-	queries *Queries,
+	queries *persistence.Queries,
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	appId string,
