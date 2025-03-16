@@ -269,6 +269,8 @@ func HelpTestAppPackage(
 				t.Fatalf("Unexpected error getting exec path: %s", err.Error())
 			}
 			volParts[0] = filepath.Join(storageConfig.GetAppDataMountPath(app.Id), volParts[0][2:])
+		} else if !strings.HasPrefix(volParts[0], "/") {
+			volParts[0] = fmt.Sprintf("%s-%s", app.Id, volParts[0])
 		}
 		checkVols[volParts[0]] = volParts[1]
 	}

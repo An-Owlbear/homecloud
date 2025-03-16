@@ -131,6 +131,7 @@ func InstallApp(
 				volumeParts[0] = filepath.Join(storageConfig.GetAppDataMountPath(app.Id), volumeParts[0][2:])
 			} else if !strings.HasPrefix(volumeParts[0], "/") {
 				// Checks if the volume exists before creating
+				volumeParts[0] = fmt.Sprintf("%s-%s", app.Id, volumeParts[0])
 				if _, err = dockerClient.VolumeInspect(context.Background(), volumeParts[0]); err != nil {
 					_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
 						Name:   volumeParts[0],
