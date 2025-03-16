@@ -1,20 +1,17 @@
 package docker_test
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/An-Owlbear/homecloud/backend/internal/testutils"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/google/go-cmp/cmp"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -77,52 +74,46 @@ func TestBackup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fileReader, err := os.Open(filepath.Join(outputPath, volumeName+".tar.gz"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	gzipReader, err := gzip.NewReader(fileReader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tarReader := tar.NewReader(gzipReader)
-
 	expectedFiles := map[string]string{
 		"test.txt": "testing\n",
 	}
 
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
+	testutils.CheckTarArchive(t, filepath.Join(outputPath, volumeName+".tar.gz"), expectedFiles)
+}
+
+func TestBackupFolder(t *testing.T) {
+	folder := "/tmp/backup_test"
+	appFolder := filepath.Join(folder, "test.app", "data")
+
+	testData := map[string]string{
+		"test.txt":           "testing_data",
+		"test2.txt":          "more test dat",
+		"subfolder/test.txt": "subfolder_test",
+	}
+
+	for filename, content := range testData {
+		if err := os.MkdirAll(filepath.Join(appFolder, filepath.Dir(filename)), 0755); err != nil {
+			t.Fatal(err)
 		}
+		writer, err := os.Create(filepath.Join(appFolder, filename))
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			continue
-		case tar.TypeReg:
-			filename := strings.TrimPrefix(header.Name, "./")
-			fmt.Println(filename)
-			fmt.Println(expectedFiles)
-			expected, ok := expectedFiles[filename]
-			if !ok {
-				t.Fatalf("file %s in tar not expected", filename)
-			}
-			fileContents, err := io.ReadAll(tarReader)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if diff := cmp.Diff(expected, string(fileContents)); diff != "" {
-				t.Fatal(diff)
-			}
-			delete(expectedFiles, filename)
+		if _, err := writer.WriteString(content); err != nil {
+			t.Fatal(err)
 		}
+		writer.Close()
 	}
 
-	if len(expectedFiles) > 0 {
-		t.Fatalf("did not find expected files: %v", expectedFiles)
+	backupFolder := "/tmp/backup_test/output"
+	if err := os.MkdirAll(backupFolder, 0755); err != nil {
+		t.Fatal(err)
 	}
+
+	archive, err := docker.BackupFolder(config.Storage{DataPath: folder}, "test.app", backupFolder)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testutils.CheckTarArchive(t, archive, testData)
 }

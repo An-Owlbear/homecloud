@@ -1,11 +1,15 @@
 package docker
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"os"
 	"path/filepath"
 )
 
@@ -24,7 +28,7 @@ func BackupVolume(
 		Mounts: []mount.Mount{
 			{
 				Type:     mount.TypeBind,
-				Source:   filepath.Join(outputDir),
+				Source:   outputDir,
 				Target:   "/backup",
 				ReadOnly: false,
 			},
@@ -49,6 +53,54 @@ func BackupVolume(
 	}
 
 	err = UntilRemoved(ctx, dockerClient, result.ID)
+
+	return nil
+}
+
+func BackupFolder(storageConfig config.Storage, appId string, outputDir string) (string, error) {
+	outputPath := filepath.Join(outputDir, "data.tar.gz")
+	output, err := os.Create(outputPath)
+	if err != nil {
+		return "", fmt.Errorf("failed creating output file %s: %w", outputPath, err)
+	}
+	defer output.Close()
+	gw := gzip.NewWriter(output)
+	defer gw.Close()
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	dirfs := os.DirFS(filepath.Join(storageConfig.DataPath, appId, "data"))
+	if err := tw.AddFS(dirfs); err != nil {
+		return "", fmt.Errorf("failed adding folder %s to tarball: %w", outputPath, err)
+	}
+	return outputPath, nil
+}
+
+func BackupAppData(
+	ctx context.Context,
+	dockerClient *client.Client,
+	storageConfig config.Storage,
+	appId string,
+	outputDir string,
+) error {
+	if _, err := BackupFolder(storageConfig, appId, outputDir); err != nil {
+		return fmt.Errorf("failed creating backup of non volume app data: %w", err)
+	}
+
+	appContainers, err := GetAppContainers(dockerClient, appId)
+	if err != nil {
+		return fmt.Errorf("failed getting app containers for %s during backup: %w", appId, err)
+	}
+
+	for _, appContainer := range appContainers {
+		for _, appMount := range appContainer.Mounts {
+			if appMount.Type == mount.TypeVolume {
+				if err := BackupVolume(ctx, dockerClient, appMount.Source, outputDir); err != nil {
+					return fmt.Errorf("failed backing up volume %s for %s: %w", appMount.Source, appId, err)
+				}
+			}
+		}
+	}
 
 	return nil
 }
