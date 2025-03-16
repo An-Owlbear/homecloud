@@ -37,10 +37,6 @@ func StartContainers(
 		if err != nil {
 			return err
 		}
-		appPackageString, err := json.Marshal(appPackage)
-		if err != nil {
-			return err
-		}
 
 		// Checks if the app is already installed and continues if so
 		appInstalled, err := docker.IsAppInstalled(dockerClient, packageName)
@@ -57,7 +53,7 @@ func StartContainers(
 				if err != nil {
 					return err
 				}
-				err = TemplateInstall(dockerClient, string(appPackageString), oryConfig, hostConfig, storageConfig)
+				err = TemplateInstall(dockerClient, appPackage, oryConfig, hostConfig, storageConfig)
 				if err != nil {
 					return err
 				}
@@ -71,7 +67,7 @@ func StartContainers(
 			// Install app if it's not installed
 			fmt.Printf("Installing %s\n", packageName)
 
-			err = TemplateInstall(dockerClient, string(appPackageString), oryConfig, hostConfig, storageConfig)
+			err = TemplateInstall(dockerClient, appPackage, oryConfig, hostConfig, storageConfig)
 			if err != nil {
 				return err
 			}
@@ -88,13 +84,18 @@ func StartContainers(
 
 func TemplateInstall(
 	dockerClient *client.Client,
-	appSchema string,
+	appPackage persistence.AppPackage,
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
 ) error {
+	appSchema, err := json.Marshal(appPackage)
+	if err != nil {
+		return err
+	}
+
 	var templatedApp bytes.Buffer
-	err := persistence.ApplyAppTemplate(appSchema, &templatedApp, "", "", oryConfig, hostConfig, storageConfig)
+	err = persistence.ApplyAppTemplate(string(appSchema), &templatedApp, appPackage, "", "", oryConfig, hostConfig, storageConfig)
 	if err != nil {
 		return err
 	}

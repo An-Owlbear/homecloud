@@ -156,6 +156,7 @@ func AddPackage(
 		err = persistence.ApplyAppTemplate(
 			string(schemaString),
 			&templatedApp,
+			app,
 			clientId,
 			clientSecret,
 			oryConfig,
@@ -165,12 +166,17 @@ func AddPackage(
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
+		var parsedTemplatedApp persistence.AppPackage
+		err = json.Unmarshal(templatedApp.Bytes(), &parsedTemplatedApp)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
 
 		// Creates app in DB
 		err = queries.CreateApp(
 			context.Background(), persistence.CreateAppParams{
 				ID:           app.Id,
-				Schema:       templatedApp.String(),
+				Schema:       schemaString,
 				ClientID:     sql.NullString{String: clientId, Valid: clientId != ""},
 				ClientSecret: sql.NullString{String: clientSecret, Valid: clientSecret != ""},
 			},
@@ -186,7 +192,7 @@ func AddPackage(
 		}
 
 		// Install and sets up app containers
-		err = docker.InstallApp(dockerClient, app, hostConfig, storageConfig)
+		err = docker.InstallApp(dockerClient, parsedTemplatedApp, hostConfig, storageConfig)
 		if err != nil {
 			return c.String(500, err.Error())
 		}

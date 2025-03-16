@@ -50,7 +50,7 @@ func AddRoutes(
 	api.GET("/v1/apps", ListApps(queries))
 	apiAdmin.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts, appDataHandler, serverConfig.Host, serverConfig.Ory))
 	apiAdmin.POST("/v1/apps/:appId/stop", StopApp(docker, queries))
-	apiAdmin.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker))
+	apiAdmin.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker, hydraAdmin))
 	apiAdmin.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries, serverConfig.Ory, serverConfig.Host, serverConfig.Storage))
 
 	apiNoAuth.POST("/v1/invites/check", CheckInvitationCode(queries))

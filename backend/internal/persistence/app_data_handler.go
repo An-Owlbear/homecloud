@@ -96,7 +96,7 @@ func (h *AppDataHandler) RenderTemplates(
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tmpl" {
-			appInfo, err := queries.GetAppOAuth(ctx, appId)
+			appInfo, err := queries.GetAppWithCreds(ctx, appId)
 
 			templateFile, err := os.ReadFile(path)
 			if err != nil {
@@ -108,7 +108,7 @@ func (h *AppDataHandler) RenderTemplates(
 				return err
 			}
 
-			if err := ApplyAppTemplate(string(templateFile), writer, appInfo.ClientID.String, appInfo.ClientSecret.String, oryConfig, hostConfig, h.storageConfig); err != nil {
+			if err := ApplyAppTemplate(string(templateFile), writer, appInfo.Schema, appInfo.ClientID.String, appInfo.ClientSecret.String, oryConfig, hostConfig, h.storageConfig); err != nil {
 				return err
 			}
 			if err := writer.Close(); err != nil {

@@ -112,6 +112,34 @@ func (q *Queries) getAppUnparsed(ctx context.Context, id string) (getAppUnparsed
 	return i, err
 }
 
+const getAppWithCredsUnparsed = `-- name: getAppWithCredsUnparsed :one
+SELECT id, json(schema) as schema, date_added, client_id, client_secret, status from apps
+WHERE id = ?1
+`
+
+type getAppWithCredsUnparsedRow struct {
+	ID           string         `json:"id"`
+	Schema       interface{}    `json:"schema"`
+	DateAdded    int64          `json:"date_added"`
+	ClientID     sql.NullString `json:"client_id"`
+	ClientSecret sql.NullString `json:"client_secret"`
+	Status       string         `json:"status"`
+}
+
+func (q *Queries) getAppWithCredsUnparsed(ctx context.Context, id string) (getAppWithCredsUnparsedRow, error) {
+	row := q.db.QueryRowContext(ctx, getAppWithCredsUnparsed, id)
+	var i getAppWithCredsUnparsedRow
+	err := row.Scan(
+		&i.ID,
+		&i.Schema,
+		&i.DateAdded,
+		&i.ClientID,
+		&i.ClientSecret,
+		&i.Status,
+	)
+	return i, err
+}
+
 const getAppsUnparsed = `-- name: getAppsUnparsed :many
 SELECT id, json(schema) as schema, date_added, status FROM apps
 `

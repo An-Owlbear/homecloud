@@ -2,7 +2,10 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
+	hydra "github.com/ory/hydra-client-go/v2"
 	"log/slog"
 	"net/http"
 
@@ -83,20 +86,33 @@ func StopApp(dockerClient *client.Client, queries *persistence.Queries) echo.Han
 	}
 }
 
-func UninstallApp(queries *persistence.Queries, dockerClient *client.Client) echo.HandlerFunc {
+func UninstallApp(
+	queries *persistence.Queries,
+	dockerClient *client.Client,
+	hydraAdmin *hydra.APIClient,
+) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		appId := c.Param("appId")
 
-		// Removes the app entry from the database
-		result, err := queries.RemoveApp(context.Background(), appId)
+		// Delete the oauth client for the app if there is one
+		app, err := queries.GetAppWithCreds(context.Background(), appId)
 		if err != nil {
-			return c.String(500, err.Error())
+			if errors.Is(err, sql.ErrNoRows) {
+				return echo.NewHTTPError(http.StatusNotFound, "App not found")
+			}
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		if app.ClientID.Valid {
+			_, err = hydraAdmin.OAuth2API.DeleteOAuth2Client(c.Request().Context(), app.ClientID.String).Execute()
+			if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			}
 		}
 
-		// Returns 404 if no rows are deleted - e.g. no app is found
-		rows, err := result.RowsAffected()
-		if err != nil && rows == 0 {
-			return c.String(404, appId+" not found")
+		// Removes the app entry from the database
+		_, err = queries.RemoveApp(context.Background(), appId)
+		if err != nil {
+			return c.String(500, err.Error())
 		}
 
 		// Uninstalls the app deleting the docker resources

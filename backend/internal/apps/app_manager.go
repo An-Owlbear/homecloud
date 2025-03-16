@@ -72,6 +72,7 @@ func UpdateApps(
 			err = persistence.ApplyAppTemplate(
 				string(schemaJson),
 				&templatedString,
+				appPackage,
 				app.ClientID.String,
 				app.ClientSecret.String,
 				oryConfig,

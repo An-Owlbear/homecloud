@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"io"
 	"text/template"
@@ -12,11 +13,15 @@ type PackageTemplateParams struct {
 	OAuthIssuerUrl    string
 	HostUrl           string
 	HomecloudAppDir   string
+	AppUrl            string
 }
 
+// ApplyAppTemplate applies templated values to the given input. In the case of templating an app package the app
+// package itself must also be passed to ensure values like name and url are properly set
 func ApplyAppTemplate(
 	input string,
 	output io.Writer,
+	app AppPackage,
 	oauthClientID string,
 	oauthClientSecret string,
 	oryConfig config.Ory,
@@ -28,12 +33,16 @@ func ApplyAppTemplate(
 		return err
 	}
 
+	appUrl := hostConfig.Url
+	appUrl.Host = fmt.Sprintf("%s.%s", app.Name, hostConfig.Url.Host)
+
 	parameters := PackageTemplateParams{
 		OAuthClientID:     oauthClientID,
 		OAuthClientSecret: oauthClientSecret,
 		OAuthIssuerUrl:    oryConfig.Hydra.PublicAddress.String(),
 		HostUrl:           hostConfig.Url.String(),
 		HomecloudAppDir:   storageConfig.AppDir,
+		AppUrl:            appUrl.String(),
 	}
 
 	return appTemplate.Execute(output, parameters)

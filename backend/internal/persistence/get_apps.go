@@ -50,6 +50,22 @@ type AppWithCreds struct {
 	Schema AppPackage
 }
 
+func (q *Queries) parseAppWithCredsQuery(unparsedRow getAppsWithCredsUnparsedRow) (AppWithCreds, error) {
+	row := AppWithCreds{getAppsWithCredsUnparsedRow: unparsedRow}
+	if err := json.Unmarshal([]byte(unparsedRow.Schema.(string)), &row.Schema); err != nil {
+		return row, err
+	}
+	return row, nil
+}
+
+func (q *Queries) GetAppWithCreds(ctx context.Context, id string) (AppWithCreds, error) {
+	unparsedRow, err := q.getAppWithCredsUnparsed(ctx, id)
+	if err != nil {
+		return AppWithCreds{}, err
+	}
+	return q.parseAppWithCredsQuery(getAppsWithCredsUnparsedRow(unparsedRow))
+}
+
 func (q *Queries) GetAppsWithCreds(ctx context.Context) ([]AppWithCreds, error) {
 	unparsedRows, err := q.getAppsWithCredsUnparsed(ctx)
 	if err != nil {
@@ -58,9 +74,9 @@ func (q *Queries) GetAppsWithCreds(ctx context.Context) ([]AppWithCreds, error) 
 
 	var rows []AppWithCreds
 	for _, unparsedRow := range unparsedRows {
-		row := AppWithCreds{getAppsWithCredsUnparsedRow: unparsedRow}
-		if err := json.Unmarshal([]byte(unparsedRow.Schema.(string)), &row.Schema); err != nil {
-			return rows, err
+		row, err := q.parseAppWithCredsQuery(unparsedRow)
+		if err != nil {
+			return nil, err
 		}
 		rows = append(rows, row)
 	}

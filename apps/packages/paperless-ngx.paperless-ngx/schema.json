@@ -6,6 +6,12 @@
   "author": "paperless-ngx",
   "description": " A community-supported supercharged version of paperless: scan, index and archive all your physical documents",
   "categories": ["business", "organization"],
+  "oidc_enabled": true,
+  "oidc_scopes": [
+    "openid",
+    "email",
+    "profile"
+  ],
   "containers": [
     {
       "name": "broker",
@@ -16,7 +22,7 @@
     },
     {
       "name": "webserver",
-      "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
+      "image": "ghcr.io/paperless-ngx/paperless-ngx:2.15.0-beta.rc1",
       "proxy_target": true,
       "proxy_port": "8000",
       "volumes": [
@@ -25,10 +31,19 @@
       ],
       "environment": {
         "PAPERLESS_REDIS": "redis://broker:6379",
-        "COMPOSE_PROJECT_NAME": "paperless"
+        "COMPOSE_PROJECT_NAME": "paperless",
+        "PAPERLESS_APPS": "allauth.socialaccount.providers.openid_connect",
+        "PAPERLESS_SOCIALACCOUNT_PROVIDERS": "{\"openid_connect\": {\"APPS\": [{\"provider_id\": \"homecloud\",\"name\": \"Homecloud\",\"client_id\": \"{{.OAuthClientID}}\",\"secret\": \"{{.OAuthClientSecret}}\",\"settings\": { \"server_url\": \"{{.OAuthIssuerUrl}}\"}}]}}",
+        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "http",
+        "PAPERLESS_ACCOUNT_EMAIL_VERIFICATION": "none",
+        "PAPERLESS_URL": "{{.AppUrl}}",
+        "PAPERLESS_CSRF_TRUSTED_ORIGINS": "{{.AppUrl}}"
       },
       "ports": [
         "8000:8000"
+      ],
+      "oidc_redirect_uris": [
+        "/accounts/oidc/homecloud/login/callback/"
       ]
     }
   ],
