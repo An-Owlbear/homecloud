@@ -26,6 +26,7 @@ test target=default_test:
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-v ${HOME}/go/pkg/cache:/root/.cache/go-build \
 		-v ${HOST_DOCKER_SOCKET}:/var/run/docker.sock \
+		-v /sys/block:/sys/block \
 		-v /tmp/homecloud_testing:/tmp/homecloud_testing \
 		--name "homecloud-tester" \
 		--entrypoint go \
@@ -45,7 +46,7 @@ build_launcher version os arch:
     cd build && gtar -cvzf homecloud-{{version}}-{{os}}-{{arch}}.tar.gz ory_config launcher .env --owner=0 --group=0 --no-same-owner --no-same-permissions
 
 build_docker version:
-    docker buildx build -t ghcr.io/an-owlbear/homecloud:{{version}} .
+    cd ../ && docker buildx build -t ghcr.io/an-owlbear/homecloud:{{version}} .
 
 deploy_docker_dev ssh_address version:
     mkdir -p build/dev/docker
@@ -54,7 +55,7 @@ deploy_docker_dev ssh_address version:
     scp build/dev/docker/homecloud-docker-dev.tar.gz {{ssh_address}}:/tmp/docker
     ssh {{ssh_address}} 'docker load -i /tmp/docker/homecloud-docker-dev.tar.gz'
 
-deploy_dev ssh_address:
+deploy_launcher_dev ssh_address:
     mkdir -p build/dev/ory_config
     GOOS=linux GOARCH=arm64 go build -o build/dev/launcher ./cmd/launcher/main.go
     cp ory_config/identity.schema.json build/dev/ory_config/
@@ -66,6 +67,17 @@ deploy_dev ssh_address:
     ssh {{ssh_address}} 'mkdir -p /tmp/homecloud'
     scp build/dev/homecloud-dev.tar.gz {{ssh_address}}:/tmp/homecloud
     ssh -t {{ssh_address}} 'cd /tmp/homecloud; tar -xzf homecloud-dev.tar.gz; sudo ENVIRONMENT=DEV ./launcher;'
+
+deploy_sync_dev ssh_address:
+    rsync -a . homecloud@homecloud.local:/tmp/homecloud_backend --exclude '/.git' --filter='dir-merge,- .gitignore'
+
+deploy_test_dev ssh_address test:
+    @just deploy_sync_dev {{ssh_address}}
+    ssh -t {{ssh_address}} 'cd /tmp/homecloud_backend; sudo just test {{test}}'
+
+deploy_run_dev ssh_address:
+    @just deploy_sync_dev {{ssh_address}}
+    ssh -t {{ssh_address}} 'cd /tmp/homecloud_backend; sudo just run'
 
 build_deploy ssh_address version:
     @just build_docker {{version}}

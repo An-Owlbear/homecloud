@@ -8,7 +8,7 @@
   "containers": [
     {
       "name": "homecloud",
-      "image": "ghcr.io/an-owlbear/homecloud:v0.1.6",
+      "image": "ghcr.io/an-owlbear/homecloud:v0.1.7",
       "volumes": [
         "./.env:/app/.env",
         "./.dev.env:/app/.dev.env",

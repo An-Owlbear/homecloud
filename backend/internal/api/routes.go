@@ -63,6 +63,8 @@ func AddRoutes(
 	apiAdmin.DELETE("/v1/users/:id", DeleteUser(kratosIdentityAPI))
 	apiAdmin.POST("/v1/users/:id/reset_password", ResetPassword(kratosIdentityAPI))
 
+	apiAdmin.GET("/v1/backup/devices", ListExternalStorage())
+
 	e.GET("/auth/login", Login(kratosClient, serverConfig.Ory))
 	e.GET("/auth/registration", Registration(kratosClient, serverConfig.Ory))
 	e.GET("/auth/settings", Settings(kratosClient, serverConfig.Ory))
