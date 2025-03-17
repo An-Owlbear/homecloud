@@ -147,15 +147,17 @@ func FollowLogs(dockerClient *client.Client) error {
 
 // ConnectNetworks connects the backend to the ory networks. This assumes the containers are using the expected names
 func ConnectNetworks(dockerClient *client.Client) error {
-	for _, networkName := range []string{"ory.kratos", "ory.hydra"} {
-		err := dockerClient.NetworkConnect(
-			context.Background(),
-			networkName,
-			"homecloud.app-homecloud",
-			&network.EndpointSettings{},
-		)
-		if err != nil && !(errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")) {
-			return err
+	for _, containerName := range []string{"ory.kratos-kratos", "ory.hydra-hydra", "homecloud.app-homecloud"} {
+		for _, networkName := range []string{"ory.kratos", "ory.hydra"} {
+			err := dockerClient.NetworkConnect(
+				context.Background(),
+				networkName,
+				containerName,
+				&network.EndpointSettings{},
+			)
+			if err != nil && !(errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")) {
+				return err
+			}
 		}
 	}
 
