@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -130,6 +131,12 @@ func InstallApp(
 			if strings.HasPrefix(volumeParts[0], "./") {
 				// local files are converted to map to the data folder - e.g. ./config.json becomes data_dir/app_id/data/config.json
 				volumeParts[0] = filepath.Join(storageConfig.GetAppDataMountPath(app.Id), volumeParts[0][2:])
+			} else if strings.HasPrefix(volumeParts[0], "!AppDir") {
+				appDir, err := os.Getwd()
+				if err != nil {
+					return err
+				}
+				volumeParts[0] = filepath.Join(appDir, strings.TrimPrefix(volumeParts[0], "!AppDir"))
 			} else if !strings.HasPrefix(volumeParts[0], "/") {
 				// Checks if the volume exists before creating
 				volumeParts[0] = fmt.Sprintf("%s-%s", app.Id, volumeParts[0])
@@ -178,12 +185,7 @@ func InstallApp(
 			networkingConfig.EndpointsConfig["homecloud.app"] = &network.EndpointSettings{NetworkID: "homecloud.app"}
 		}
 
-		result, err := dockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, networkingConfig, nil, containerName)
-		if err != nil {
-			return err
-		}
-
-		err = dockerClient.ContainerStart(context.Background(), result.ID, container.StartOptions{})
+		_, err = dockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, networkingConfig, nil, containerName)
 		if err != nil {
 			return err
 		}
