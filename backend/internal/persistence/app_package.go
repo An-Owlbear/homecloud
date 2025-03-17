@@ -22,6 +22,7 @@ type PackageContainer struct {
 	Ports            []string          `json:"ports"`
 	Volumes          []string          `json:"volumes"`
 	ExtraHosts       []string          `json:"extra_hosts"`
+	Privileged       bool              `json:"privileged"`
 	ProxyTarget      bool              `json:"proxy_target"`
 	ProxyPort        string            `json:"proxy_port"`
 	OidcRedirectUris []string          `json:"oidc_redirect_uris"`

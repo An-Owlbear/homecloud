@@ -13,6 +13,7 @@
         "./.env:/app/.env",
         "./.dev.env:/app/.dev.env",
         "/var/run/docker.sock:/var/run/docker.sock",
+        "/run/udev:/run/udev",
         "homecloud-db:/app/db"
       ],
       "ports": [
@@ -21,6 +22,7 @@
       "extra_hosts": [
         "launcher.homecloud.internal:host-gateway"
       ],
+      "privileged": true,
       "environment": {
         "ENVIRONMENT": "DEV",
         "HOMECLOUD_APP_DIR": "{{.HomecloudAppDir}}"

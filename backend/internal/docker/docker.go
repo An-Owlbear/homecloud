@@ -162,7 +162,9 @@ func InstallApp(
 			Binds:        formattedVolumes,
 			ExtraHosts: append(containerDef.ExtraHosts,
 				fmt.Sprintf("hydra.%s:host-gateway", serverHostConfig.Host),
-				fmt.Sprintf("%s:host-gateway", serverHostConfig.Host)),
+				fmt.Sprintf("%s:host-gateway", serverHostConfig.Host),
+			),
+			Privileged: containerDef.Privileged,
 		}
 
 		containerName := app.Id + "-" + containerDef.Name

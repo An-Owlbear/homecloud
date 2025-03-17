@@ -27,7 +27,7 @@ FROM frontend-base AS frontend-builder
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
 
-FROM gcr.io/distroless/static-debian12
+FROM debian:bookworm-slim
 COPY --from=builder /app/homecloud /app/homecloud
 COPY --from=frontend-builder /app/build /app/spa
 COPY backend/assets /app
