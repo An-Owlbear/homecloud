@@ -97,8 +97,8 @@ func BackupAppData(
 	for _, appContainer := range appContainers {
 		for _, appMount := range appContainer.Mounts {
 			if appMount.Type == mount.TypeVolume {
-				if err := BackupVolume(ctx, dockerClient, appMount.Source, outputDir); err != nil {
-					return fmt.Errorf("failed backing up volume %s for %s: %w", appMount.Source, appId, err)
+				if err := BackupVolume(ctx, dockerClient, appMount.Name, outputDir); err != nil {
+					return fmt.Errorf("failed backing up volume %s for %s: %w", appMount.Name, appId, err)
 				}
 			}
 		}

@@ -6,6 +6,18 @@ meta {
 
 post {
   url: https://7iiusfbenpf2xqiutrkwi5ma3a0zllxv.lambda-url.eu-west-2.on.aws/
-  body: none
+  body: json
   auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "key1": "value1",
+    "key2": "value2",
+    "key3": "value3"
+  }
 }

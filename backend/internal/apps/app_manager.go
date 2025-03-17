@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/client"
@@ -218,6 +220,37 @@ func SetupProxies(
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func BackupApp(
+	ctx context.Context,
+	dockerClient *client.Client,
+	storageConfig config.Storage,
+	appId string,
+	targetDevice string,
+) error {
+	details, err := storage.GetExternalPartition(targetDevice)
+	if err != nil {
+		return fmt.Errorf("error checking drive is external: %w", err)
+	}
+
+	mountPath, err := storage.MountPartition(details)
+	if err != nil {
+		return fmt.Errorf("error mounting partition: %w", err)
+	}
+	defer storage.UnmountPartition(details)
+
+	outputPath := filepath.Join(mountPath, "backup", appId, time.Now().Format("20060102150405"))
+	if err := os.MkdirAll(outputPath, 0755); err != nil {
+		return fmt.Errorf("error creating backup directory: %w", err)
+	}
+
+	err = docker.BackupAppData(ctx, dockerClient, storageConfig, appId, outputPath)
+	if err != nil {
+		return fmt.Errorf("error backup app data: %w", err)
 	}
 
 	return nil
