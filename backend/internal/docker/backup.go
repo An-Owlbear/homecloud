@@ -106,3 +106,48 @@ func BackupAppData(
 
 	return nil
 }
+
+func RestoreVolume(
+	ctx context.Context,
+	dockerClient *client.Client,
+	volumeName string,
+	backupPath string,
+) error {
+	containerConfig := container.Config{
+		Image: "busybox",
+		Cmd:   []string{"tar", "-xzf", "/backup/volume.tar.gz", "-C", "/target"},
+	}
+
+	hostConfig := container.HostConfig{
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: backupPath,
+				Target: "/backup/volume.tar.gz",
+			},
+			{
+				Type:   mount.TypeVolume,
+				Source: volumeName,
+				Target: "/target",
+			},
+		},
+		AutoRemove: true,
+	}
+
+	result, err := dockerClient.ContainerCreate(ctx, &containerConfig, &hostConfig, nil, nil, fmt.Sprintf("%s-restore", volumeName))
+	if err != nil {
+		return fmt.Errorf("failed creating volume restore container for %s: %w", volumeName, err)
+	}
+
+	err = dockerClient.ContainerStart(ctx, result.ID, container.StartOptions{})
+	if err != nil {
+		return fmt.Errorf("failed starting volume restore container for %s: %w", volumeName, err)
+	}
+
+	err = UntilRemoved(ctx, dockerClient, result.ID)
+	if err != nil {
+		return fmt.Errorf("failed removing volume restore container for %s: %w", volumeName, err)
+	}
+
+	return nil
+}
