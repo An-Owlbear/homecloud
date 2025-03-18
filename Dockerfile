@@ -30,7 +30,7 @@ RUN pnpm run build
 FROM debian:bookworm-slim
 COPY --from=builder /app/homecloud /app/homecloud
 COPY --from=frontend-builder /app/build /app/spa
-COPY backend/assets /app
+COPY backend/assets /app/assets
 WORKDIR /app
 ENTRYPOINT ["./homecloud"]
 EXPOSE 1323

@@ -77,7 +77,7 @@ deploy_test_dev ssh_address test:
 
 deploy_run_dev ssh_address:
     @just deploy_sync_dev {{ssh_address}}
-    ssh -t {{ssh_address}} 'cd /tmp/homecloud_backend; sudo just run'
+    ssh -t {{ssh_address}} 'cd /tmp/homecloud_backend; just run'
 
 build_deploy ssh_address version:
     @just build_docker {{version}}
