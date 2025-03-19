@@ -27,6 +27,7 @@ func TestBackup(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer testutils.CleanupDind()
+	defer testutils.CleanupSharedStorage()
 
 	volumeName := "testing-volume"
 	_, err = dockerClient.VolumeCreate(context.Background(), volume.CreateOptions{
@@ -134,6 +135,7 @@ func TestRestoreVolume(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer testutils.CleanupDind()
+	defer testutils.CleanupSharedStorage()
 
 	download, err := dockerClient.ImagePull(context.Background(), "busybox:latest", image.PullOptions{})
 	if err != nil {
@@ -250,6 +252,45 @@ func TestRestoreVolume(t *testing.T) {
 		trimmedContent := strings.TrimSpace(string(content))
 		if trimmedContent != expectedContent {
 			t.Fatalf("Expected `%s` for %s but got `%q`", expectedContent, filename, trimmedContent)
+		}
+	}
+}
+
+func TestRestoreAppData(t *testing.T) {
+	storageConfig := testutils.SetupTempStorage()
+
+	appData := map[string]string{
+		"test.txt":                   "testing_data",
+		"subfolder/test.txt":         "subfolder_test",
+		"some_other/data/again.json": "{\"key\":\"value\"}",
+		"root_again":                 "test",
+	}
+
+	archiveDir := filepath.Join(testutils.TempDirectory, "test_restore_app_data")
+	archiveFile, err := testutils.CreateTarArchive(archiveDir, appData)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	appId := "test.app"
+	err = docker.RestoreAppData(storageConfig, appId, archiveFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for filename, expectedContent := range appData {
+		reader, err := os.Open(filepath.Join(storageConfig.DataPath, appId, "data", filename))
+		if err != nil {
+			t.Fatal(err)
+		}
+		fileContent, err := io.ReadAll(reader)
+		if err != nil {
+			t.Fatal(err)
+		}
+		reader.Close()
+
+		if string(fileContent) != expectedContent {
+			t.Fatalf("File content `%s` does not match expected `%s`", string(fileContent), expectedContent)
 		}
 	}
 }

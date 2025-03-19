@@ -39,8 +39,6 @@ var BasicHostConfig = config.Host{
 	PortForward: true,
 }
 
-const SharedDirectory = "/tmp/homecloud_testing"
-
 // CreateDindClient creates a containerised docker environment for testing. This environment should be
 // removed using CleanupDocker at the end
 // This method is much slower and therefore may be worse for normal development. Investigate

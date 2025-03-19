@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -147,6 +148,61 @@ func RestoreVolume(
 	err = UntilRemoved(ctx, dockerClient, result.ID)
 	if err != nil {
 		return fmt.Errorf("failed removing volume restore container for %s: %w", volumeName, err)
+	}
+
+	return nil
+}
+
+func RestoreAppData(storageConfig config.Storage, appId string, backupPath string) error {
+	// Ensures path to restore to exists
+	restorePath := filepath.Join(storageConfig.DataPath, appId, "data")
+	if err := os.MkdirAll(restorePath, 0755); err != nil {
+		return fmt.Errorf("error creating app folder to restore backup: %w", err)
+	}
+
+	// Opens backup archive
+	fileReader, err := os.Open(backupPath)
+	if err != nil {
+		return fmt.Errorf("error opening backup file %s: %w", backupPath, err)
+	}
+	defer fileReader.Close()
+	gzipReader, err := gzip.NewReader(fileReader)
+	if err != nil {
+		return fmt.Errorf("error creating gzip reader: %w", err)
+	}
+	defer gzipReader.Close()
+	tarReader := tar.NewReader(gzipReader)
+
+	// Restore archive
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return fmt.Errorf("error reading tar entry: %w", err)
+		}
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(filepath.Join(restorePath, header.Name), 0755); err != nil {
+				return fmt.Errorf("error creating directory: %w", err)
+			}
+		case tar.TypeReg:
+			if err := os.MkdirAll(filepath.Join(restorePath, filepath.Dir(header.Name)), 0755); err != nil {
+				return fmt.Errorf("error creating directory: %w", err)
+			}
+			outFile, err := os.Create(filepath.Join(restorePath, header.Name))
+			if err != nil {
+				return fmt.Errorf("error creating file: %w", err)
+			}
+			if _, err := io.Copy(outFile, tarReader); err != nil {
+				outFile.Close()
+				return fmt.Errorf("error writing file: %w", err)
+			}
+			outFile.Close()
+		}
 	}
 
 	return nil
