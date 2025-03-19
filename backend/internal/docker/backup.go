@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
@@ -153,7 +154,7 @@ func RestoreVolume(
 	return nil
 }
 
-func RestoreAppData(storageConfig config.Storage, appId string, backupPath string) error {
+func RestoreFolder(storageConfig config.Storage, appId string, backupPath string) error {
 	// Ensures path to restore to exists
 	restorePath := filepath.Join(storageConfig.DataPath, appId, "data")
 	if err := os.MkdirAll(restorePath, 0755); err != nil {
@@ -202,6 +203,37 @@ func RestoreAppData(storageConfig config.Storage, appId string, backupPath strin
 				return fmt.Errorf("error writing file: %w", err)
 			}
 			outFile.Close()
+		}
+	}
+
+	return nil
+}
+
+// RestoreAppData restores the application folder data and volumes from a backup. Assume the containers are already
+// removed and that the app data folder has been cleared
+func RestoreAppData(
+	ctx context.Context,
+	dockerClient *client.Client,
+	storageConfig config.Storage,
+	appId string,
+	backupPath string,
+) error {
+	err := RestoreFolder(storageConfig, appId, filepath.Join(backupPath, "data.tar.gz"))
+	if err != nil {
+		return fmt.Errorf("failed restoring app data: %w", err)
+	}
+
+	files, err := os.ReadDir(backupPath)
+	if err != nil {
+		return fmt.Errorf("failed restoring app data: %w", err)
+	}
+
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), appId) {
+			err = RestoreVolume(ctx, dockerClient, strings.TrimSuffix(file.Name(), ".tar.gz"), filepath.Join(backupPath, file.Name()))
+			if err != nil {
+				return fmt.Errorf("failed restoring app data: %w", err)
+			}
 		}
 	}
 

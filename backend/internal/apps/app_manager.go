@@ -255,3 +255,73 @@ func BackupApp(
 
 	return nil
 }
+
+func RestoreApp(
+	ctx context.Context,
+	dockerClient *client.Client,
+	queries *persistence.Queries,
+	hosts *Hosts,
+	appDataHandler *storage.AppDataHandler,
+	hostConfig config.Host,
+	storageConfig config.Storage,
+	oryConfig config.Ory,
+	appId string,
+	targetDevice string,
+	targetBackup string,
+) error {
+	// Checks and mounts drive
+	details, err := storage.GetExternalPartition(targetDevice)
+	if err != nil {
+		return fmt.Errorf("error checking drive is external: %w", err)
+	}
+
+	mountPath, err := storage.MountPartition(details)
+	if err != nil {
+		return fmt.Errorf("error mounting partition: %w", err)
+	}
+	defer storage.UnmountPartition(details)
+
+	// Checks the specified backup exists on the drive
+	backupPath := filepath.Join(mountPath, "backup", appId, targetBackup)
+	if _, err := os.Stat(backupPath); err != nil {
+		return fmt.Errorf("specified backup %s does not exist on drive %s: %w", targetBackup, targetDevice, err)
+	}
+
+	// Stops app
+	if err := StopApp(dockerClient, queries, appId); err != nil {
+		return fmt.Errorf("error stopping app: %w", err)
+	}
+
+	// Removes the app containers and volumes
+	if err := docker.UninstallApp(dockerClient, appId); err != nil {
+		return fmt.Errorf("error removing containers for %s: %w", appId, err)
+	}
+	if err := docker.RemoveAppVolumes(ctx, dockerClient, appId); err != nil {
+		return fmt.Errorf("error removing volumes for %s: %w", appId, err)
+	}
+
+	// Clears app data folder
+	if err := os.RemoveAll(filepath.Join(storageConfig.DataPath, appId, "data")); err != nil {
+		return fmt.Errorf("error removing data directory: %w", err)
+	}
+
+	if err := docker.RestoreAppData(ctx, dockerClient, storageConfig, appId, backupPath); err != nil {
+		return fmt.Errorf("error restoring app data: %w", err)
+	}
+
+	// Recreates app containers
+	app, err := queries.GetApp(ctx, appId)
+	if err != nil {
+		return fmt.Errorf("error retrieving app information: %w", err)
+	}
+
+	if err := docker.InstallApp(dockerClient, app.Schema, hostConfig, storageConfig); err != nil {
+		return fmt.Errorf("error recreating app containers: %w", err)
+	}
+
+	if err := StartApp(dockerClient, queries, hosts, appDataHandler, hostConfig, oryConfig, appId); err != nil {
+		return fmt.Errorf("error starting app: %w", err)
+	}
+
+	return nil
+}

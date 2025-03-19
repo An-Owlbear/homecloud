@@ -256,7 +256,7 @@ func TestRestoreVolume(t *testing.T) {
 	}
 }
 
-func TestRestoreAppData(t *testing.T) {
+func TestRestoreFolder(t *testing.T) {
 	storageConfig := testutils.SetupTempStorage()
 
 	appData := map[string]string{
@@ -273,7 +273,7 @@ func TestRestoreAppData(t *testing.T) {
 	}
 
 	appId := "test.app"
-	err = docker.RestoreAppData(storageConfig, appId, archiveFile)
+	err = docker.RestoreFolder(storageConfig, appId, archiveFile)
 	if err != nil {
 		t.Fatal(err)
 	}

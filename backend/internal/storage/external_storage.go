@@ -97,7 +97,7 @@ func GetExternalPartition(device string) (LsblkDetails, error) {
 	cmd := exec.Command("lsblk", "-I", "8", "-b", "-J", "-o", lsblkColumns, "/dev/"+device)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return LsblkDetails{}, fmt.Errorf("error getting drive details: %w,%s", err, cmd.Err.Error())
+		return LsblkDetails{}, fmt.Errorf("error getting drive details: %w", err)
 	}
 
 	var response LsblkJsonSingle

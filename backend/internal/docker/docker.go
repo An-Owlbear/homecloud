@@ -276,12 +276,6 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 		return err
 	}
 
-	// removes unused volumes
-	_, err = dockerClient.VolumesPrune(context.Background(), filters.NewArgs(AppFilter(appId)))
-	if err != nil {
-		return err
-	}
-
 	networks, err := dockerClient.NetworkList(context.Background(), network.ListOptions{
 		Filters: filters.NewArgs(AppFilter(appId)),
 	})
