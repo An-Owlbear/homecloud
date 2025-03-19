@@ -22,6 +22,7 @@ import (
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/google/go-cmp/cmp"
 	"github.com/joho/godotenv"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
@@ -215,9 +216,17 @@ func HelpTestAppPackage(
 	}
 
 	// Checks the network configuration is correct
-	// TODO: update network testing to be more generalised
-	if networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks)); networkIds[0] == appNetwork.ID {
-		t.Fatalf("Incorrect network ID set in container\nExpected value: %s\nActual value: %s", appNetwork.ID, networkIds[0])
+	networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks))
+	slices.Sort(networkIds)
+
+	expectedIds := []string{appNetwork.Name}
+	if app.Containers[0].ProxyTarget {
+		expectedIds = append(expectedIds, "homecloud.app")
+	}
+	slices.Sort(expectedIds)
+
+	if diff := cmp.Diff(expectedIds, networkIds); diff != "" {
+		t.Fatalf("Incorrect network ID %s", diff)
 	}
 
 	// Tests environment variables are correct

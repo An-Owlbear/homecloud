@@ -52,6 +52,9 @@ func TestInstallApp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
+	if err := docker.StartApp(dockerClient, app.Id); err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
 
 	testutils.HelpTestAppPackage(dockerClient, app, storageConfig, t)
 }
@@ -83,6 +86,9 @@ func TestStopApp(t *testing.T) {
 	storageConfig := testutils.SetupTempStorage()
 	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if err := docker.StartApp(dockerClient, app.Id); err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
 
@@ -145,6 +151,9 @@ func TestStartApp(t *testing.T) {
 	storageConfig := testutils.SetupTempStorage()
 	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if err := docker.StartApp(dockerClient, app.Id); err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
 
@@ -223,6 +232,9 @@ func TestUninstallApp(t *testing.T) {
 	storageConfig := testutils.SetupTempStorage()
 	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if err := docker.StartApp(dockerClient, app.Id); err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
 

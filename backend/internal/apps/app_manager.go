@@ -29,12 +29,12 @@ func UpdateApps(
 ) error {
 	err := storeClient.UpdatePackageList(context.Background(), queries)
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateApps: failed to update packages list: %w", err)
 	}
 
 	apps, err := queries.GetAppsWithCreds(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateApps: failed to get application details: %w", err)
 	}
 
 	// converts result to map
@@ -45,7 +45,7 @@ func UpdateApps(
 
 	packages, err := queries.GetPackages(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateApps: failed to get packages list: %w", err)
 	}
 
 	for _, listApp := range packages {
@@ -54,23 +54,23 @@ func UpdateApps(
 			// Retrieve the full app package
 			appPackage, err := storeClient.GetPackage(listApp.ID)
 			if err != nil {
-				return err
+				return fmt.Errorf("UpdateApps: failed to get full package details: %w", err)
 			}
 
 			// Remove the app containers and reinstall in case of required changes
 			err = docker.RemoveContainers(dockerClient, app.ID)
 			if err != nil {
-				return err
+				return fmt.Errorf("UpdateApps: failed to remove containers: %w", err)
 			}
 
 			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
 			if err != nil {
-				return err
+				return fmt.Errorf("UpdateApps: failed to reinstall newer version fo app: %w", err)
 			}
 
 			schemaJson, err := json.Marshal(appPackage)
 			if err != nil {
-				return err
+				return fmt.Errorf("UpdateApps: failed to marshal app package json: %w", err)
 			}
 			var templatedString bytes.Buffer
 			err = storage.ApplyAppTemplate(
@@ -84,7 +84,7 @@ func UpdateApps(
 				storageConfig,
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("UpdateApps: failed to apply app template to data template files: %w", err)
 			}
 
 			err = queries.UpdateApp(
@@ -94,7 +94,7 @@ func UpdateApps(
 				},
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("UpdateApps: failed to update app entry in DB: %w", err)
 			}
 		}
 	}

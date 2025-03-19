@@ -74,6 +74,9 @@ func TestUpdateApps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
+	if err := docker.StartApp(dockerClient, app.Id); err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
 
 	// err = UntilState(dockerClient, app.Id, ContainerRunning, time.Second*10, time.Millisecond*10)
 	// if err != nil {
@@ -97,6 +100,9 @@ func TestUpdateApps(t *testing.T) {
 	err = UpdateApps(dockerClient, storeClient, queries, config.Ory{}, testutils.BasicHostConfig, storageConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
+	}
+	if err := docker.StartApp(dockerClient, app.Id); err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
 	}
 
 	// Check updated app has correct values

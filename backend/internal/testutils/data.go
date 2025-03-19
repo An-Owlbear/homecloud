@@ -25,8 +25,15 @@ func SetupTempStorage() config.Storage {
 }
 
 func CleanupSharedStorage() {
-	if err := os.RemoveAll(SharedDirectory); err != nil {
+	entries, err := os.ReadDir(SharedDirectory)
+	if err != nil {
 		panic(err)
+	}
+
+	for _, entry := range entries {
+		if err := os.RemoveAll(filepath.Join(SharedDirectory, entry.Name())); err != nil {
+			panic(err)
+		}
 	}
 }
 
