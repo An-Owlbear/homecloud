@@ -58,6 +58,7 @@ func AddRoutes(
 	apiAdmin.POST("/v1/apps/:appId/uninstall", UninstallApp(queries, docker, hydraAdmin))
 	apiAdmin.POST("/v1/apps/update", UpdateApps(docker, storeClient, queries, serverConfig.Ory, serverConfig.Host, serverConfig.Storage))
 	apiAdmin.POST("/v1/apps/:appId/backup", BackupApp(docker, serverConfig.Storage))
+	apiAdmin.GET("/v1/apps/:appId/backups", ListBackups())
 	apiAdmin.POST("/v1/apps/:appId/restore", RestoreApp(docker, queries, hosts, appDataHandler, serverConfig.Host, serverConfig.Storage, serverConfig.Ory))
 
 	apiNoAuth.POST("/v1/invites/check", CheckInvitationCode(queries))

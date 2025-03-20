@@ -78,3 +78,24 @@ func RestoreApp(
 		return c.NoContent(http.StatusNoContent)
 	}
 }
+
+type listBackupsRequest struct {
+	TargetDevice string `query:"target_device"`
+}
+
+func ListBackups() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var request listBackupsRequest
+		if err := c.Bind(&request); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		appId := c.Param("appId")
+
+		backups, err := storage.ListBackups(request.TargetDevice, appId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSONPretty(http.StatusOK, backups, "  ")
+	}
+}

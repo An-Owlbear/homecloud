@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -170,4 +171,31 @@ func UnmountPartition(details LsblkDetails) error {
 		return fmt.Errorf("error unmounting partition: %w", err)
 	}
 	return nil
+}
+
+func ListBackups(targetDevice string, appId string) ([]string, error) {
+	details, err := GetExternalPartition(targetDevice)
+	if err != nil {
+		return nil, err
+	}
+
+	mountPath, err := MountPartition(details)
+	if err != nil {
+		return nil, err
+	}
+	defer UnmountPartition(details)
+
+	entries, err := os.ReadDir(filepath.Join(mountPath, "backup", appId))
+	if err != nil {
+		return nil, err
+	}
+
+	backups := make([]string, 0)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			backups = append(backups, entry.Name())
+		}
+	}
+
+	return backups, nil
 }
