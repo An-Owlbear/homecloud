@@ -165,7 +165,7 @@ func MountPartition(details LsblkDetails) (string, error) {
 
 // UnmountPartition unmounts the given partition
 func UnmountPartition(details LsblkDetails) error {
-	err := unix.Unmount(fmt.Sprintf("/media/%s", details.Name), 0)
+	err := unix.Unmount(fmt.Sprintf("/media/homecloud/%s", details.Name), 0)
 	if err != nil {
 		return fmt.Errorf("error unmounting partition: %w", err)
 	}
