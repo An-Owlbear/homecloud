@@ -1,6 +1,9 @@
 package api
 
 import (
+	"fmt"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/docker/docker/client"
@@ -74,7 +77,7 @@ func AddRoutes(
 	e.GET("/auth/oidc", OidcConsent(hydraAdmin))
 	e.GET("/auth/setup", InitialSetup(kratosIdentityAPI, queries))
 	e.Static("/assets", "assets")
-	e.GET("/assets/data/*", staticFilter(serverConfig.Storage.DataPath, "^db\\/data\\/.+\\/icon.png$"))
+	e.GET("/assets/data/*", staticFilter(serverConfig.Storage.DataPath, fmt.Sprintf("^%s\\/.+\\/icon.png$", regexp.QuoteMeta(filepath.Clean(serverConfig.Storage.DataPath)))))
 
 	// Proxies update urls to launcher on host system
 	launcherApi := apiAdmin.Group("/v1/update")

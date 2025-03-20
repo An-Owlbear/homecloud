@@ -15,7 +15,7 @@
         "/var/run/docker.sock:/var/run/docker.sock",
         "/run/udev:/run/udev",
         "/media/homecloud:/media/homecloud:rshared",
-        "!AppDir/db/data:/app/db/data",
+        "!AppDir/data:/app/data",
         "homecloud-db:/app/db"
       ],
       "ports": [
