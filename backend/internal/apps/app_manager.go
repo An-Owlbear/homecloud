@@ -243,7 +243,7 @@ func BackupApp(
 	}
 	defer storage.UnmountPartition(details)
 
-	outputPath := filepath.Join(mountPath, "backup", appId, time.Now().Format("20060102150405"))
+	outputPath := filepath.Join(mountPath, "backup", appId, time.Now().Format("2006-01-02T150405"))
 	if err := os.MkdirAll(outputPath, 0755); err != nil {
 		return fmt.Errorf("error creating backup directory: %w", err)
 	}

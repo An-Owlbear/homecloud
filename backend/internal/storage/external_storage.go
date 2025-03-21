@@ -187,6 +187,9 @@ func ListBackups(targetDevice string, appId string) ([]string, error) {
 
 	entries, err := os.ReadDir(filepath.Join(mountPath, "backup", appId))
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return []string{}, nil
+		}
 		return nil, err
 	}
 
