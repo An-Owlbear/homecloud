@@ -107,7 +107,7 @@ export const listExternalStorage = async (): Promise<ExternalStorage[]> => {
 }
 
 export const listBackups = async (externalStorage: string, appId: string): Promise<string[]> => {
-	const response = await fetch(`/api/v1/apps/${appId}/backups` + new URLSearchParams({ target_device: externalStorage }));
+	const response = await fetch(`/api/v1/apps/${appId}/backups?` + new URLSearchParams({ target_device: externalStorage }));
 	if (!response.ok) {
 		await CheckAuthRedirect(response);
 	}
@@ -119,6 +119,17 @@ export const backupApp = async (externalStorage: string, appId: string): Promise
 	const response = await fetch(`/api/v1/apps/${appId}/backup`, {
 		method: 'POST',
 		body: JSON.stringify({ target_device: externalStorage }),
+		headers: { 'Content-Type': 'application/json' },
+	});
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+}
+
+export const restoreBackup = async (externalStorage: string, appId: string, backup: string): Promise<void> => {
+	const response = await fetch(`/api/v1/apps/${appId}/restore`, {
+		method: 'POST',
+		body: JSON.stringify({ target_device: externalStorage, backup: backup }),
 		headers: { 'Content-Type': 'application/json' },
 	});
 	if (!response.ok) {

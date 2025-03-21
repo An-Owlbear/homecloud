@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
 	import { ArrowLeftToBracketOutline } from 'flowbite-svelte-icons';
+	import RadioSelectBox from '$lib/RadioSelectBox.svelte';
 
 	let previousPage: string = $state('/apps');
 	afterNavigate(({ from }) => {
@@ -47,17 +48,19 @@
 		{#await storageDevices}
 			<Skeleton />
 		{:then storageDevices}
-			{#each storageDevices as storageDevice (storageDevice.name)}
-				<Radio custom value={storageDevice.name} bind:group={selectedDrive} disabled={loading}>
-					<div class="w-full flex flex-col p-5 text-gray-500 bg-white rounded-lg border border-gray-200 cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-primary-500 peer-checked:border-primary-600 peer-checked:text-primary-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">
-						<span class="text-lg font-semibold">{storageDevice.label}</span>
-						<span>{(storageDevice.size / 1e9).toFixed(2)}GB</span>
-					</div>
-				</Radio>
-			{/each}
+			<div class="space-y-2">
+				{#each storageDevices as storageDevice (storageDevice.name)}
+					<Radio custom value={storageDevice.name} bind:group={selectedDrive} disabled={loading}>
+						<RadioSelectBox>
+							<span class="text-lg font-semibold">{storageDevice.label}</span>
+							<span>{(storageDevice.size / 1e9).toFixed(2)}GB</span>
+						</RadioSelectBox>
+					</Radio>
+				{/each}
+			</div>
 		{/await}
 		<div class="mt-3 flex flex-row justify-between">
-			<Button color="alternative" class="hover:cursor-pointer" onclick={refreshDevices}>Refresh external storage</Button>
+			<Button color="alternative" disabled={loading} class={[!loading && 'hover:cursor-pointer']} onclick={refreshDevices}>Refresh external storage</Button>
 			<Button disabled={!backupButtonEnabled} class={[backupButtonEnabled && 'hover:cursor-pointer']} onclick={backupData}>
 				{#if !loading}
 					<span>Backup</span>

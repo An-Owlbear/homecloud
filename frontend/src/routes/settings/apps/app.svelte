@@ -32,6 +32,9 @@
 	<Button class="hover:cursor-pointer self-center cancel-hover" href="/apps/{app.id}/backup">
 		<span class="text-lg">Backup app data</span>
 	</Button>
+	<Button class="hover:cursor-pointer self-center cancel-hover" href="/apps/{app.id}/restore">
+		<span class="text-lg">Restore app data</span>
+	</Button>
 	<Button class={['self-center', 'space-x-2', 'cancel-hover', !loading && 'hover:cursor-pointer']} onclick={() => uninstall(app)}>
 		{#if loading}
 			<Spinner size={5} color="white" />
