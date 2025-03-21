@@ -1,4 +1,12 @@
-import type { HomecloudApp, InviteCode, PackageListItem, SearchParams, UpdateCheckResponse, User } from '$lib/models';
+import type {
+	ExternalStorage,
+	HomecloudApp,
+	InviteCode,
+	PackageListItem,
+	SearchParams,
+	UpdateCheckResponse,
+	User
+} from '$lib/models';
 import { goto } from '$app/navigation';
 
 export const getApps = async (): Promise<HomecloudApp[]> => {
@@ -87,6 +95,34 @@ export const updateSystem = async (): Promise<void> => {
 	if (!response.ok) {
 		await CheckAuthRedirect(response);
 		throw new Error(response.statusText);
+	}
+}
+
+export const listExternalStorage = async (): Promise<ExternalStorage[]> => {
+	const response = await fetch('/api/v1/backup/devices');
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+	return await response.json() as ExternalStorage[];
+}
+
+export const listBackups = async (externalStorage: string, appId: string): Promise<string[]> => {
+	const response = await fetch(`/api/v1/apps/${appId}/backups` + new URLSearchParams({ target_device: externalStorage }));
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+
+	return await response.json() as string[];
+}
+
+export const backupApp = async (externalStorage: string, appId: string): Promise<void> => {
+	const response = await fetch(`/api/v1/apps/${appId}/backup`, {
+		method: 'POST',
+		body: JSON.stringify({ target_device: externalStorage }),
+		headers: { 'Content-Type': 'application/json' },
+	});
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
 	}
 }
 

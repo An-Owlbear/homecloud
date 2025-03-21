@@ -29,6 +29,9 @@
 		<span class="text-md">{app.author}</span>
 	</div>
 	<div class="grow"></div>
+	<Button class="hover:cursor-pointer self-center cancel-hover" href="/apps/{app.id}/backup">
+		<span class="text-lg">Backup app data</span>
+	</Button>
 	<Button class={['self-center', 'space-x-2', 'cancel-hover', !loading && 'hover:cursor-pointer']} onclick={() => uninstall(app)}>
 		{#if loading}
 			<Spinner size={5} color="white" />

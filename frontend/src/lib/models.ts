@@ -53,3 +53,10 @@ export type InviteCode = {
 export type UpdateCheckResponse = {
 	update_required: boolean
 }
+
+export type ExternalStorage = {
+	name: string,
+	label: string,
+	size: number,
+	available: number,
+}
