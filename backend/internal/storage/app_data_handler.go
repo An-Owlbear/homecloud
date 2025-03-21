@@ -49,6 +49,11 @@ func (h *AppDataHandler) SavePackage(appId string) error {
 	defer uncompressed.Close()
 	tarReader := tar.NewReader(uncompressed)
 
+	// creates app directory and expected folders
+	if err := os.MkdirAll(filepath.Join(h.storageConfig.DataPath, appId, "data"), 0755); err != nil {
+		return err
+	}
+
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
