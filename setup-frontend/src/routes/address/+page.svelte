@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { Button, ButtonGroup, Input, InputAddon, Label, Li, List, Spinner } from 'flowbite-svelte';
 	import ListCheck from '$lib/ListCheck.svelte';
-	import { registerDomain } from '$lib/api';
+	import { checkSubdomainTaken, registerDomain } from '$lib/api';
 
 	let registerDomainLoading = $state(false);
 
 	let subdomain = $state('');
-	let domainUnique = $state(true);
+	let domainUnique = $derived.by(async () => {
+		if (!subdomain) {
+			return false;
+		}
+
+		return !(await checkSubdomainTaken(`${subdomain}.homecloudapp.com`));
+	});
 	let validChars = $derived(/^[a-zA-Z0-9\-]+$/.test(subdomain));
 	let validSize = $derived(!!subdomain && subdomain.length <= 20);
 	let validSubmit = $derived(domainUnique && validChars && validSize);
@@ -25,13 +31,17 @@
 	<p>This must:</p>
 	<List class="mb-4" list="none">
 		<Li icon>
-			<ListCheck passed={domainUnique}>Be unique</ListCheck>
+			{#await domainUnique}
+				<ListCheck state="loading">Be unique</ListCheck>
+			{:then domainUnique}
+				<ListCheck state={domainUnique ? 'passed' : 'failed'}>Be unique</ListCheck>
+			{/await}
 		</Li>
 		<Li icon>
-			<ListCheck passed={validChars}>Contain only letters, number and dashes (-)</ListCheck>
+			<ListCheck state={validChars ? 'passed' : 'failed'}>Contain only letters, number and dashes (-)</ListCheck>
 		</Li>
 		<Li icon>
-			<ListCheck passed={validSize}>Be no more than 20 characters long</ListCheck>
+			<ListCheck state={validSize ? 'passed' : 'failed'}>Be no more than 20 characters long</ListCheck>
 		</Li>
 	</List>
 	<div>

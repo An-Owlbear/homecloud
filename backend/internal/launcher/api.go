@@ -1,6 +1,8 @@
 package launcher
 
 import (
+	"errors"
+	"net"
 	"net/http"
 	"os/exec"
 
@@ -21,6 +23,7 @@ func AddRoutes(
 	e.GET("/api/v1/update", CheckUpdateHandler())
 	e.POST("/api/v1/update", ApplyUpdatesHandler(dockerClient))
 	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(deviceConfig))
+	e.POST("/api/v1/check_subdomain", CheckSubdomain())
 }
 
 type checkUpdateResponse struct {
@@ -98,5 +101,43 @@ func SetSubdomainHandler(deviceConfig config.DeviceConfig) echo.HandlerFunc {
 		}
 
 		return c.NoContent(http.StatusNoContent)
+	}
+}
+
+type checkSubdomainRequest struct {
+	Address string `json:"address"`
+}
+
+type checkSubdomainResponse struct {
+	Taken bool `json:"taken"`
+}
+
+func CheckSubdomain() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var req checkSubdomainRequest
+		if err := c.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+		}
+
+		// Looks up IP address, if it isn't found return a normal response
+		ip, err := net.LookupIP(req.Address)
+		if err != nil {
+			var dnsErr *net.DNSError
+			if errors.As(err, &dnsErr) && dnsErr.IsNotFound {
+				response := checkSubdomainResponse{Taken: false}
+				return c.JSON(http.StatusOK, response)
+			}
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid address")
+		}
+
+		// Retrieves the public IP address
+		publicIP, err := networking.GetPublicIP()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get public IP")
+		}
+
+		// Return response with IP address
+		response := checkSubdomainResponse{Taken: ip[0].String() != publicIP}
+		return c.JSON(http.StatusOK, response)
 	}
 }
