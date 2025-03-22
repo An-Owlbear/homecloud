@@ -40,7 +40,7 @@
 			<Input id="chosen-address" placeholder="Server address" bind:value={subdomain} color={displayInputError ? 'red' : 'base'} disabled={registerDomainLoading} />
 			<InputAddon>.homecloudapp.com</InputAddon>
 		</ButtonGroup>
-		<Button class={['w-full flex flex-row items-center gap-2', validSubmit && 'cursor-pointer']} disabled={!validSubmit}>
+		<Button class={['w-full flex flex-row items-center gap-2', validSubmit && 'cursor-pointer']} disabled={!validSubmit} onclick={registerDomainBtn}>
 			{#if registerDomainLoading}
 				<Spinner size="5" />
 				<span>Registering domain</span>
