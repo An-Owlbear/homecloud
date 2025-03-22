@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { Button, ButtonGroup, Input, InputAddon, Label, Li, List, Spinner } from 'flowbite-svelte';
+	import { ArrowLeftOutline } from 'flowbite-svelte-icons';
 	import ListCheck from '$lib/ListCheck.svelte';
 	import { checkSubdomainTaken, registerDomain } from '$lib/api';
+	import { goto } from '$app/navigation';
 
 	let registerDomainLoading = $state(false);
 
@@ -22,10 +24,15 @@
 		registerDomainLoading = true;
 		await registerDomain(subdomain);
 		registerDomainLoading = false;
+		await goto('/');
 	}
 </script>
 
 <div class="max-w-2xl p-5 mx-auto">
+	<a class="mb-4 flex flex-row items-center" href="/">
+		<ArrowLeftOutline size="lg" class="me-2" />
+		<p>Back</p>
+	</a>
 	<h1 class="text-3xl font-bold mb-4">Configure server address</h1>
 	<p class="mb-4">To access your homecloud server outside your home network you'll need to have an address registered.</p>
 	<p>This must:</p>
