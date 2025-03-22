@@ -16,7 +16,7 @@
 <div class="fixed bottom-5 left-4 z-50 pointer-events-none space-y-3 w-screen">
 	{#each toasts as toast}
 		<Toast class="pointer-events-auto shadow-xl drop-shadow-xl rounded-xl" transition={slide} on:close={() => onClose(toast)}>
-			<span class="text-lg">Invite link copied!</span>
+			<span class="text-lg">{toast.content}</span>
 		</Toast>
 	{/each}
 </div>

@@ -33,7 +33,7 @@
 
 	const copyInvite = async (event: MouseEvent) => {
 		await navigator.clipboard.writeText(await inviteLink);
-		toasts.push({ content: 'Copied to clipboard!' });
+		toasts.push({ content: 'Invite link copied!' });
 	}
 </script>
 
