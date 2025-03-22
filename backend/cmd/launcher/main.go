@@ -46,7 +46,12 @@ func main() {
 	}
 
 	deviceConfig := config.NewDeviceConfig()
-	launcherConfig, err := config.NewLauncher()
+	launcherEnvConfig, err := config.NewLauncher()
+	if err != nil {
+		panic(err)
+	}
+
+	launcherConfig, err := launcher.SetupConfig(launcherEnvConfig.ConfigFilename)
 	if err != nil {
 		panic(err)
 	}
@@ -164,7 +169,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = launcher.StartContainers(dockerClient, storeClient, *oryConfig, *hostConfig, *storageConfig, *launcherConfig)
+	err = launcher.StartContainers(dockerClient, storeClient, *oryConfig, *hostConfig, *storageConfig, *launcherEnvConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -211,6 +216,6 @@ func main() {
 			},
 		),
 	)
-	launcher.AddRoutes(e, dockerClient, storeClient, deviceConfig)
+	launcher.AddRoutes(e, dockerClient, storeClient, deviceConfig, launcherConfig)
 	e.Logger.Fatal(e.Start(":1324"))
 }

@@ -31,7 +31,7 @@ func StartContainers(
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
-	launcherConfig config.Launcher,
+	launcherConfig config.LauncherEnv,
 ) error {
 	// Installs ory hydra and kratos
 	for _, packageName := range appPackages {

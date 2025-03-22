@@ -19,11 +19,13 @@ func AddRoutes(
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,
 	deviceConfig config.DeviceConfig,
+	launcherConfig *Config,
 ) {
 	e.GET("/api/v1/update", CheckUpdateHandler())
 	e.POST("/api/v1/update", ApplyUpdatesHandler(dockerClient))
-	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(deviceConfig))
+	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(deviceConfig, launcherConfig))
 	e.POST("/api/v1/check_subdomain", CheckSubdomain())
+	e.GET("/api/v1/current_subdomain", GetRegisteredDomain(launcherConfig))
 }
 
 type checkUpdateResponse struct {
@@ -78,7 +80,7 @@ type SubdomainAPIRequest struct {
 	Subdomain string `json:"subdomain"`
 }
 
-func SetSubdomainHandler(deviceConfig config.DeviceConfig) echo.HandlerFunc {
+func SetSubdomainHandler(deviceConfig config.DeviceConfig, launcherConfig *Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req SubdomainAPIRequest
 		if err := c.Bind(&req); err != nil {
@@ -98,6 +100,11 @@ func SetSubdomainHandler(deviceConfig config.DeviceConfig) echo.HandlerFunc {
 		})
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Error setting subdomain")
+		}
+
+		launcherConfig.Subdomain = req.Subdomain
+		if err := launcherConfig.Save(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save config")
 		}
 
 		return c.NoContent(http.StatusNoContent)
@@ -139,5 +146,15 @@ func CheckSubdomain() echo.HandlerFunc {
 		// Return response with IP address
 		response := checkSubdomainResponse{Taken: ip[0].String() != publicIP}
 		return c.JSON(http.StatusOK, response)
+	}
+}
+
+type getRegisteredDomainResponse struct {
+	Subdomain string `json:"subdomain"`
+}
+
+func GetRegisteredDomain(launcherConfig *Config) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.JSON(http.StatusOK, getRegisteredDomainResponse{Subdomain: launcherConfig.Subdomain})
 	}
 }

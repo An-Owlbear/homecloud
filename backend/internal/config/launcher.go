@@ -5,19 +5,21 @@ import (
 	"strconv"
 )
 
-type Launcher struct {
-	Url          string
-	AlwaysUpdate bool
+type LauncherEnv struct {
+	Url            string
+	AlwaysUpdate   bool
+	ConfigFilename string
 }
 
-func NewLauncher() (*Launcher, error) {
+func NewLauncher() (*LauncherEnv, error) {
 	alwaysUpdate, err := strconv.ParseBool(Getenv("HOMECLOUD_LAUNCHER_ALWAYS_UPDATE", "false"))
 	if err != nil {
 		return nil, err
 	}
 
-	return &Launcher{
-		Url:          os.Getenv("HOMECLOUD_LAUNCHER_URL"),
-		AlwaysUpdate: alwaysUpdate,
+	return &LauncherEnv{
+		Url:            os.Getenv("HOMECLOUD_LAUNCHER_URL"),
+		AlwaysUpdate:   alwaysUpdate,
+		ConfigFilename: Getenv("HOMECLOUD_LAUNCHER_CONFIG_FILENAME", "config.json"),
 	}, nil
 }

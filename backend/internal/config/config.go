@@ -5,7 +5,7 @@ type Config struct {
 	Ory      Ory
 	Store    Store
 	Storage  Storage
-	Launcher Launcher
+	Launcher LauncherEnv
 }
 
 func LoadConfig() (*Config, error) {
