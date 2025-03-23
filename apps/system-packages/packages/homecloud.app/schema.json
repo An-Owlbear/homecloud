@@ -19,15 +19,16 @@
         "homecloud-db:/app/db"
       ],
       "ports": [
-        "1323:1323"
+        "{{.HostPort}}:{{.HostPort}}"
       ],
       "extra_hosts": [
         "launcher.homecloud.internal:host-gateway"
       ],
       "privileged": true,
       "environment": {
-        "ENVIRONMENT": "DEV",
-        "HOMECLOUD_APP_DIR": "{{.HomecloudAppDir}}"
+        "ENVIRONMENT": "{{.Environment}}",
+        "HOMECLOUD_APP_DIR": "{{.HomecloudAppDir}}",
+        "HOMECLOUD_HOST": "{{.HostUrl}}"
       }
     }
   ]
