@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -36,4 +37,28 @@ func NewHost() (*Host, error) {
 		HTTPS:       https,
 		PortForward: portForward,
 	}, nil
+}
+
+func (h *Host) PublicUrl() string {
+	scheme := "http"
+	if h.HTTPS {
+		scheme = "https"
+	}
+	url := fmt.Sprintf("%s://%s", scheme, h.Host)
+	if h.Port != 80 && h.Port != 443 {
+		url = fmt.Sprintf("%s://%s:%d", scheme, h.Host, h.Port)
+	}
+	return url
+}
+
+func (h *Host) PublicSubdomain(app string) string {
+	scheme := "http"
+	if h.HTTPS {
+		scheme = "https"
+	}
+	url := fmt.Sprintf("%s://%s.%s", scheme, app, h.Host)
+	if h.Port != 80 && h.Port != 443 {
+		url = fmt.Sprintf("%s://%s:%d", scheme, h.Host, h.Port)
+	}
+	return url
 }

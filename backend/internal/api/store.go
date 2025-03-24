@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -127,13 +126,7 @@ func AddPackage(
 				// If the redirect uri starts with a slash append the actual host
 				for _, redirectUri := range appContainer.OidcRedirectUris {
 					if strings.HasPrefix(redirectUri, "/") {
-						redirectUri = fmt.Sprintf(
-							"http://%s.%s:%d%s",
-							app.Name,
-							hostConfig.Host,
-							hostConfig.Port,
-							redirectUri,
-						)
+						redirectUri = hostConfig.PublicSubdomain(app.Name) + redirectUri
 					}
 					redirectUris = append(redirectUris, redirectUri)
 				}
