@@ -32,11 +32,6 @@ func TryMapPort(ctx context.Context, externalPort uint16, internalPort uint16, d
 		return err
 	}
 
-	err = CheckPortForwarding(deviceConfig, int(externalPort))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

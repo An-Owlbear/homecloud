@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
+	"regexp"
 
 	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
@@ -169,7 +170,14 @@ func CreateServer() {
 
 	if serverConfig.Host.HTTPS {
 		slog.Info("Starting server with HTTPS")
-		e.AutoTLSManager.Cache = autocert.DirCache(".cache")
+		allowedHosts := regexp.MustCompile(fmt.Sprintf("^(?:.*\\.)?%s$", regexp.QuoteMeta(serverConfig.Host.Host)))
+		e.AutoTLSManager.HostPolicy = func(ctx context.Context, host string) error {
+			if matches := allowedHosts.MatchString(host); !matches {
+				return fmt.Errorf("invalid host: %s", host)
+			}
+			return nil
+		}
+		e.AutoTLSManager.Cache = autocert.DirCache("data/.cache")
 		e.Logger.Fatal(e.StartAutoTLS(":443"))
 	} else {
 		slog.Info("Starting server without HTTPS - THIS IS NOT SAFE FOR PRODUCTION ENVIRONMENTS")

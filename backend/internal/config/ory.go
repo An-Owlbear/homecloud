@@ -24,7 +24,14 @@ func newOryService(urlString string) (*OryService, error) {
 	}
 
 	publicUrl := *privateUrl
-	publicUrl.Host = fmt.Sprintf("%s.%s:%s", privateUrl.Hostname(), os.Getenv("HOMECLOUD_HOST"), os.Getenv("HOMECLOUD_PORT"))
+	publicUrl.Host = fmt.Sprintf("%s.%s", privateUrl.Hostname(), os.Getenv("HOMECLOUD_HOST"))
+	port := os.Getenv("HOMECLOUD_PORT")
+	if port != "80" && port != "443" {
+		publicUrl.Host = fmt.Sprintf("%s.%s", publicUrl.Hostname(), os.Getenv("HOMECLOUD_HOST"))
+	} else if port == "443" {
+		publicUrl.Scheme = "https"
+	}
+
 	fmt.Println(publicUrl.String())
 
 	return &OryService{

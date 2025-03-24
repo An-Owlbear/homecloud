@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"text/template"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
@@ -14,8 +15,11 @@ type PackageTemplateParams struct {
 	OAuthClientSecret string
 	OAuthIssuerUrl    string
 	HostUrl           string
+	FullHostUrl       string
+	HostPort          int
 	HomecloudAppDir   string
 	AppUrl            string
+	Environment       string
 }
 
 // ApplyAppTemplate applies templated values to the given input. In the case of templating an app package the app
@@ -35,16 +39,27 @@ func ApplyAppTemplate(
 		return err
 	}
 
-	appUrl := hostConfig.Url
-	appUrl.Host = fmt.Sprintf("%s.%s", app.Name, hostConfig.Url.Host)
+	scheme := "http"
+	if hostConfig.HTTPS {
+		scheme = "https"
+	}
+	hostUrl := url.URL{
+		Scheme: scheme,
+		Host:   fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port),
+	}
+	appUrl := hostUrl
+	appUrl.Host = fmt.Sprintf("%s.%s", app.Name, appUrl.Host)
 
 	parameters := PackageTemplateParams{
 		OAuthClientID:     oauthClientID,
 		OAuthClientSecret: oauthClientSecret,
 		OAuthIssuerUrl:    oryConfig.Hydra.PublicAddress.String(),
-		HostUrl:           hostConfig.Url.String(),
+		HostUrl:           hostConfig.Host,
+		FullHostUrl:       hostUrl.String(),
+		HostPort:          hostConfig.Port,
 		HomecloudAppDir:   storageConfig.AppDir,
 		AppUrl:            appUrl.String(),
+		Environment:       string(config.GetEnvironment()),
 	}
 
 	return appTemplate.Execute(output, parameters)

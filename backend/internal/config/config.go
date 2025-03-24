@@ -39,3 +39,16 @@ func LoadConfig() (*Config, error) {
 		Launcher: *launcher,
 	}, nil
 }
+
+type Environment string
+
+const (
+	Development Environment = "DEV"
+	Production  Environment = "PROD"
+)
+
+// GetEnvironment separate function from the rest of the code to allow to be used to control the loading of
+// configuration files
+func GetEnvironment() Environment {
+	return Environment(Getenv("ENVIRONMENT", string(Production)))
+}

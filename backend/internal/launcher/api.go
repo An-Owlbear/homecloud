@@ -5,9 +5,11 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"strings"
 
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
@@ -18,14 +20,26 @@ func AddRoutes(
 	e *echo.Echo,
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,
+	hostConfig config.Host,
+	oryConfig config.Ory,
+	storageConfig config.Storage,
+	launcherEnvConfig config.LauncherEnv,
 	deviceConfig config.DeviceConfig,
 	launcherConfig *Config,
 ) {
 	e.GET("/api/v1/update", CheckUpdateHandler())
 	e.POST("/api/v1/update", ApplyUpdatesHandler(dockerClient))
-	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(deviceConfig, launcherConfig))
+	e.POST("/api/v1/set_subdomain", SetSubdomainHandler(dockerClient, storeClient, hostConfig, oryConfig, storageConfig, launcherEnvConfig, deviceConfig, launcherConfig))
 	e.POST("/api/v1/check_subdomain", CheckSubdomain())
 	e.GET("/api/v1/current_subdomain", GetRegisteredDomain(launcherConfig))
+
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "launcher_spa",
+		HTML5: true,
+		Skipper: func(c echo.Context) bool {
+			return strings.HasPrefix(c.Path(), "/api")
+		},
+	}))
 }
 
 type checkUpdateResponse struct {
@@ -80,7 +94,16 @@ type SubdomainAPIRequest struct {
 	Subdomain string `json:"subdomain"`
 }
 
-func SetSubdomainHandler(deviceConfig config.DeviceConfig, launcherConfig *Config) echo.HandlerFunc {
+func SetSubdomainHandler(
+	dockerClient *client.Client,
+	storeClient *apps.StoreClient,
+	hostConfig config.Host,
+	oryConfig config.Ory,
+	storageConfig config.Storage,
+	launcherEnvConfig config.LauncherEnv,
+	deviceConfig config.DeviceConfig,
+	launcherConfig *Config,
+) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req SubdomainAPIRequest
 		if err := c.Bind(&req); err != nil {
@@ -105,6 +128,11 @@ func SetSubdomainHandler(deviceConfig config.DeviceConfig, launcherConfig *Confi
 		launcherConfig.Subdomain = req.Subdomain
 		if err := launcherConfig.Save(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save config")
+		}
+
+		err = StartSystem(dockerClient, storeClient, hostConfig, oryConfig, storageConfig, launcherEnvConfig, deviceConfig)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		return c.NoContent(http.StatusNoContent)
