@@ -3,11 +3,20 @@
 	import { DotsVerticalOutline } from 'flowbite-svelte-icons';
 	import { AppStatus, type HomecloudApp } from '$lib/models';
 	import { CheckAuthRedirect, uninstallApp } from '$lib/api';
+	import { page } from '$app/state';
 
 	const { app, onUninstall }: {
 		app: HomecloudApp
 		onUninstall: (app: HomecloudApp) => void
 	} = $props();
+
+	const appUrl = (() => {
+		let pageUrl = new URL(page.url.toString());
+		pageUrl.hostname = `${app.name}.${pageUrl.hostname}`;
+		pageUrl.pathname = '';
+		pageUrl.search = '';
+		return pageUrl.toString();
+	})();
 
 	let loading = $state(false);
 	let loadingMessage = $state('');
@@ -49,7 +58,7 @@
 	}
 </script>
 
-<Card class="w-42 h-full overflow-hidden space-y-4 has-[.app-options:hover]:bg-white dark:has-[.app-options:hover]:bg-gray-800" href={loading ? undefined : `http://${app.name}.hc.anowlbear.com:1323`} target="_blank">
+<Card class="w-42 h-full overflow-hidden space-y-4 has-[.app-options:hover]:bg-white dark:has-[.app-options:hover]:bg-gray-800" href={loading ? undefined : appUrl} target="_blank">
 	{#if loading}
 		<Spinner size="xl" />
 		<span class="text-md text-center">{loadingMessage} {app.name}</span>
@@ -66,7 +75,7 @@
 				<DotsVerticalOutline size="md" />
 			</Button>
 			<Dropdown bind:open={dropdown}>
-				<DropdownItem class="app-options" href="http://{app.name}.hc.anowlbear.com:1323" target="_blank">Open app</DropdownItem>
+				<DropdownItem class="app-options" href={appUrl} target="_blank">Open app</DropdownItem>
 				{#if app.status === AppStatus.Exited}
 					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
 				{:else if app.status === AppStatus.Running}
