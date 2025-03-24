@@ -34,7 +34,7 @@
         "COMPOSE_PROJECT_NAME": "paperless",
         "PAPERLESS_APPS": "allauth.socialaccount.providers.openid_connect",
         "PAPERLESS_SOCIALACCOUNT_PROVIDERS": "{\"openid_connect\": {\"APPS\": [{\"provider_id\": \"homecloud\",\"name\": \"Homecloud\",\"client_id\": \"{{.OAuthClientID}}\",\"secret\": \"{{.OAuthClientSecret}}\",\"settings\": { \"server_url\": \"{{.OAuthIssuerUrl}}\"}}]}}",
-        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "{{if eq .Environment "DEV"}}http{{else}}https{{end}}",
+        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "{{.UrlScheme}}",
         "PAPERLESS_ACCOUNT_EMAIL_VERIFICATION": "none",
         "PAPERLESS_URL": "{{.AppUrl}}",
         "PAPERLESS_CSRF_TRUSTED_ORIGINS": "{{.AppUrl}}"

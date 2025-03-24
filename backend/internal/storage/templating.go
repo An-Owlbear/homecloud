@@ -19,6 +19,7 @@ type PackageTemplateParams struct {
 	HostPort          int
 	HomecloudAppDir   string
 	AppUrl            string
+	UrlScheme         string
 	Environment       string
 }
 
@@ -57,6 +58,7 @@ func ApplyAppTemplate(
 		HostPort:          hostConfig.Port,
 		HomecloudAppDir:   storageConfig.AppDir,
 		AppUrl:            hostConfig.PublicSubdomain(app.Name),
+		UrlScheme:         hostUrl.Scheme,
 		Environment:       string(config.GetEnvironment()),
 	}
 
