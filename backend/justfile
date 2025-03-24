@@ -76,7 +76,12 @@ deploy_launcher_test_prod version ssh_address:
     @just build_launcher {{version}} linux arm64
     ssh {{ssh_address}} 'mkdir -p ~/homecloud_prod_test'
     scp build/homecloud-{{version}}-linux-arm64.tar.gz {{ssh_address}}:~/homecloud_prod_test
-    ssh -t {{ssh_address}} 'cd ~/homecloud_prod_test; tar -xzf homecloud-{{version}}-linux-arm64.tar.gz; sudo ./launcher;'
+    ssh -t {{ssh_address}} 'cd ~/homecloud_prod_test; tar -xzf homecloud-{{version}}-linux-arm64.tar.gz; sudo HOMECLOUD_LAUNCHER_ALWAYS_UPDATE=true ./launcher;'
+
+build_deploy_launcher_test_prod version ssh_address:
+    @just build_docker {{version}}
+    @just deploy_docker_dev {{ssh_address}} {{version}}
+    @just deploy_launcher_test_prod {{version}} {{ssh_address}}
 
 deploy_sync_dev ssh_address:
     rsync -a . homecloud@homecloud.local:/tmp/homecloud_backend --exclude '/.git' --filter='dir-merge,- .gitignore'
