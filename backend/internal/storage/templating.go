@@ -47,8 +47,6 @@ func ApplyAppTemplate(
 		Scheme: scheme,
 		Host:   fmt.Sprintf("%s:%d", hostConfig.Host, hostConfig.Port),
 	}
-	appUrl := hostUrl
-	appUrl.Host = fmt.Sprintf("%s.%s", app.Name, appUrl.Host)
 
 	parameters := PackageTemplateParams{
 		OAuthClientID:     oauthClientID,
@@ -58,7 +56,7 @@ func ApplyAppTemplate(
 		FullHostUrl:       hostUrl.String(),
 		HostPort:          hostConfig.Port,
 		HomecloudAppDir:   storageConfig.AppDir,
-		AppUrl:            appUrl.String(),
+		AppUrl:            hostConfig.PublicSubdomain(app.Name),
 		Environment:       string(config.GetEnvironment()),
 	}
 
