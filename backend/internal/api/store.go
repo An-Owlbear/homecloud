@@ -86,6 +86,7 @@ func AddPackage(
 	queries *persistence.Queries,
 	dockerClient *client.Client,
 	hydraAdmin *hydra.APIClient,
+	hosts *apps.Hosts,
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
@@ -189,6 +190,11 @@ func AddPackage(
 		// Install and sets up app containers
 		err = docker.InstallApp(dockerClient, parsedTemplatedApp, hostConfig, storageConfig)
 		if err != nil {
+			return c.String(500, err.Error())
+		}
+
+		// Starts application
+		if err := apps.StartApp(dockerClient, queries, hosts, appDataHandler, hostConfig, oryConfig, app.Id); err != nil {
 			return c.String(500, err.Error())
 		}
 

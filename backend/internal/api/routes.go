@@ -48,7 +48,7 @@ func AddRoutes(
 	api.GET("/v1/packages", ListPackages(queries))
 	api.GET("/v1/packages/:id", GetPackage(queries))
 	api.GET("/v1/packages/search", SearchPackages(queries))
-	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, serverConfig.Ory, serverConfig.Host, serverConfig.Storage, appDataHandler))
+	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, hosts, serverConfig.Ory, serverConfig.Host, serverConfig.Storage, appDataHandler))
 	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient, queries))
 	api.GET("/v1/packages/categories", ListCategories(queries))
 	api.GET("/v1/store", GetStoreHome(queries))
