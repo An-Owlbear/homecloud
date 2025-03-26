@@ -223,3 +223,26 @@ func UpdateApps(
 		return c.String(http.StatusOK, "Apps updated")
 	}
 }
+
+type StoreHomeResponse struct {
+	PopularCategories []string                      `json:"popular_categories"`
+	NewApps           []persistence.PackageListItem `json:"new_apps"`
+}
+
+func GetStoreHome(queries *persistence.Queries) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		categories, err := queries.GetPopularCategories(c.Request().Context())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		packages, err := queries.GetNewPackages(c.Request().Context())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSONPretty(200, StoreHomeResponse{
+			PopularCategories: categories,
+			NewApps:           packages,
+		}, "  ")
+	}
+}

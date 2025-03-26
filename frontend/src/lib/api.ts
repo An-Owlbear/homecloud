@@ -3,7 +3,7 @@ import type {
 	HomecloudApp,
 	InviteCode,
 	PackageListItem,
-	SearchParams,
+	SearchParams, StoreHome,
 	UpdateCheckResponse, UpdateUserOptions,
 	User, UserOptions
 } from '$lib/models';
@@ -151,6 +151,14 @@ export const updateUserOptions = async (options: UpdateUserOptions): Promise<voi
 		body: JSON.stringify(options),
 		headers: { 'Content-Type': 'application/json' },
 	});
+}
+
+export const getStoreHome = async () => {
+	const response = await fetch('/api/v1/store');
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+	return await response.json() as StoreHome;
 }
 
 export const CheckAuthRedirect = async (response: Response) => {

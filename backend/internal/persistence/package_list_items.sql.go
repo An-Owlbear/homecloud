@@ -37,6 +37,71 @@ func (q *Queries) GetCategories(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const getNewPackages = `-- name: GetNewPackages :many
+SELECT id, name, version, author, description, image_url FROM package_list_items
+LIMIT 10
+`
+
+func (q *Queries) GetNewPackages(ctx context.Context) ([]PackageListItem, error) {
+	rows, err := q.db.QueryContext(ctx, getNewPackages)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PackageListItem
+	for rows.Next() {
+		var i PackageListItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Version,
+			&i.Author,
+			&i.Description,
+			&i.ImageUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPopularCategories = `-- name: GetPopularCategories :many
+SELECT category FROM package_category_definitions
+GROUP BY category
+ORDER BY count(category)
+LIMIT 6
+`
+
+func (q *Queries) GetPopularCategories(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getPopularCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var category string
+		if err := rows.Scan(&category); err != nil {
+			return nil, err
+		}
+		items = append(items, category)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const addCategory = `-- name: addCategory :exec
 
 INSERT OR IGNORE INTO package_categories (category)

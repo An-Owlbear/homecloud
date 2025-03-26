@@ -63,3 +63,13 @@ ORDER BY package_list_items.id;
 
 -- name: GetCategories :many
 SELECT category FROM package_categories;
+
+-- name: GetPopularCategories :many
+SELECT category FROM package_category_definitions
+GROUP BY category
+ORDER BY count(category)
+LIMIT 6;
+
+-- name: GetNewPackages :many
+SELECT * FROM package_list_items
+LIMIT 10;

@@ -51,6 +51,7 @@ func AddRoutes(
 	apiAdmin.POST("/v1/packages/:appId/install", AddPackage(storeClient, queries, docker, hydraAdmin, serverConfig.Ory, serverConfig.Host, serverConfig.Storage, appDataHandler))
 	apiAdmin.POST("/v1/packages/update", CheckUpdates(storeClient, queries))
 	api.GET("/v1/packages/categories", ListCategories(queries))
+	api.GET("/v1/store", GetStoreHome(queries))
 
 	api.GET("/v1/apps", ListApps(queries))
 	apiAdmin.POST("/v1/apps/:appId/start", StartApp(docker, queries, hosts, appDataHandler, serverConfig.Host, serverConfig.Ory))

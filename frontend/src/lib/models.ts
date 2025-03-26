@@ -69,3 +69,8 @@ export type UserOptions = {
 export type UpdateUserOptions = {
 	completed_welcome?: boolean;
 }
+
+export type StoreHome = {
+	popular_categories: string[],
+	new_apps: PackageListItem[],
+}
