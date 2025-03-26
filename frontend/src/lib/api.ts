@@ -4,7 +4,7 @@ import type {
 	InviteCode,
 	PackageListItem,
 	SearchParams,
-	UpdateCheckResponse,
+	UpdateCheckResponse, UpdateUserOptions,
 	User, UserOptions
 } from '$lib/models';
 import { goto } from '$app/navigation';
@@ -143,6 +143,14 @@ export const getUserOptions = async (): Promise<UserOptions> => {
 		await CheckAuthRedirect(response);
 	}
 	return await response.json() as UserOptions;
+}
+
+export const updateUserOptions = async (options: UpdateUserOptions): Promise<void> => {
+	const response = await fetch('/api/v1/account/options', {
+		method: 'PUT',
+		body: JSON.stringify(options),
+		headers: { 'Content-Type': 'application/json' },
+	});
 }
 
 export const CheckAuthRedirect = async (response: Response) => {

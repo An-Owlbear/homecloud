@@ -65,3 +65,7 @@ export type UserOptions = {
 	user_id: string,
 	completed_welcome: boolean
 }
+
+export type UpdateUserOptions = {
+	completed_welcome?: boolean;
+}

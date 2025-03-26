@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -314,5 +315,35 @@ func GetUserOptions(queries *persistence.Queries) echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, options)
+	}
+}
+
+type updateOptionsRequest struct {
+	CompletedWelcome *bool `json:"completed_welcome,omitempty"`
+}
+
+func UpdateUserOptions(queries *persistence.Queries) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cc := c.(*config.Context)
+		var request updateOptionsRequest
+		if err := c.Bind(&request); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid update request")
+		}
+
+		var completedWelcome sql.NullBool
+		if request.CompletedWelcome != nil {
+			completedWelcome = sql.NullBool{Bool: *request.CompletedWelcome, Valid: true}
+		} else {
+			completedWelcome = sql.NullBool{Valid: false}
+		}
+
+		if err := queries.UpdateUserOptions(c.Request().Context(), persistence.UpdateUserOptionsParams{
+			UserID:           cc.Session.Identity.Id,
+			CompletedWelcome: completedWelcome,
+		}); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update user options")
+		}
+
+		return c.NoContent(http.StatusNoContent)
 	}
 }

@@ -7,6 +7,7 @@ package persistence
 
 import (
 	"context"
+	"database/sql"
 )
 
 const addUser = `-- name: AddUser :exec
@@ -28,4 +29,20 @@ func (q *Queries) GetUserOptions(ctx context.Context, userID string) (UserOption
 	var i UserOption
 	err := row.Scan(&i.UserID, &i.CompletedWelcome)
 	return i, err
+}
+
+const updateUserOptions = `-- name: UpdateUserOptions :exec
+UPDATE user_options
+SET completed_welcome = coalesce(?1, completed_welcome)
+WHERE user_id = ?2
+`
+
+type UpdateUserOptionsParams struct {
+	CompletedWelcome sql.NullBool `json:"completed_welcome"`
+	UserID           string       `json:"user_id"`
+}
+
+func (q *Queries) UpdateUserOptions(ctx context.Context, arg UpdateUserOptionsParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserOptions, arg.CompletedWelcome, arg.UserID)
+	return err
 }

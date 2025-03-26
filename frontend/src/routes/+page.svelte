@@ -2,6 +2,7 @@
 	import { GridSolid, HomeSolid, ShoppingBagSolid, UsersSolid } from "flowbite-svelte-icons";
 	import { Button } from 'flowbite-svelte';
 	import { goto } from '$app/navigation';
+	import { updateUserOptions } from '$lib/api';
 
 	const screens = [
 		'welcome',
@@ -13,10 +14,13 @@
 
 	let currentScreen = $state(screens[0]);
 
-	const nextScreen = () => {
+	const nextScreen = async () => {
 		const nextIndex = screens.indexOf(currentScreen) + 1;
 		if (nextIndex < screens.length) currentScreen = screens[nextIndex];
-		else goto('/apps');
+		else {
+			await updateUserOptions({ completed_welcome: true });
+			await goto('/apps');
+		}
 	}
 
 	const previousScreen = () => {
