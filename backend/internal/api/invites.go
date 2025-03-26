@@ -42,14 +42,18 @@ type webhookError struct {
 
 func makeWebhookError(code int, message string) webhookError {
 	return webhookError{
-		Messages: []webhookErrorMessage{{
-			Messages: []webhookErrorMessageContents{{
-				Id:          code,
-				Text:        message,
-				MessageType: "error",
-				Context:     webhookErrorContext{},
-			}},
-		}},
+		Messages: []webhookErrorMessage{
+			{
+				Messages: []webhookErrorMessageContents{
+					{
+						Id:          code,
+						Text:        message,
+						MessageType: "error",
+						Context:     webhookErrorContext{},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -90,6 +94,7 @@ func CompleteInvite(queries *persistence.Queries, kratosAdmin kratos.IdentityAPI
 			return c.JSON(http.StatusInternalServerError, makeWebhookError(100, "Failed to read body"))
 		}
 
+		// Retrieves roles from the invitation code
 		var codeRequest invitationCodeRequest
 		if err = json.Unmarshal(reqBody, &codeRequest); err != nil {
 			return c.JSON(http.StatusBadRequest, makeWebhookError(101, "Invalid JSON body"))
@@ -102,13 +107,16 @@ func CompleteInvite(queries *persistence.Queries, kratosAdmin kratos.IdentityAPI
 		var rolesString []string
 		err = json.Unmarshal([]byte(inviteCode.Roles), &rolesString)
 
-		identityPatch := []kratos.JsonPatch{{
-			Op:   "replace",
-			Path: "/metadata_public",
-			Value: auth.MetadataPublic{
-				Roles: rolesString,
+		// Sets the roles in Ory Kratos
+		identityPatch := []kratos.JsonPatch{
+			{
+				Op:   "replace",
+				Path: "/metadata_public",
+				Value: auth.MetadataPublic{
+					Roles: rolesString,
+				},
 			},
-		}}
+		}
 
 		_, _, err = kratosAdmin.PatchIdentity(c.Request().Context(), codeRequest.UserId).
 			JsonPatch(identityPatch).
@@ -118,9 +126,15 @@ func CompleteInvite(queries *persistence.Queries, kratosAdmin kratos.IdentityAPI
 			return c.JSON(http.StatusInternalServerError, makeWebhookError(106, "Failed to patch invite"))
 		}
 
+		// Removes invite code from DB
 		err = queries.RemoveInviteCode(c.Request().Context(), codeRequest.InvitationCode)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, makeWebhookError(104, "Failed to remove invite code"))
+		}
+
+		// Creates user preferences row in DB
+		if err := queries.AddUser(c.Request().Context(), codeRequest.UserId); err != nil {
+			return c.JSON(http.StatusInternalServerError, makeWebhookError(105, "Error creating user settings in DB"))
 		}
 
 		return c.JSON(http.StatusOK, webhookError{Messages: []webhookErrorMessage{}})

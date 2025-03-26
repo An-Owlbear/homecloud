@@ -41,3 +41,8 @@ type PackageListItem struct {
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
 }
+
+type UserOption struct {
+	UserID           string `json:"user_id"`
+	CompletedWelcome bool   `json:"completed_welcome"`
+}

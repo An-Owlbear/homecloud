@@ -304,3 +304,15 @@ func InitialSetup(kratosAdmin kratos.IdentityAPI, queries *persistence.Queries) 
 		return c.Redirect(http.StatusFound, "/auth/registration?code="+inviteCode.Code)
 	}
 }
+
+func GetUserOptions(queries *persistence.Queries) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cc := c.(*config.Context)
+		options, err := queries.GetUserOptions(c.Request().Context(), cc.Session.Identity.Id)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get user options")
+		}
+
+		return c.JSON(http.StatusOK, options)
+	}
+}

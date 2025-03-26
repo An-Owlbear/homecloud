@@ -41,7 +41,8 @@ func StartSystem(
 			deviceConfig,
 		)
 		if err != nil {
-			return err
+			slog.Error("Error forwarding port: ", err)
+			//return err
 		}
 
 		err = networking.CheckPortForwarding(deviceConfig, hostConfig.Port)
