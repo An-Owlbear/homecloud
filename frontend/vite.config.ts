@@ -6,10 +6,10 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 export default defineConfig({
 	plugins: [sveltekit(), tailwindcss(), basicSsl()],
 	server: {
-		host: 'hc.anowlbear.com',
+		host: 'myserver.homecloudapp.com',
 		proxy: {
-			'/api': 'http://hc.anowlbear.com:1323',
-			'/assets/data': 'http://hc.anowlbear.com:1323'
+			'/api': 'https://myserver.homecloudapp.com',
+			'/assets/data': 'https://myserver.homecloudapp.com',
 		}
 	}
 });

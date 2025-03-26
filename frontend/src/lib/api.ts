@@ -5,7 +5,7 @@ import type {
 	PackageListItem,
 	SearchParams,
 	UpdateCheckResponse,
-	User
+	User, UserOptions
 } from '$lib/models';
 import { goto } from '$app/navigation';
 
@@ -135,6 +135,14 @@ export const restoreBackup = async (externalStorage: string, appId: string, back
 	if (!response.ok) {
 		await CheckAuthRedirect(response);
 	}
+}
+
+export const getUserOptions = async (): Promise<UserOptions> => {
+	const response = await fetch('/api/v1/account/options');
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+	return await response.json() as UserOptions;
 }
 
 export const CheckAuthRedirect = async (response: Response) => {

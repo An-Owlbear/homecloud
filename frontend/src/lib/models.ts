@@ -60,3 +60,8 @@ export type ExternalStorage = {
 	size: number,
 	available: number,
 }
+
+export type UserOptions = {
+	user_id: string,
+	completed_welcome: boolean
+}
