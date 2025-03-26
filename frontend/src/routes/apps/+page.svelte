@@ -37,6 +37,9 @@
 	</NavUl>
 </Navbar>
 <div class="container mx-auto my-10">
+	{#if apps.length === 0}
+		<h1 class="text-3xl font-bold">No apps installed</h1>
+	{/if}
 	<ul class="flex flex-wrap flex-row space-x-8">
 		{#each apps as app (app.id)}
 			<li class="app">
