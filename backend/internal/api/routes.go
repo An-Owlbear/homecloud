@@ -74,7 +74,7 @@ func AddRoutes(
 
 	apiAdmin.GET("/v1/backup/devices", ListExternalStorage())
 
-	e.GET("/auth/login", Login(kratosClient, serverConfig.Ory))
+	e.GET("/auth/login", Login(kratosClient, kratosIdentityAPI, serverConfig.Ory))
 	e.GET("/auth/registration", Registration(kratosClient, serverConfig.Ory))
 	e.GET("/auth/settings", Settings(kratosClient, serverConfig.Ory))
 	e.GET("/auth/recovery", Recovery(kratosClient))

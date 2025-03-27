@@ -28,11 +28,20 @@ type OryRequest struct {
 	LoginChallenge string `query:"login_challenge"`
 }
 
-func Login(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.HandlerFunc {
+func Login(kratosClient *kratos.APIClient, kratosAdmin kratos.IdentityAPI, oryConfig config.Ory) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// If there are no users in the system redirect to setup url
+		users, err := auth.ListUsers(c.Request().Context(), kratosAdmin)
+		if err != nil {
+			return err
+		}
+		if len(users) == 0 {
+			return c.Redirect(http.StatusFound, "/auth/setup")
+		}
+
 		// Parses the query parameters in request
 		var request OryRequest
-		err := c.Bind(&request)
+		err = c.Bind(&request)
 		if err != nil {
 			slog.Error(err.Error())
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid login request")
