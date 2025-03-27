@@ -122,6 +122,11 @@ func UninstallApp(
 			return c.String(500, err.Error())
 		}
 
+		// Removes volumes for app
+		if err := docker.RemoveAppVolumes(c.Request().Context(), dockerClient, appId); err != nil {
+			return c.String(500, err.Error())
+		}
+
 		return c.String(200, "App uninstalled!")
 	}
 }
