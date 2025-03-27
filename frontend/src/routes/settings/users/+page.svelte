@@ -43,7 +43,7 @@
 </div>
 <ul class="space-y-4">
 	{#each users as user (user.id)}
-		<UserCard user={user} onDelete={onDelete} />
+		<UserCard user={user} onDelete={onDelete} currentUser={user.id === data.userOptions.user_id} />
 	{/each}
 </ul>
 

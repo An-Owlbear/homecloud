@@ -4,9 +4,10 @@
 	import { UserCircleOutline } from 'flowbite-svelte-icons';
 	import { deleteUser } from '$lib/api';
 
-	const { user, onDelete }: {
+	const { user, onDelete, currentUser }: {
 		user: User,
 		onDelete: (user: User) => void,
+		currentUser: boolean
 	} = $props();
 	let loading = $state(false);
 
@@ -28,12 +29,14 @@
 		<Badge color="purple" class="text-xl">Admin</Badge>
 	{/if}
 	<div class="grow"></div>
-	<Button color="red" class={['text-lg', !loading && 'hover:cursor-pointer']} onclick={deleteUserFunc}>
-		{#if loading}
-			<Spinner size={5} color="white" />
-			<span>Deleting user</span>
-		{:else}
-			<span>Delete user</span>
-		{/if}
-	</Button>
+	{#if !currentUser}
+		<Button color="red" class={['text-lg', !loading && 'hover:cursor-pointer']} onclick={deleteUserFunc}>
+			{#if loading}
+				<Spinner size={5} color="white" />
+				<span>Deleting user</span>
+			{:else}
+				<span>Delete user</span>
+			{/if}
+		</Button>
+	{/if}
 </Card>

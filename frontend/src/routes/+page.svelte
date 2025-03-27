@@ -27,7 +27,6 @@
 		const previousIndex = screens.indexOf(currentScreen) - 1;
 		if (previousIndex >= 0) currentScreen = screens[previousIndex];
 	}
-
 </script>
 
 <div class="max-w-2xl mx-auto my-10 space-y-4 flex flex-col items-center text-center">
