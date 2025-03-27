@@ -74,3 +74,9 @@ export type StoreHome = {
 	popular_categories: string[],
 	new_apps: PackageListItem[],
 }
+
+export type RecoveryCode = {
+	expires_at: string,
+	recovery_code: string,
+	recovery_link: string
+}

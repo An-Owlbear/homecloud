@@ -2,7 +2,7 @@ import type {
 	ExternalStorage,
 	HomecloudApp,
 	InviteCode,
-	PackageListItem,
+	PackageListItem, RecoveryCode,
 	SearchParams, StoreHome,
 	UpdateCheckResponse, UpdateUserOptions,
 	User, UserOptions
@@ -159,6 +159,14 @@ export const getStoreHome = async () => {
 		await CheckAuthRedirect(response);
 	}
 	return await response.json() as StoreHome;
+}
+
+export const createRecoveryCode  = async (userId: string): Promise<RecoveryCode> => {
+	const response = await fetch(`/api/v1/users/${userId}/reset_password`, { method: 'POST' });
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+	return await response.json() as RecoveryCode;
 }
 
 export const CheckAuthRedirect = async (response: Response) => {

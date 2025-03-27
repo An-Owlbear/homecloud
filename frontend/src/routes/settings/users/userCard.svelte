@@ -4,10 +4,11 @@
 	import { UserCircleOutline } from 'flowbite-svelte-icons';
 	import { deleteUser } from '$lib/api';
 
-	const { user, onDelete, currentUser }: {
+	const { user, onDelete, currentUser, onRecover }: {
 		user: User,
 		onDelete: (user: User) => void,
-		currentUser: boolean
+		currentUser: boolean,
+		onRecover: (user: User) => void,
 	} = $props();
 	let loading = $state(false);
 
@@ -30,6 +31,7 @@
 	{/if}
 	<div class="grow"></div>
 	{#if !currentUser}
+		<Button color="purple" class="text-lg hover:cursor-pointer" onclick={() => onRecover(user)}>Recover account</Button>
 		<Button color="red" class={['text-lg', !loading && 'hover:cursor-pointer']} onclick={deleteUserFunc}>
 			{#if loading}
 				<Spinner size={5} color="white" />

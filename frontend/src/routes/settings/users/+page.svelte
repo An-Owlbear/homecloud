@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button, Heading, Modal, Skeleton, Toast } from 'flowbite-svelte';
 	import type { PageProps } from './$types';
-	import type { User } from '$lib/models';
+	import type { RecoveryCode, User } from '$lib/models';
 	import UserCard from './userCard.svelte';
-	import { inviteUser } from '$lib/api';
+	import { createRecoveryCode, inviteUser } from '$lib/api';
 	import { page } from '$app/state';
 	import { FileCopySolid } from 'flowbite-svelte-icons';
 	import { slide } from 'svelte/transition';
@@ -11,7 +11,7 @@
 
 	const { data }: PageProps = $props();
 	let users = $state([...data.users]);
-	let modalOpen = $state(false);
+	let inviteModalOpen = $state(false);
 	let inviteLink = $state<Promise<string>>(Promise.resolve(''));
 
 	const onDelete = (user: User) => {
@@ -23,7 +23,7 @@
 
 	const invite = (event: MouseEvent) => {
 		event.preventDefault();
-		modalOpen = true;
+		inviteModalOpen = true;
 
 		inviteLink = (async () => {
 			const inviteCode = await inviteUser()
@@ -35,6 +35,21 @@
 		await navigator.clipboard.writeText(await inviteLink);
 		toasts.push({ content: 'Invite link copied!' });
 	}
+
+	let recoveryModalOpen = $state(false);
+	let recoveryCode = $state<Promise<RecoveryCode>>();
+
+	const recoverUser = (user: User) => {
+		recoveryModalOpen = true;
+		recoveryCode = createRecoveryCode(user.id);
+	}
+
+	const copyRecoveryLink = async () => {
+		if (recoveryCode !== undefined) {
+			await navigator.clipboard.writeText((await recoveryCode).recovery_link);
+		}
+		toasts.push({ content: 'Recovery link copied!' });
+	}
 </script>
 
 <div class="mb-4 flex flex-row justify-between items-center">
@@ -43,11 +58,11 @@
 </div>
 <ul class="space-y-4">
 	{#each users as user (user.id)}
-		<UserCard user={user} onDelete={onDelete} currentUser={user.id === data.userOptions.user_id} />
+		<UserCard user={user} onDelete={onDelete} currentUser={user.id === data.userOptions.user_id} onRecover={recoverUser} />
 	{/each}
 </ul>
 
-<Modal title="Invite new user" bind:open={modalOpen} outsideclose>
+<Modal title="Invite new user" bind:open={inviteModalOpen} outsideclose>
 	{#await inviteLink}
 		<span class="block text-md">Creating new invite code</span>
 		<Skeleton />
@@ -58,5 +73,21 @@
 			<FileCopySolid size="lg" />
 			<span class="text-md truncate">{inviteLink}</span>
 		</Button>
+	{/await}
+</Modal>
+
+<Modal title="Recover user" bind:open={recoveryModalOpen} outsideclose>
+	{#await recoveryCode}
+		<span class="block text-md">Creating recovery code</span>
+		<Skeleton />
+	{:then recoveryCode}
+		<span class="block text-md">The user can recover their account by resetting their password using the following link and code</span>
+		<span class="block text-md">Click the link below to copy</span>
+		<Button class="w-full space-x-2 hover:cursor-pointer" color="alternative" onclick={copyRecoveryLink}>
+			<FileCopySolid size="lg" />
+			<span class="text-md truncate">{recoveryCode?.recovery_link}</span>
+		</Button>
+		<span class="block text-md">They'll also need to use the following code to reset their password</span>
+		<span class="block text-2xl">{recoveryCode?.recovery_code}</span>
 	{/await}
 </Modal>
