@@ -25,9 +25,7 @@ func TryMapPort(ctx context.Context, externalPort uint16, internalPort uint16, d
 		return err
 	}
 
-	_ = client.DeletePortMapping("", externalPort, "TCP")
-
-	err = client.AddPortMapping("", externalPort, "TCP", internalPort, privateIP.String(), true, "Homecloud", 3600)
+	err = client.AddPortMapping("", externalPort, "TCP", internalPort, privateIP.String(), true, "Homecloud", 7200)
 	if err != nil {
 		return err
 	}
