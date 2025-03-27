@@ -2,6 +2,7 @@ package launcher
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os/exec"
@@ -130,6 +131,7 @@ func SetSubdomainHandler(
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save config")
 		}
 
+		hostConfig.Host = fmt.Sprintf("%s.homecloudapp.com", req.Subdomain)
 		err = StartSystem(dockerClient, storeClient, hostConfig, oryConfig, storageConfig, launcherEnvConfig, deviceConfig)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
