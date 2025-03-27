@@ -3,6 +3,7 @@ package launcher
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/apps"
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
@@ -50,6 +51,25 @@ func StartSystem(
 			slog.Error("Error checking port forwarding: ", err)
 			//return err
 		}
+
+		ticker := time.NewTicker(time.Hour)
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					err = networking.TryMapPort(
+						context.Background(),
+						uint16(hostConfig.Port),
+						uint16(hostConfig.Port),
+						deviceConfig,
+					)
+					if err != nil {
+						slog.Error("Error forwarding port: ", err)
+						//return err
+					}
+				}
+			}
+		}()
 	}
 
 	return nil
