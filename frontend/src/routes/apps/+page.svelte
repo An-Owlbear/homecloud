@@ -32,7 +32,7 @@
 		</NavLi>
 		<NavLi href="/user" class="flex flex-row items-center space-x-2">
 			<UserCircleSolid />
-			<span>Account</span>
+			<span>My Account</span>
 		</NavLi>
 	</NavUl>
 </Navbar>

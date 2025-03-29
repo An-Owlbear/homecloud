@@ -18,7 +18,7 @@
 		</NavLi>
 		<NavLi href="/store/search" class="flex flex-row items-center gap-2">
 			<SearchOutline />
-			<span>Search</span>
+			<span>Search Apps</span>
 		</NavLi>
 		<NavLi href="/apps" class="flex flex-row items-center gap-2">
 			<ArrowLeftToBracketOutline />
