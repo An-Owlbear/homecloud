@@ -1,0 +1,48 @@
+{
+  "schema": "v1.0",
+  "version": "v2.9.3",
+  "id": "linkwarden.linkwarden",
+  "name": "linkwarden",
+  "author": "linkwarden",
+  "description": "Your all-in-one collaborative tool for collecting and preserving useful webpages and documents.",
+  "categories": ["organization", "bookmarks", "archiving"],
+  "oidc_enabled": true,
+  "oidc_scopes": [
+    "openid",
+    "email",
+    "profile"
+  ],
+  "containers": [
+    {
+      "name": "postgres",
+      "image": "postgres:16-alpine",
+      "volumes": [
+        "pgdata:/var/lib/postgresql/data"
+      ],
+      "environment": {
+        "POSTGRES_PASSWORD": "linkwardenpass"
+      }
+    },
+    {
+      "name": "linkwarden",
+      "image": "ghcr.io/linkwarden/linkwarden:v2.9.3",
+      "environment": {
+        "DATABASE_URL": "postgresql://postgres:linkwardenpass@postgres:5432/postgres",
+        "NEXT_PUBLIC_AUTHENTIK_ENABLED": "true",
+        "NEXT_PUBLIC_DISABLE_REGISTRATION": "true",
+        "NEXT_PUBLIC_CREDENTIALS_ENABLED": "false",
+        "AUTHENTIK_CUSTOM_NAME": "Homecloud",
+        "AUTHENTIK_ISSUER": "{{.OAuthIssuerUrl}}",
+        "AUTHENTIK_CLIENT_ID": "{{.OAuthClientID}}",
+        "AUTHENTIK_CLIENT_SECRET": "{{.OAuthClientSecret}}",
+        "NEXTAUTH_URL": "{{.AppUrl}}/api/v1/auth",
+        "NEXTAUTH_SECRET": "nextauthsecretvalue"
+      },
+      "proxy_target": true,
+      "proxy_port": "3000",
+      "oidc_redirect_uris": [
+        "/api/v1/auth/callback/authentik"
+      ]
+    }
+  ]
+}

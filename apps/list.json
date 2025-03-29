@@ -11,6 +11,18 @@
     ]
   },
   {
+    "id": "linkwarden.linkwarden",
+    "name": "linkwarden",
+    "version": "v2.9.3",
+    "author": "linkwarden",
+    "description": "Your all-in-one collaborative tool for collecting and preserving useful webpages and documents.",
+    "categories": [
+      "organization",
+      "bookmarks",
+      "archiving"
+    ]
+  },
+  {
     "id": "paperless-ngx.paperless-ngx",
     "name": "paperless-ngx",
     "version": "v1.0",
