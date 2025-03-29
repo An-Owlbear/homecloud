@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Badge, Button, Card, Dropdown, DropdownItem, Spinner } from 'flowbite-svelte';
+	import { Badge, Button, Card, Dropdown, DropdownItem, Modal, Spinner } from 'flowbite-svelte';
 	import { DotsVerticalOutline } from 'flowbite-svelte-icons';
 	import { AppStatus, type HomecloudApp } from '$lib/models';
 	import { CheckAuthRedirect, uninstallApp } from '$lib/api';
@@ -21,6 +21,13 @@
 	let loading = $state(false);
 	let loadingMessage = $state('');
 	let dropdown = $state(false);
+	let uninstallModalOpen = $state(false);
+
+	const showUninstallModal = (event: MouseEvent) => {
+		event.preventDefault();
+		dropdown = false;
+		uninstallModalOpen = true;
+	}
 
 	const uninstall = async (event: MouseEvent) => {
 		event.preventDefault();
@@ -81,8 +88,17 @@
 					<DropdownItem class="app-options" href={appUrl} target="_blank">Open app</DropdownItem>
 					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
 				{/if}
-				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={uninstall}>Uninstall app</DropdownItem>
+				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={showUninstallModal}>Uninstall app</DropdownItem>
 			</Dropdown>
 		</div>
 	{/if}
 </Card>
+
+<Modal bind:open={uninstallModalOpen} size="sm" autoclose>
+	<h2 class="mb-4 text-xl font-semibold">Are you sure you want to uninstall {app.name}</h2>
+	<p class="mb-4 text-md">All app data will be removed</p>
+	<div class="flex flex-row justify-between items-center gap-3">
+		<Button color="alternative" class="hover:cursor-pointer">Cancel</Button>
+		<Button color="red" onclick={uninstall} class="hover:cursor-pointer">Uninstall</Button>
+	</div>
+</Modal>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Card, Spinner } from 'flowbite-svelte';
+	import { Button, Card, Modal, Spinner } from 'flowbite-svelte';
 	import { TrashBinOutline } from 'flowbite-svelte-icons';
 	import type { HomecloudApp } from '$lib/models';
 	import { uninstallApp } from '$lib/api';
@@ -12,6 +12,12 @@
 
 	let loading = $state(false);
 	let status = $state('');
+	let uninstallModalOpen = $state(false);
+
+	const showUninstallModal = (event: MouseEvent) => {
+		event.preventDefault();
+		uninstallModalOpen = true;
+	}
 
 	const uninstall = async (app: HomecloudApp) => {
 		loading = true;
@@ -35,7 +41,7 @@
 	<Button class="hover:cursor-pointer self-center cancel-hover" href="/apps/{app.id}/restore">
 		<span class="text-lg">Restore app data</span>
 	</Button>
-	<Button class={['self-center', 'space-x-2', 'cancel-hover', !loading && 'hover:cursor-pointer']} onclick={() => uninstall(app)}>
+	<Button class={['self-center', 'space-x-2', 'cancel-hover', !loading && 'hover:cursor-pointer']} onclick={showUninstallModal}>
 		{#if loading}
 			<Spinner size={5} color="white" />
 			<span class="text-lg">{status}</span>
@@ -45,3 +51,12 @@
 		{/if}
 	</Button>
 </Card>
+
+<Modal bind:open={uninstallModalOpen} size="sm" autoclose>
+	<h2 class="mb-4 text-xl font-semibold">Are you sure you want to uninstall {app.name}</h2>
+	<p class="mb-4 text-md">All app data will be removed</p>
+	<div class="flex flex-row justify-between items-center gap-3">
+		<Button color="alternative" class="hover:cursor-pointer">Cancel</Button>
+		<Button color="red" onclick={() => uninstall(app)} class="hover:cursor-pointer">Uninstall</Button>
+	</div>
+</Modal>
