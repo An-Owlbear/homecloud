@@ -5,7 +5,7 @@ import (
 )
 
 templ Registration(flow kratos.UiContainer, inviteCodeRequest string) {
-    @Layout("Registration") {
+    @Layout("Homecloud Account Registration") {
         <div class="auth-container">
             <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
                 <h1>Registration</h1>
