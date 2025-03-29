@@ -46,6 +46,7 @@ build_launcher version os arch:
     cd ../setup-frontend && pnpm run build
     cp -R ../setup-frontend/build build/launcher_spa
     cd build && gtar -cvzf homecloud-{{version}}-{{os}}-{{arch}}.tar.gz ory_config launcher .env launcher_spa --owner=0 --group=0 --no-same-owner --no-same-permissions
+    rm -rf build/launcher_spa build/ory_config build/.env build/launcher
 
 build_docker version:
     cd ../ && docker buildx build -t ghcr.io/an-owlbear/homecloud:{{version}} .
