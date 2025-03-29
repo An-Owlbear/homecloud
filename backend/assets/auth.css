@@ -83,3 +83,10 @@ html, body {
     border-radius: 0.25rem;
     margin-bottom: 1rem;
 }
+
+.checkbox-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+}

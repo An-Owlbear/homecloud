@@ -28,6 +28,12 @@ templ Node(node kratos.UiNode) {
                 autocomplete={ getInputNodeAutocomplete(node) }
                 value={ getInputNodeValue(node) }
             >
+            if node.Attributes.UiNodeInputAttributes.Type == "password" {
+                <div class="checkbox-container">
+                    <input type="checkbox" id={ node.Attributes.UiNodeInputAttributes.Name + "-show-password" } onchange="toggleShowPassword(event)">
+                    <label for={ node.Attributes.UiNodeInputAttributes.Name + "-show-password" }>Show {node.Attributes.UiNodeInputAttributes.Name}</label>
+                </div>
+            }
         </div>
         for _, message := range node.Messages {
             <span class="form-input-message">{ message.Text }</span>
