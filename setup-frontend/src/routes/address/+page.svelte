@@ -33,8 +33,10 @@
 		<ArrowLeftOutline size="lg" class="me-2" />
 		<p>Back</p>
 	</a>
-	<h1 class="text-3xl font-bold mb-4">Configure server address</h1>
-	<p class="mb-4">To access your homecloud server outside your home network you'll need to have an address registered.</p>
+	<h1 class="text-3xl font-bold mb-4">Configure Homecloud online address</h1>
+	<p class="mb-4">To access your Homecloud outside your home network you'll need to have an web address registered.</p>
+	<p class="mb-4">This address will be used like any web address in you browser to access your Homecloud. For example if you registered the address 'example' you would be able to access your Homecloud by going to 'example.homecloudapp.com'</p>
+	<p class="mb-4">You will still need to login after this, so only you and family and friends you invite can access it.</p>
 	<p>This must:</p>
 	<List class="mb-4" list="none">
 		<Li icon>
@@ -52,7 +54,7 @@
 		</Li>
 	</List>
 	<div>
-		<Label class="mb-2" for="chosen-address">Address to access your server</Label>
+		<Label class="mb-2" for="chosen-address">Address to access your Homecloud</Label>
 		<ButtonGroup class="w-full mb-4" size="md">
 			<Input id="chosen-address" placeholder="Server address" bind:value={subdomain} color={displayInputError ? 'red' : 'base'} disabled={registerDomainLoading} />
 			<InputAddon>.homecloudapp.com</InputAddon>
@@ -60,7 +62,7 @@
 		<Button class={['w-full flex flex-row items-center gap-2', validSubmit && 'cursor-pointer']} disabled={!validSubmit} onclick={registerDomainBtn}>
 			{#if registerDomainLoading}
 				<Spinner size="5" />
-				<span>Registering domain</span>
+				<span>Registering address</span>
 			{:else}
 				Register address
 			{/if}
