@@ -2,22 +2,25 @@
   {
     "id": "homecloud.app",
     "name": "homecloud",
-    "version": "v0.1.1",
+    "version": "v0.1.8",
     "author": "homecloud",
-    "description": "A home server management app"
+    "description": "A home server management app",
+    "categories": null
   },
   {
     "id": "ory.hydra",
     "name": "hydra",
-    "version": "v2.2.0",
+    "version": "v2.2.1",
     "author": "ory",
-    "description": "A headless identity management system"
+    "description": "A headless identity management system",
+    "categories": null
   },
   {
     "id": "ory.kratos",
     "name": "kratos",
     "version": "v1.1.0",
     "author": "ory",
-    "description": "A headless identity management system"
+    "description": "A headless identity management system",
+    "categories": null
   }
 ]
