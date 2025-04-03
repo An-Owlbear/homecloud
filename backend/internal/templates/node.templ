@@ -1,5 +1,7 @@
 package templates
 
+import "strings"
+
 import kratos "github.com/ory/kratos-client-go"
 
 templ Node(node kratos.UiNode) {
@@ -36,7 +38,13 @@ templ Node(node kratos.UiNode) {
             }
         </div>
         for _, message := range node.Messages {
-            <span class="form-input-message">{ message.Text }</span>
+            <span class="form-input-message">
+                if message.Id == 4000002 {
+                    You must enter a { strings.ToLower(node.Meta.Label.Text) } to continue
+                } else {
+                    { message.Text }
+                }
+            </span>
         }
     }
 }

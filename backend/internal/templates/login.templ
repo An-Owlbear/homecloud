@@ -6,7 +6,7 @@ templ Login(flow kratos.UiContainer) {
     @Layout("login") {
         <div class="auth-container">
             <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
-                <h1>Homecloud Login</h1>
+                <h1>Homecloud User Login</h1>
                 for _, message := range flow.Messages {
                     <span class="form-input-message">{ message.Text }</span>
                 }

@@ -67,7 +67,7 @@ func Registration(flow kratos.UiContainer, inviteCodeRequest string) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"auth-form\"><h1>Registration</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"auth-form\"><h1>Homecloud User Registration</h1><span>Enter your details to create your user on this Homecloud</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -79,7 +79,7 @@ func Registration(flow kratos.UiContainer, inviteCodeRequest string) templ.Compo
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(message.Text)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/registration.templ`, Line: 13, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/registration.templ`, Line: 14, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -97,7 +97,7 @@ func Registration(flow kratos.UiContainer, inviteCodeRequest string) templ.Compo
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(inviteCodeRequest)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/registration.templ`, Line: 15, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/registration.templ`, Line: 16, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -119,7 +119,7 @@ func Registration(flow kratos.UiContainer, inviteCodeRequest string) templ.Compo
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Layout("Homecloud Account Registration").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout("Homecloud User Registration").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

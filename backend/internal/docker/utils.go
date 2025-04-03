@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -20,5 +21,13 @@ func UntilRemoved(ctx context.Context, dockerClient *client.Client, containerId 
 		return nil
 	}
 
+	return nil
+}
+
+func UntilHealthy(ctx context.Context, dockerClient *client.Client, containerId string) error {
+	err := UntilState(dockerClient, containerId, ContainerRunning, time.Second*20, time.Millisecond*10)
+	if err != nil {
+		return err
+	}
 	return nil
 }

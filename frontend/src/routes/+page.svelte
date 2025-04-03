@@ -47,6 +47,7 @@
 		<UsersSolid class="w-25 h-25" />
 		<p class="text-xl">You can easily invite friends and family to use and your online apps</p>
 		<p class="text-xl">These users won't have permission to install new apps so you won't have to worry about someone else making changes</p>
+		<p class="text-xl">Users can be invited and managed from the settings page</p>
 	{:else if currentScreen === screens[4]}
 		<h1 class="text-5xl font-bold">Start</h1>
 		<p class="text-xl">That's all you need to know to use Homecloud, click the 'Next' button below to start!</p>

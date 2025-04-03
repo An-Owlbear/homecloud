@@ -5,10 +5,11 @@ import (
 )
 
 templ Registration(flow kratos.UiContainer, inviteCodeRequest string) {
-    @Layout("Homecloud Account Registration") {
+    @Layout("Homecloud User Registration") {
         <div class="auth-container">
             <form action={ templ.SafeURL(flow.Action) } method={ getUiContainerMethod(flow) } class="auth-form">
-                <h1>Registration</h1>
+                <h1>Homecloud User Registration</h1>
+                <span>Enter your details to create your user on this Homecloud</span>
                 for _, message := range flow.Messages {
                     <span class="form-input-message">{ message.Text }</span>
                 }
