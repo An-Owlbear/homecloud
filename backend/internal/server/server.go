@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
@@ -63,6 +64,21 @@ func CreateServer() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Sets up function to automatically refresh package list
+	storeTicker := time.NewTicker(time.Hour)
+	go func() {
+		for {
+			select {
+			case <-storeTicker.C:
+				slog.Info("Updating package list...")
+				err := storeClient.UpdatePackageList(context.Background(), queries)
+				if err != nil {
+					slog.Error(err.Error())
+				}
+			}
+		}
+	}()
 
 	// Sets up ory hydra client
 	hydraAdminConfig := hydra.NewConfiguration()
