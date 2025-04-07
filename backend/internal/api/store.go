@@ -120,6 +120,11 @@ func AddPackage(
 		}
 
 		// Creates oauth2 client for the app if required
+		tokenAuthMethod := "client_secret_basic"
+		if app.OidcEndpointAuthMethod != nil {
+			tokenAuthMethod = *app.OidcEndpointAuthMethod
+		}
+
 		var clientId string
 		var clientSecret string
 		if app.OidcEnabled {
@@ -139,6 +144,7 @@ func AddPackage(
 				app.Name,
 				strings.Join(app.OidcScopes[:], " "),
 				redirectUris,
+				tokenAuthMethod,
 			)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

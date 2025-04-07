@@ -1,16 +1,17 @@
 package persistence
 
 type AppPackage struct {
-	Schema      string             `json:"schema"`
-	Version     string             `json:"version"`
-	Id          string             `json:"id"`
-	Name        string             `json:"name"`
-	Author      string             `json:"author"`
-	Description string             `json:"description"`
-	Categories  []string           `json:"categories"`
-	OidcEnabled bool               `json:"oidc_enabled"`
-	OidcScopes  []string           `json:"oidc_scopes"`
-	Containers  []PackageContainer `json:"containers"`
+	Schema                 string             `json:"schema"`
+	Version                string             `json:"version"`
+	Id                     string             `json:"id"`
+	Name                   string             `json:"name"`
+	Author                 string             `json:"author"`
+	Description            string             `json:"description"`
+	Categories             []string           `json:"categories"`
+	OidcEnabled            bool               `json:"oidc_enabled"`
+	OidcScopes             []string           `json:"oidc_scopes"`
+	Containers             []PackageContainer `json:"containers"`
+	OidcEndpointAuthMethod *string            `json:"oidc_endpoint_auth_method"`
 }
 
 type PackageContainer struct {
