@@ -42,13 +42,13 @@ func StartSystem(
 			deviceConfig,
 		)
 		if err != nil {
-			slog.Error("Error forwarding port: ", err)
+			slog.Error("Error forwarding port: " + err.Error())
 			//return err
 		}
 
 		err = networking.CheckPortForwarding(deviceConfig, hostConfig.Port)
 		if err != nil {
-			slog.Error("Error checking port forwarding: ", err)
+			slog.Error("Error checking port forwarding: " + err.Error())
 			//return err
 		}
 
@@ -64,7 +64,7 @@ func StartSystem(
 						deviceConfig,
 					)
 					if err != nil {
-						slog.Error("Error forwarding port: ", err)
+						slog.Error("Error forwarding port: " + err.Error())
 						//return err
 					}
 				}
