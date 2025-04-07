@@ -70,7 +70,7 @@ func TestUpdateApps(t *testing.T) {
 	}
 
 	// Install and update app
-	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig)
+	err = docker.InstallApp(dockerClient, app, testutils.BasicHostConfig, storageConfig, testutils.BasicDockerConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
@@ -97,7 +97,7 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error saving app to DB: %s", err.Error())
 	}
 
-	err = UpdateApps(dockerClient, storeClient, queries, config.Ory{}, testutils.BasicHostConfig, storageConfig)
+	err = UpdateApps(dockerClient, storeClient, queries, config.Ory{}, testutils.BasicHostConfig, storageConfig, testutils.BasicDockerConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
 	}

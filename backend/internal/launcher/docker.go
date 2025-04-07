@@ -107,7 +107,8 @@ func TemplateInstall(
 		return err
 	}
 
-	return docker.InstallApp(dockerClient, parsedTemplate, hostConfig, storageConfig)
+	// Docker config is empty, as it only specifies the container name for proxying, which is unused for the launcher
+	return docker.InstallApp(dockerClient, parsedTemplate, hostConfig, storageConfig, config.Docker{})
 }
 
 func FollowLogs(dockerClient *client.Client) error {

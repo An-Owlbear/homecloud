@@ -90,6 +90,7 @@ func AddPackage(
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
+	dockerConfig config.Docker,
 	appDataHandler *storage.AppDataHandler,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -188,7 +189,7 @@ func AddPackage(
 		}
 
 		// Install and sets up app containers
-		err = docker.InstallApp(dockerClient, parsedTemplatedApp, hostConfig, storageConfig)
+		err = docker.InstallApp(dockerClient, parsedTemplatedApp, hostConfig, storageConfig, dockerConfig)
 		if err != nil {
 			return c.String(500, err.Error())
 		}
@@ -220,9 +221,10 @@ func UpdateApps(
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
+	dockerConfig config.Docker,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := apps.UpdateApps(dockerClient, storeClient, queries, oryConfig, hostConfig, storageConfig)
+		err := apps.UpdateApps(dockerClient, storeClient, queries, oryConfig, hostConfig, storageConfig, dockerConfig)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

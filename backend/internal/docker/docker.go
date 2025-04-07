@@ -46,6 +46,7 @@ func InstallApp(
 	app persistence.AppPackage,
 	serverHostConfig config.Host,
 	storageConfig config.Storage,
+	dockerConfig config.Docker,
 ) error {
 	// Creates the network if it doesn't already exist
 	networkId, err := GetOrCreateNetwork(context.Background(), dockerClient, app.Id, map[string]string{
@@ -182,7 +183,7 @@ func InstallApp(
 			}
 
 			// Ensures main container is connected to proxy network
-			if err := dockerClient.NetworkConnect(context.Background(), proxyNetworkId, "homecloud.app-homecloud", &network.EndpointSettings{}); err != nil {
+			if err := dockerClient.NetworkConnect(context.Background(), proxyNetworkId, dockerConfig.ContainerName, &network.EndpointSettings{}); err != nil {
 				return err
 			}
 			networkingConfig.EndpointsConfig[proxyNetworkId] = &network.EndpointSettings{NetworkID: proxyNetworkId}

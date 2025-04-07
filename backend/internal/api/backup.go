@@ -62,6 +62,7 @@ func RestoreApp(
 	hostConfig config.Host,
 	storageConfig config.Storage,
 	oryConfig config.Ory,
+	dockerConfig config.Docker,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		appId := c.Param("appId")
@@ -70,7 +71,7 @@ func RestoreApp(
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err := apps.RestoreApp(c.Request().Context(), dockerClient, queries, hosts, appDataHandler, hostConfig, storageConfig, oryConfig, appId, request.TargetDevice, request.Backup)
+		err := apps.RestoreApp(c.Request().Context(), dockerClient, queries, hosts, appDataHandler, hostConfig, storageConfig, oryConfig, dockerConfig, appId, request.TargetDevice, request.Backup)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

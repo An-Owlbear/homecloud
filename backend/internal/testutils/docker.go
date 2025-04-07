@@ -40,6 +40,10 @@ var BasicHostConfig = config.Host{
 	PortForward: true,
 }
 
+var BasicDockerConfig = config.Docker{
+	ContainerName: "homecloud.app-test",
+}
+
 // CreateDindClient creates a containerised docker environment for testing. This environment should be
 // removed using CleanupDocker at the end
 // This method is much slower and therefore may be worse for normal development. Investigate
@@ -159,7 +163,7 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 		return
 	}
 
-	containerInfo, err := dockerClient.ContainerCreate(context.Background(), &container.Config{Image: "traefik/whoami"}, nil, nil, nil, os.Getenv("HOMECLOUD_CONTAINER_NAME"))
+	containerInfo, err := dockerClient.ContainerCreate(context.Background(), &container.Config{Image: "traefik/whoami"}, nil, nil, nil, BasicDockerConfig.ContainerName)
 	if err != nil {
 		err = fmt.Errorf("couldn't created container in dind container: %w", err)
 		return

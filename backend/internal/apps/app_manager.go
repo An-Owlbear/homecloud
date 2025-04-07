@@ -26,6 +26,7 @@ func UpdateApps(
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
+	dockerConfig config.Docker,
 ) error {
 	err := storeClient.UpdatePackageList(context.Background(), queries)
 	if err != nil {
@@ -63,7 +64,7 @@ func UpdateApps(
 				return fmt.Errorf("UpdateApps: failed to remove containers: %w", err)
 			}
 
-			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig)
+			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig, dockerConfig)
 			if err != nil {
 				return fmt.Errorf("UpdateApps: failed to reinstall newer version fo app: %w", err)
 			}
@@ -265,6 +266,7 @@ func RestoreApp(
 	hostConfig config.Host,
 	storageConfig config.Storage,
 	oryConfig config.Ory,
+	dockerConfig config.Docker,
 	appId string,
 	targetDevice string,
 	targetBackup string,
@@ -315,7 +317,7 @@ func RestoreApp(
 		return fmt.Errorf("error retrieving app information: %w", err)
 	}
 
-	if err := docker.InstallApp(dockerClient, app.Schema, hostConfig, storageConfig); err != nil {
+	if err := docker.InstallApp(dockerClient, app.Schema, hostConfig, storageConfig, dockerConfig); err != nil {
 		return fmt.Errorf("error recreating app containers: %w", err)
 	}
 
