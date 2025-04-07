@@ -183,7 +183,8 @@ func InstallApp(
 			}
 
 			// Ensures main container is connected to proxy network
-			if err := dockerClient.NetworkConnect(context.Background(), proxyNetworkId, dockerConfig.ContainerName, &network.EndpointSettings{}); err != nil {
+			err = dockerClient.NetworkConnect(context.Background(), proxyNetworkId, dockerConfig.ContainerName, &network.EndpointSettings{})
+			if err != nil && !IsNetworkAlreadyConnectErr(err) {
 				return err
 			}
 			networkingConfig.EndpointsConfig[proxyNetworkId] = &network.EndpointSettings{NetworkID: proxyNetworkId}

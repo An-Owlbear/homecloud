@@ -41,10 +41,15 @@ func ConnectProxyNetworks(
 	dockerConfig config.Docker,
 ) error {
 	networks, err := dockerClient.NetworkList(ctx, network.ListOptions{
-		Filters: filters.NewArgs(filters.KeyValuePair{
-			Key:   "label",
-			Value: APP_ID_LABEL,
-		}),
+		Filters: filters.NewArgs(
+			filters.KeyValuePair{
+				Key:   "label",
+				Value: APP_ID_LABEL,
+			}, filters.KeyValuePair{
+				Key:   "name",
+				Value: "*-proxy",
+			},
+		),
 	})
 	if err != nil {
 		return fmt.Errorf("error listing proxy networks: %w", err)
@@ -52,10 +57,14 @@ func ConnectProxyNetworks(
 
 	for _, appNetwork := range networks {
 		err = dockerClient.NetworkConnect(ctx, appNetwork.ID, dockerConfig.ContainerName, &network.EndpointSettings{})
-		if err != nil && !(errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")) {
+		if err != nil && !IsNetworkAlreadyConnectErr(err) {
 			return fmt.Errorf("error connecting proxy network %s: %w", appNetwork.Name, err)
 		}
 	}
 
 	return nil
+}
+
+func IsNetworkAlreadyConnectErr(err error) bool {
+	return err != nil && errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")
 }
