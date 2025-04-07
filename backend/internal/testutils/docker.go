@@ -141,9 +141,37 @@ func CreateDindClient() (dockerClient *client.Client, err error) {
 	}
 
 	// Creates network on dind client
-	_, err = dockerClient.NetworkCreate(context.Background(), "homecloud.app", network.CreateOptions{})
+	networkInfo, err := dockerClient.NetworkCreate(context.Background(), "homecloud.app", network.CreateOptions{})
 	if err != nil {
 		err = fmt.Errorf("couldn't created network in dind container: %w", err)
+		return
+	}
+
+	// Creates a basic container on the dind network for networks to be connected to
+	reader, err := dockerClient.ImagePull(context.Background(), "traefik/whoami", image.PullOptions{})
+	if err != nil {
+		err = fmt.Errorf("couldn't pull image: %w", err)
+		return
+	}
+	_, err = io.ReadAll(reader)
+	if err != nil {
+		err = fmt.Errorf("couldn't pull image: %w", err)
+		return
+	}
+
+	containerInfo, err := dockerClient.ContainerCreate(context.Background(), &container.Config{Image: "traefik/whoami"}, nil, nil, nil, os.Getenv("HOMECLOUD_CONTAINER_NAME"))
+	if err != nil {
+		err = fmt.Errorf("couldn't created container in dind container: %w", err)
+		return
+	}
+	err = dockerClient.ContainerStart(context.Background(), containerInfo.ID, container.StartOptions{})
+	if err != nil {
+		err = fmt.Errorf("couldn't start container in dind container: %w", err)
+		return
+	}
+	err = dockerClient.NetworkConnect(context.Background(), networkInfo.ID, containerInfo.ID, &network.EndpointSettings{})
+	if err != nil {
+		err = fmt.Errorf("couldn't connect to container in dind container: %w", err)
 		return
 	}
 
@@ -187,10 +215,9 @@ func HelpTestAppPackage(
 	if err != nil {
 		t.Fatalf("Unexpected error search networking: %s", err.Error())
 	}
-	if len(networks) != 1 {
+	if len(networks) != 2 {
 		t.Fatalf("Unexpected number of tagged networks found: %d", len(networks))
 	}
-	appNetwork := networks[0]
 
 	// Checks there's the correct number of applications and that their information is as expected
 	results, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
@@ -219,9 +246,9 @@ func HelpTestAppPackage(
 	networkIds := slices.Collect(maps.Keys(result.NetworkSettings.Networks))
 	slices.Sort(networkIds)
 
-	expectedIds := []string{appNetwork.Name}
-	if app.Containers[0].ProxyTarget {
-		expectedIds = append(expectedIds, "homecloud.app")
+	expectedIds := make([]string, 0)
+	for _, appNetwork := range networks {
+		expectedIds = append(expectedIds, appNetwork.Name)
 	}
 	slices.Sort(expectedIds)
 

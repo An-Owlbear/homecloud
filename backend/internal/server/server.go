@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/docker"
 	"github.com/docker/docker/client"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -51,6 +52,11 @@ func CreateServer() {
 		panic(err)
 	}
 	defer dockerClient.Close()
+
+	// Connects current container to networks to reverse proxy
+	if err := docker.ConnectProxyNetworks(context.Background(), dockerClient, serverConfig.Docker); err != nil {
+		panic(err)
+	}
 
 	// Sets of database connection
 	db, err := persistence.SetupDB("db/data.db", backend.Migrations)

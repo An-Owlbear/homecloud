@@ -6,6 +6,7 @@ type Config struct {
 	Store    Store
 	Storage  Storage
 	Launcher LauncherEnv
+	Docker   Docker
 }
 
 func LoadConfig() (*Config, error) {
@@ -31,12 +32,15 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	docker := NewDocker()
+
 	return &Config{
 		Host:     *host,
 		Ory:      *ory,
 		Store:    *store,
 		Storage:  *storage,
 		Launcher: *launcher,
+		Docker:   *docker,
 	}, nil
 }
 

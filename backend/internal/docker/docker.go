@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/util"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -37,7 +38,6 @@ const (
 const APP_ID_LABEL = "AppID"
 const AppVersionLabel = "AppVersion"
 
-var TimeoutError = errors.New("container didn't start in time")
 var NotFoundError = errors.New("no containers for app found")
 var InvalidContainerError = errors.New("container has invalid configuration")
 
@@ -48,21 +48,12 @@ func InstallApp(
 	storageConfig config.Storage,
 ) error {
 	// Creates the network if it doesn't already exist
-	var networkId string
-	networkInspect, err := dockerClient.NetworkInspect(context.Background(), app.Id, network.InspectOptions{})
+	networkId, err := GetOrCreateNetwork(context.Background(), dockerClient, app.Id, map[string]string{
+		APP_ID_LABEL:    app.Id,
+		AppVersionLabel: app.Version,
+	})
 	if err != nil {
-		networkVar, err := dockerClient.NetworkCreate(context.Background(), app.Id, network.CreateOptions{
-			Labels: map[string]string{
-				APP_ID_LABEL:    app.Id,
-				AppVersionLabel: app.Version,
-			},
-		})
-		if err != nil {
-			return err
-		}
-		networkId = networkVar.ID
-	} else {
-		networkId = networkInspect.ID
+		return err
 	}
 
 	for _, containerDef := range app.Containers {
@@ -182,7 +173,19 @@ func InstallApp(
 		}
 		if containerDef.ProxyTarget {
 			// adds the network shared with homecloud api to the network config
-			networkingConfig.EndpointsConfig["homecloud.app"] = &network.EndpointSettings{NetworkID: "homecloud.app"}
+			proxyNetworkId, err := GetOrCreateNetwork(context.Background(), dockerClient, app.Id+"-proxy", map[string]string{
+				APP_ID_LABEL:    app.Id,
+				AppVersionLabel: app.Version,
+			})
+			if err != nil {
+				return err
+			}
+
+			// Ensures main container is connected to proxy network
+			if err := dockerClient.NetworkConnect(context.Background(), proxyNetworkId, "homecloud.app-homecloud", &network.EndpointSettings{}); err != nil {
+				return err
+			}
+			networkingConfig.EndpointsConfig[proxyNetworkId] = &network.EndpointSettings{NetworkID: proxyNetworkId}
 		}
 
 		_, err = dockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, networkingConfig, nil, containerName)
@@ -284,7 +287,37 @@ func UninstallApp(dockerClient *client.Client, appId string) error {
 	}
 
 	for _, networkResult := range networks {
-		err := dockerClient.NetworkRemove(context.Background(), networkResult.ID)
+		// Retrieves info from network inspect, this is necessary because for some reason networks structs from
+		// NetworkList don't have information of attached containers despite having the field
+		networkInspect, err := dockerClient.NetworkInspect(context.Background(), networkResult.ID, network.InspectOptions{})
+		if err != nil {
+			return err
+		}
+
+		// Disconnects all containers still attached, currently this will only be Homecloud attached to the proxy network
+		for containerID := range networkInspect.Containers {
+			err = dockerClient.NetworkDisconnect(context.Background(), networkResult.ID, containerID, true)
+			if err != nil {
+				return fmt.Errorf("failed to disconnect container %s: %w", containerID, err)
+			}
+		}
+
+		// Wait until containers have been removed
+		err = util.WaitUntil(func() (bool, error) {
+			networkInfo, err := dockerClient.NetworkInspect(context.Background(), networkResult.ID, network.InspectOptions{})
+			if err != nil {
+				return false, err
+			}
+			return len(networkInfo.Containers) == 0, nil
+		}, time.Second*10, time.Millisecond*50)
+		if err != nil {
+			networkInspect, _ := dockerClient.NetworkInspect(context.Background(), networkResult.ID, network.InspectOptions{})
+			fmt.Println(networkInspect.Containers)
+			return err
+		}
+
+		// Remove network
+		err = dockerClient.NetworkRemove(context.Background(), networkResult.ID)
 		if err != nil {
 			return err
 		}
@@ -324,7 +357,7 @@ func UntilState(
 		currentTimeout += interval
 	}
 
-	return TimeoutError
+	return fmt.Errorf("%w: container didn't reach state %s in  time", util.TimeoutError, state)
 }
 
 // AppFilter simple function for creating
