@@ -18,6 +18,33 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 )
 
+// CheckUpdateApps returns a list of apps with available updates
+func CheckUpdateApps(ctx context.Context, queries *persistence.Queries) ([]persistence.FullPackageListItem, error) {
+	apps, err := queries.GetApps(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	appsMap := make(map[string]persistence.GetAppsRow)
+	for _, app := range apps {
+		appsMap[app.ID] = app
+	}
+
+	packages, err := queries.GetPackages(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	packagesToUpdate := make([]persistence.FullPackageListItem, 0)
+	for _, appPackage := range packages {
+		if installedApp, ok := appsMap[appPackage.ID]; ok && semver.Compare(appPackage.Version, installedApp.Schema.Version) == 1 {
+			packagesToUpdate = append(packagesToUpdate, appPackage)
+		}
+	}
+
+	return packagesToUpdate, nil
+}
+
 // UpdateApps updates the list of available apps and updates any outdated apps
 func UpdateApps(
 	dockerClient *client.Client,

@@ -220,6 +220,17 @@ func CheckUpdates(storeClient *apps.StoreClient, queries *persistence.Queries) e
 	}
 }
 
+func CheckUpdateApps(queries *persistence.Queries) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		appsToUpdate, err := apps.CheckUpdateApps(c.Request().Context(), queries)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSONPretty(200, appsToUpdate, "  ")
+	}
+}
+
 func UpdateApps(
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,

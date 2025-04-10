@@ -35,16 +35,8 @@ func ListApps(queries *persistence.Queries) echo.HandlerFunc {
 		resList := make([]InstalledApp, 0)
 		for _, app := range appList {
 			resList = append(resList, InstalledApp{
-				PackageListItem: apps.PackageListItem{
-					Id:          app.ID,
-					Name:        app.Schema.Name,
-					Version:     app.Schema.Version,
-					Author:      app.Schema.Author,
-					Description: app.Schema.Description,
-					Categories:  app.Schema.Categories,
-					ImageUrl:    "/assets/data/" + app.ID + "/icon.png",
-				},
-				Status: app.Status,
+				PackageListItem: apps.NewPackageListItem(app),
+				Status:          app.Status,
 			})
 		}
 

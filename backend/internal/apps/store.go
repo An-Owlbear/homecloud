@@ -22,6 +22,18 @@ type PackageListItem struct {
 	ImageUrl    string   `json:"image_url"`
 }
 
+func NewPackageListItem(app persistence.GetAppsRow) PackageListItem {
+	return PackageListItem{
+		Id:          app.ID,
+		Name:        app.Schema.Name,
+		Version:     app.Schema.Version,
+		Author:      app.Schema.Author,
+		Description: app.Schema.Description,
+		Categories:  app.Schema.Categories,
+		ImageUrl:    "/assets/data/" + app.ID + "/icon.png",
+	}
+}
+
 type StoreClient struct {
 	config config.Store
 }
