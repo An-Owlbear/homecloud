@@ -67,7 +67,7 @@
   {
     "id": "traefik.whoami",
     "name": "whoami",
-    "version": "v1.6",
+    "version": "v1.7",
     "author": "traefik",
     "description": "Tiny Go webserver that prints OS information and HTTP request to output.",
     "categories": [

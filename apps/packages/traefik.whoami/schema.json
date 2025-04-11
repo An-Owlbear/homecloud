@@ -1,6 +1,6 @@
 {
   "schema": "v1.0",
-  "version": "v1.6",
+  "version": "v1.7",
   "id": "traefik.whoami",
   "name": "whoami",
   "author": "traefik",
@@ -9,7 +9,7 @@
   "containers": [
     {
       "name": "whoami",
-      "image": "traefik/whoami:v1.10.3",
+      "image": "traefik/whoami:v1.10.4",
       "proxy_target": true,
       "proxy_port": "80",
       "ports": [
