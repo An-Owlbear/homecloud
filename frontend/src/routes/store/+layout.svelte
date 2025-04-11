@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from "flowbite-svelte";
-	import { ArrowLeftToBracketOutline, ColumnOutline, SearchOutline, ShoppingBagSolid } from "flowbite-svelte-icons";
+	import { ArrowLeftToBracketOutline, ColumnOutline, DownloadOutline, SearchOutline, ShoppingBagSolid } from "flowbite-svelte-icons";
 
 	let { children } = $props();
 </script>
@@ -15,6 +15,10 @@
 		<NavLi href="/store/categories" class="flex flex-row items-center gap-2">
 			<ColumnOutline />
 			<span>Categories</span>
+		</NavLi>
+		<NavLi href="/store/updates" class="flex flex-row items-center gap-2">
+			<DownloadOutline />
+			<span>Updates</span>
 		</NavLi>
 		<NavLi href="/store/search" class="flex flex-row items-center gap-2">
 			<SearchOutline />

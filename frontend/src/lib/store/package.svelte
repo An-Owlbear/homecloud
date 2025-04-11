@@ -3,8 +3,9 @@
 	import type { PackageListItem } from '$lib/models';
 	import InstallButton from './installButton.svelte';
 
-	const { appPackage }: {
-		appPackage: PackageListItem
+	const { appPackage, showInstallBtn = true }: {
+		appPackage: PackageListItem,
+		showInstallBtn?: boolean,
 	} = $props();
 </script>
 
@@ -15,5 +16,7 @@
 		<span class="text-md">{appPackage.author}</span>
 	</div>
 	<div class="grow"></div>
-	<InstallButton appPackage={appPackage} />
+	{#if showInstallBtn}
+		<InstallButton appPackage={appPackage} />
+	{/if}
 </Card>

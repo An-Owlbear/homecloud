@@ -169,6 +169,28 @@ export const createRecoveryCode  = async (userId: string): Promise<RecoveryCode>
 	return await response.json() as RecoveryCode;
 }
 
+export const updatePackageList = async () => {
+	const response = await fetch('/api/v1/packages/update', { method: 'POST' });
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+}
+
+export const getAvailableUpdates = async (): Promise<PackageListItem[]> => {
+	const response = await fetch('/api/v1/apps/update');
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+	return await response.json() as Promise<PackageListItem[]>;
+}
+
+export const updateAppsRequest = async () => {
+	const response = await fetch('/api/v1/apps/update', { method: 'POST' });
+	if (!response.ok) {
+		await CheckAuthRedirect(response);
+	}
+}
+
 export const CheckAuthRedirect = async (response: Response) => {
 	if (response.status === 401) {
 		await goto('/auth/login');
