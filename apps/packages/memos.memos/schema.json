@@ -1,0 +1,29 @@
+{
+  "schema": "v1.0",
+  "version": "v0.24",
+  "id": "memos.memos",
+  "name": "memos",
+  "author": "memos",
+  "description": "A privacy-first, lightweight note-taking service. Easily capture and share your great thoughts.",
+  "categories": ["notes", "planning"],
+  "oidc_enabled": true,
+  "oidc_scopes": [
+    "openid",
+    "email",
+    "profile"
+  ],
+  "containers": [
+    {
+      "name": "memos",
+      "image": "neosmemo/memos:0.24",
+      "volumes": [
+        "memos-data:/var/opt/memos"
+      ],
+      "proxy_target": true,
+      "proxy_port": "5230",
+      "oidc_redirect_uris": [
+        "/auth/callback"
+      ]
+    }
+  ]
+}

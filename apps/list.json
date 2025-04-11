@@ -13,13 +13,34 @@
   {
     "id": "linkwarden.linkwarden",
     "name": "linkwarden",
-    "version": "v2.9.3",
+    "version": "v2.10.0",
     "author": "linkwarden",
     "description": "Your all-in-one collaborative tool for collecting and preserving useful webpages and documents.",
     "categories": [
       "organization",
       "bookmarks",
       "archiving"
+    ]
+  },
+  {
+    "id": "memos.memos",
+    "name": "memos",
+    "version": "v0.24",
+    "author": "memos",
+    "description": "A privacy-first, lightweight note-taking service. Easily capture and share your great thoughts.",
+    "categories": [
+      "notes",
+      "planning"
+    ]
+  },
+  {
+    "id": "miniflux.app",
+    "name": "miniflux",
+    "version": "v2.2.7",
+    "author": "miniflux",
+    "description": "Minimalist and opinionated feed reader",
+    "categories": [
+      "news"
     ]
   },
   {

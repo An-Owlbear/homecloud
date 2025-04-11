@@ -1,6 +1,6 @@
 {
   "schema": "v1.0",
-  "version": "v2.9.3",
+  "version": "v2.10.0",
   "id": "linkwarden.linkwarden",
   "name": "linkwarden",
   "author": "linkwarden",
@@ -24,8 +24,15 @@
       }
     },
     {
+      "name": "meilisearch",
+      "image": "getmeili/meilisearch:v1.12.8",
+      "volumes": [
+        "meili_data:/meili_data"
+      ]
+    },
+    {
       "name": "linkwarden",
-      "image": "ghcr.io/linkwarden/linkwarden:v2.9.3",
+      "image": "ghcr.io/linkwarden/linkwarden:v2.10.0",
       "environment": {
         "DATABASE_URL": "postgresql://postgres:linkwardenpass@postgres:5432/postgres",
         "NEXT_PUBLIC_AUTHENTIK_ENABLED": "true",
@@ -42,6 +49,9 @@
       "proxy_port": "3000",
       "oidc_redirect_uris": [
         "/api/v1/auth/callback/authentik"
+      ],
+      "volumes": [
+        "data:/data/data"
       ]
     }
   ]
