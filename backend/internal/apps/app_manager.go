@@ -91,11 +91,6 @@ func UpdateApps(
 				return fmt.Errorf("UpdateApps: failed to remove containers: %w", err)
 			}
 
-			err = docker.InstallApp(dockerClient, appPackage, hostConfig, storageConfig, dockerConfig)
-			if err != nil {
-				return fmt.Errorf("UpdateApps: failed to reinstall newer version fo app: %w", err)
-			}
-
 			schemaJson, err := json.Marshal(appPackage)
 			if err != nil {
 				return fmt.Errorf("UpdateApps: failed to marshal app package json: %w", err)
@@ -113,6 +108,17 @@ func UpdateApps(
 			)
 			if err != nil {
 				return fmt.Errorf("UpdateApps: failed to apply app template to data template files: %w", err)
+			}
+
+			var templatedPackage persistence.AppPackage
+			err = json.Unmarshal(templatedString.Bytes(), &templatedPackage)
+			if err != nil {
+				return fmt.Errorf("UpdateApps: failed to unmarshal app package json: %w", err)
+			}
+
+			err = docker.InstallApp(dockerClient, templatedPackage, hostConfig, storageConfig, dockerConfig)
+			if err != nil {
+				return fmt.Errorf("UpdateApps: failed to reinstall newer version fo app: %w", err)
 			}
 
 			err = queries.UpdateApp(
