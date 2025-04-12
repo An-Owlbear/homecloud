@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { Heading } from 'flowbite-svelte';
+	import { Button, Heading } from 'flowbite-svelte';
 	import type { HomecloudApp } from '$lib/models';
 	import App from './app.svelte';
 
@@ -15,7 +15,10 @@
 	}
 </script>
 
-<Heading tag="h1" class="w-auto mb-4" customSize="text-3xl font-medium">App settings</Heading>
+<div class="flex flex-row justify-between mb-4">
+	<Heading tag="h1" class="w-auto" customSize="text-3xl font-medium">App settings</Heading>
+	<Button class="hover:cursor-pointer" href="/store/updates">Check for updates in store</Button>
+</div>
 <ul class="space-y-3">
 	{#each apps as app (app.id)}
 		<li>
