@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -63,4 +65,41 @@ func ApplyAppTemplate(
 	}
 
 	return appTemplate.Execute(output, parameters)
+}
+
+func TemplateAppPackage(
+	input persistence.AppPackage,
+	oauthClientID string,
+	oauthClientSecret string,
+	oryConfig config.Ory,
+	hostConfig config.Host,
+	storageConfig config.Storage,
+) (persistence.AppPackage, error) {
+	packageBytes, err := json.Marshal(input)
+	if err != nil {
+		return persistence.AppPackage{}, err
+	}
+
+	var templateOutput bytes.Buffer
+	err = ApplyAppTemplate(
+		string(packageBytes),
+		&templateOutput,
+		input,
+		oauthClientID,
+		oauthClientSecret,
+		oryConfig,
+		hostConfig,
+		storageConfig,
+	)
+	if err != nil {
+		return persistence.AppPackage{}, err
+	}
+
+	var output persistence.AppPackage
+	err = json.Unmarshal(templateOutput.Bytes(), &output)
+	if err != nil {
+		return persistence.AppPackage{}, err
+	}
+
+	return output, nil
 }

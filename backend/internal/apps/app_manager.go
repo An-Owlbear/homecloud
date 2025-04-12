@@ -345,12 +345,18 @@ func RestoreApp(
 	}
 
 	// Recreates app containers
-	app, err := queries.GetApp(ctx, appId)
+	app, err := queries.GetAppWithCreds(ctx, appId)
 	if err != nil {
 		return fmt.Errorf("error retrieving app information: %w", err)
 	}
 
-	if err := docker.InstallApp(dockerClient, app.Schema, hostConfig, storageConfig, dockerConfig); err != nil {
+	// fills templated values in schema before starting
+	templatedApp, err := storage.TemplateAppPackage(app.Schema, app.ClientID.String, app.ClientSecret.String, oryConfig, hostConfig, storageConfig)
+	if err != nil {
+		return fmt.Errorf("error creating tempated app package: %w", err)
+	}
+
+	if err := docker.InstallApp(dockerClient, templatedApp, hostConfig, storageConfig, dockerConfig); err != nil {
 		return fmt.Errorf("error recreating app containers: %w", err)
 	}
 
