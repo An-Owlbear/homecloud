@@ -47,7 +47,7 @@ func ConnectProxyNetworks(
 				Value: APP_ID_LABEL,
 			}, filters.KeyValuePair{
 				Key:   "name",
-				Value: "*-proxy",
+				Value: "-proxy",
 			},
 		),
 	})
