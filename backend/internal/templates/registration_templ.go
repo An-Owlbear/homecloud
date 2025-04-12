@@ -67,7 +67,7 @@ func Registration(flow kratos.UiContainer, inviteCodeRequest string) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"auth-form\"><h1>Homecloud User Registration</h1><span>Enter your details to create your user on this Homecloud</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"auth-form\"><h1>Homecloud User Registration</h1><p>Enter your details to create your new account on your Homecloud</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
