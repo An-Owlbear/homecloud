@@ -12,7 +12,7 @@
 
 	const appUrl = (() => {
 		let pageUrl = new URL(page.url.toString());
-		pageUrl.hostname = `${app.name}.${pageUrl.hostname}`;
+		pageUrl.hostname = `${app.id}.${pageUrl.hostname}`;
 		pageUrl.pathname = '';
 		pageUrl.search = '';
 		return pageUrl.toString();

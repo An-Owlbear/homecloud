@@ -133,7 +133,7 @@ func AddPackage(
 				// If the redirect uri starts with a slash append the actual host
 				for _, redirectUri := range appContainer.OidcRedirectUris {
 					if strings.HasPrefix(redirectUri, "/") {
-						redirectUri = hostConfig.PublicSubdomain(app.Name) + redirectUri
+						redirectUri = hostConfig.PublicSubdomain(app.Id) + redirectUri
 					}
 					redirectUris = append(redirectUris, redirectUri)
 				}

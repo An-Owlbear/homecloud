@@ -59,7 +59,7 @@ func ApplyAppTemplate(
 		FullHostUrl:       hostUrl.String(),
 		HostPort:          hostConfig.Port,
 		HomecloudAppDir:   storageConfig.AppDir,
-		AppUrl:            hostConfig.PublicSubdomain(app.Name),
+		AppUrl:            hostConfig.PublicSubdomain(app.Id),
 		UrlScheme:         hostUrl.Scheme,
 		Environment:       string(config.GetEnvironment()),
 	}

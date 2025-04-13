@@ -184,7 +184,7 @@ func StartApp(
 	for _, packageContainer := range app.Schema.Containers {
 		if packageContainer.ProxyTarget {
 			err = hosts.AddProxy(
-				app.Schema.Name,
+				app.Schema.Id,
 				fmt.Sprintf("%s-%s", app.Schema.Id, packageContainer.Name),
 				packageContainer.ProxyPort,
 			)
