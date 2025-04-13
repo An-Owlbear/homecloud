@@ -61,8 +61,14 @@ export type ExternalStorage = {
 	available: number,
 }
 
+export enum UserRoles {
+	User = 'User',
+	Admin = 'Admin',
+}
+
 export type UserOptions = {
 	user_id: string,
+	user_roles: UserRoles[],
 	completed_welcome: boolean
 }
 

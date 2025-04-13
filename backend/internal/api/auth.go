@@ -315,6 +315,11 @@ func InitialSetup(kratosAdmin kratos.IdentityAPI, queries *persistence.Queries) 
 	}
 }
 
+type userOptionsResponse struct {
+	persistence.UserOption
+	UserRoles []string `json:"user_roles"`
+}
+
 func GetUserOptions(queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cc := c.(*config.Context)
@@ -323,7 +328,15 @@ func GetUserOptions(queries *persistence.Queries) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get user options")
 		}
 
-		return c.JSON(http.StatusOK, options)
+		userMetadata, err := auth.ParseMetadataPublic(cc.Session.Identity.MetadataPublic)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get user metadata")
+		}
+
+		return c.JSON(http.StatusOK, userOptionsResponse{
+			UserOption: options,
+			UserRoles:  userMetadata.Roles,
+		})
 	}
 }
 
