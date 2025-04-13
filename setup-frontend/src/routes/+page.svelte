@@ -8,7 +8,7 @@
 <div class="max-w-2xl p-5 mx-auto space-y-4">
 	<h1 class="text-3xl font-bold">Homecloud Setup</h1>
 	{#if !data.subdomain}
-		<p>Before you can start using your Homecloud you need to configure an online address to access it from</p>
+		<p>Before you can start using your Homecloud you need to configure an online address to access it from so you can use it outside of your home network</p>
 	{:else}
 		<p>Your Homecloud is setup and ready to access! You can change the domain from the link below if needed</p>
 	{/if}

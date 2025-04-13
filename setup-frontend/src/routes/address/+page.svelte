@@ -8,16 +8,26 @@
 	let registerDomainLoading = $state(false);
 
 	let subdomain = $state('');
-	let domainUnique = $derived.by(async () => {
-		if (!subdomain) {
-			return false;
-		}
+	let domainUnique = $state(false);
+	let domainUniqueChecking = $state(false);
 
-		return !(await checkSubdomainTaken(`${subdomain}.homecloudapp.com`));
+	$effect(() => {
+		const checkDomain = async (subdomain: string) => {
+			domainUnique = false;
+			if (!subdomain) {
+				return;
+			}
+
+			domainUniqueChecking = true;
+			domainUnique = !(await checkSubdomainTaken(`${subdomain}.homecloudapp.com`));
+			domainUniqueChecking = false;
+		}
+		checkDomain(subdomain);
 	});
 	let validChars = $derived(/^[a-zA-Z0-9\-]+$/.test(subdomain));
 	let validSize = $derived(!!subdomain && subdomain.length <= 20);
 	let validSubmit = $derived(domainUnique && validChars && validSize);
+
 	let displayInputError = $derived(!!subdomain && !registerDomainLoading && !validSubmit);
 
 	const registerDomainBtn = async () => {
@@ -40,11 +50,11 @@
 	<p>This must:</p>
 	<List class="mb-4" list="none">
 		<Li icon>
-			{#await domainUnique}
+			{#if domainUniqueChecking}
 				<ListCheck state="loading">Be unique</ListCheck>
-			{:then domainUnique}
+			{:else}
 				<ListCheck state={domainUnique ? 'passed' : 'failed'}>Be unique</ListCheck>
-			{/await}
+			{/if}
 		</Li>
 		<Li icon>
 			<ListCheck state={validChars ? 'passed' : 'failed'}>Contain only letters, number and dashes (-)</ListCheck>
