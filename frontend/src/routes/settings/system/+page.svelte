@@ -35,7 +35,7 @@
 			<Button class="hover:cursor-pointer" onclick={runUpdateSystem}>Update system</Button>
 		{:else}
 			<CheckCircleSolid class="w-20 h-20 text-green-500" />
-			<span class="text-2xl">System up to date! {JSON.stringify(updateNeeded)}</span>
+			<span class="text-2xl">System up to date!</span>
 		{/if}
 	{/await}
 </div>
