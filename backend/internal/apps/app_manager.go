@@ -50,6 +50,8 @@ func UpdateApps(
 	dockerClient *client.Client,
 	storeClient *StoreClient,
 	queries *persistence.Queries,
+	hosts *Hosts,
+	appDataHandler *storage.AppDataHandler,
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
@@ -129,6 +131,12 @@ func UpdateApps(
 			)
 			if err != nil {
 				return fmt.Errorf("UpdateApps: failed to update app entry in DB: %w", err)
+			}
+
+			// Starts app, including running new templates
+			err = StartApp(dockerClient, queries, hosts, appDataHandler, hostConfig, oryConfig, appPackage.Id)
+			if err != nil {
+				return fmt.Errorf("UpdateApps: failed to start app: %w", err)
 			}
 		}
 	}

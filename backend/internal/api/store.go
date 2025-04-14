@@ -235,13 +235,15 @@ func UpdateApps(
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,
 	queries *persistence.Queries,
+	hosts *apps.Hosts,
+	appDataHandler *storage.AppDataHandler,
 	oryConfig config.Ory,
 	hostConfig config.Host,
 	storageConfig config.Storage,
 	dockerConfig config.Docker,
 ) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		err := apps.UpdateApps(dockerClient, storeClient, queries, oryConfig, hostConfig, storageConfig, dockerConfig)
+		err := apps.UpdateApps(dockerClient, storeClient, queries, hosts, appDataHandler, oryConfig, hostConfig, storageConfig, dockerConfig)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

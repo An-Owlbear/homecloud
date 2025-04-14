@@ -8,7 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/storage"
 	"github.com/google/go-cmp/cmp"
+	"github.com/labstack/echo/v4"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose/v3"
 
@@ -45,8 +47,14 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error apply DB migrations: %s", err.Error())
 	}
 
-	storeClient := NewStoreClient(config.Store{StoreUrl: "https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps/list.json"})
+	storeConfig := config.Store{StoreUrl: "https://raw.githubusercontent.com/An-Owlbear/homecloud/07ea723942127e2b04e01de5b5e3d3e5158be27c/apps/list.json"}
+	storeClient := NewStoreClient(storeConfig)
 	storageConfig := testutils.SetupTempStorage()
+
+	hostsMap := make(map[string]*echo.Echo)
+	hosts := NewHosts(hostsMap, testutils.BasicHostConfig)
+
+	appDataHandler := storage.NewAppDataHandler(storageConfig, storeConfig)
 
 	app := persistence.AppPackage{
 		Schema:      "v1.0",
@@ -97,7 +105,7 @@ func TestUpdateApps(t *testing.T) {
 		t.Fatalf("Unexpected error saving app to DB: %s", err.Error())
 	}
 
-	err = UpdateApps(dockerClient, storeClient, queries, config.Ory{}, testutils.BasicHostConfig, storageConfig, testutils.BasicDockerConfig)
+	err = UpdateApps(dockerClient, storeClient, queries, hosts, appDataHandler, config.Ory{}, testutils.BasicHostConfig, storageConfig, testutils.BasicDockerConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error whilst updating apps: %s", err.Error())
 	}
