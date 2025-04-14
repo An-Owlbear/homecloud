@@ -29,10 +29,10 @@
 			<span>App store</span>
 		</NavLi>
 		{#if userOptions.user_roles.includes(UserRoles.Admin)}
-		<NavLi href="/settings" class="flex flex-row items-center space-x-2">
-			<CogSolid />
-			<span>Settings</span>
-		</NavLi>
+			<NavLi href="/settings" class="flex flex-row items-center space-x-2">
+				<CogSolid />
+				<span>Settings</span>
+			</NavLi>
 		{/if}
 		<NavLi href="/user" class="flex flex-row items-center space-x-2">
 			<UserCircleSolid />

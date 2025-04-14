@@ -62,8 +62,8 @@ export type ExternalStorage = {
 }
 
 export enum UserRoles {
-	User = 'User',
-	Admin = 'Admin',
+	User = 'user',
+	Admin = 'admin',
 }
 
 export type UserOptions = {

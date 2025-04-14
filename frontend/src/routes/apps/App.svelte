@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { Badge, Button, Card, Dropdown, DropdownItem, Modal, Spinner } from 'flowbite-svelte';
 	import { DotsVerticalOutline } from 'flowbite-svelte-icons';
-	import { AppStatus, type HomecloudApp } from '$lib/models';
+	import { AppStatus, type HomecloudApp, UserRoles } from '$lib/models';
 	import { CheckAuthRedirect, uninstallApp } from '$lib/api';
 	import { page } from '$app/state';
+	import { getUserOptionsState } from '$lib/userOptions.svelte';
 
 	const { app, onUninstall }: {
 		app: HomecloudApp
 		onUninstall: (app: HomecloudApp) => void
 	} = $props();
+
+	const isAdmin = $derived(getUserOptionsState().options.user_roles.includes(UserRoles.Admin));
 
 	const appUrl = (() => {
 		let pageUrl = new URL(page.url.toString());
@@ -83,12 +86,20 @@
 			</Button>
 			<Dropdown bind:open={dropdown}>
 				{#if app.status === AppStatus.Exited}
-					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
+					{#if isAdmin}
+						<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={start}>Start app</DropdownItem>
+					{:else}
+						<DropdownItem class="app-options">No options available</DropdownItem>
+					{/if}
 				{:else if app.status === AppStatus.Running}
 					<DropdownItem class="app-options" href={appUrl} target="_blank">Open app</DropdownItem>
-					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
+					{#if isAdmin}
+						<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={stop}>Stop app</DropdownItem>
+					{/if}
 				{/if}
-				<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={showUninstallModal}>Uninstall app</DropdownItem>
+				{#if isAdmin}
+					<DropdownItem class="app-options hover:cursor-pointer" role="button" on:click={showUninstallModal}>Uninstall app</DropdownItem>
+				{/if}
 			</Dropdown>
 		</div>
 	{/if}
