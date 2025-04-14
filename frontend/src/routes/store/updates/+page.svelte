@@ -3,7 +3,7 @@
 	import type { PageProps } from './$types';
 	import { Button, Spinner } from 'flowbite-svelte';
 	import { updateAppsRequest } from '$lib/api';
-	import { invalidate } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 
 	const { data }: PageProps = $props();
 
@@ -12,7 +12,7 @@
 	const updateAppsBtn = async () => {
 		updating = true;
 		await updateAppsRequest();
-		await invalidate('/api/apps/update');
+		await invalidateAll();
 		updating = false;
 	}
 
