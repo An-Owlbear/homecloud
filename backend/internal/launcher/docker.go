@@ -25,6 +25,17 @@ import (
 
 var appPackages = []string{"ory.kratos", "ory.hydra", "homecloud.app"}
 
+// StopContainers used to ensure all containers are stopped during startup. This is mainly to allow for checking
+// port forwarding
+func StopContainers(dockerClient *client.Client) error {
+	for _, packageName := range appPackages {
+		if err := docker.StopApp(dockerClient, packageName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func StartContainers(
 	dockerClient *client.Client,
 	storeClient *apps.StoreClient,

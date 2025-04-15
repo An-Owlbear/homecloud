@@ -2,6 +2,7 @@ package launcher
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 	"github.com/An-Owlbear/homecloud/backend/internal/networking"
 	"github.com/docker/docker/client"
+	"github.com/labstack/echo/v4"
 )
 
 func StartSystem(
@@ -20,22 +22,19 @@ func StartSystem(
 	launcherEnvConfig config.LauncherEnv,
 	deviceConfig config.DeviceConfig,
 ) error {
-	if err := SetupTemplates(hostConfig, storageConfig); err != nil {
-		return err
-	}
-
-	err := StartContainers(dockerClient, storeClient, oryConfig, hostConfig, storageConfig, launcherEnvConfig)
-	if err != nil {
-		return err
-	}
-	err = ConnectNetworks(dockerClient)
-	if err != nil {
-		return err
-	}
-
 	// Sets up port forwarding on local network
 	if hostConfig.PortForward {
-		err = networking.TryMapPort(
+		// Stops containers to prevent attempting to map to port already in use
+		if err := StopContainers(dockerClient); err != nil {
+			return err
+		}
+
+		tempServer := echo.New()
+		go func() {
+			tempServer.Logger.Info(tempServer.Start(fmt.Sprintf(":%d", hostConfig.Port)))
+		}()
+
+		err := networking.TryMapPort(
 			context.Background(),
 			uint16(hostConfig.Port),
 			uint16(hostConfig.Port),
@@ -50,6 +49,11 @@ func StartSystem(
 		if err != nil {
 			slog.Error("Error checking port forwarding: " + err.Error())
 			//return err
+		}
+
+		if err := tempServer.Shutdown(context.Background()); err != nil {
+			slog.Error("Error shutting down server: " + err.Error())
+			return err
 		}
 
 		ticker := time.NewTicker(time.Hour)
@@ -70,6 +74,19 @@ func StartSystem(
 				}
 			}
 		}()
+	}
+
+	if err := SetupTemplates(hostConfig, storageConfig); err != nil {
+		return err
+	}
+
+	err := StartContainers(dockerClient, storeClient, oryConfig, hostConfig, storageConfig, launcherEnvConfig)
+	if err != nil {
+		return err
+	}
+	err = ConnectNetworks(dockerClient)
+	if err != nil {
+		return err
 	}
 
 	return nil
