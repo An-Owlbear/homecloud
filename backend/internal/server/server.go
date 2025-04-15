@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
+	"os/signal"
 	"regexp"
+	"syscall"
 	"time"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/docker"
@@ -159,7 +161,6 @@ func CreateServer() {
 
 	// Adds reverse proxies for ory services
 	hosts.AddProxy("hydra", "hydra", "4444")
-	hosts.AddProxy("login", "kratos-selfservice-ui-node", "4455")
 	hosts.AddProxy("kratos", "kratos", "4433")
 
 	// Sets up global logging
@@ -190,20 +191,38 @@ func CreateServer() {
 		return
 	})
 
-	if serverConfig.Host.HTTPS {
-		slog.Info("Starting server with HTTPS")
-		allowedHosts := regexp.MustCompile(fmt.Sprintf("^(?:.*\\.)?%s$", regexp.QuoteMeta(serverConfig.Host.Host)))
-		e.AutoTLSManager.HostPolicy = func(ctx context.Context, host string) error {
-			if matches := allowedHosts.MatchString(host); !matches {
-				return fmt.Errorf("invalid host: %s", host)
+	go func() {
+		if serverConfig.Host.HTTPS {
+			slog.Info("Starting server with HTTPS")
+			allowedHosts := regexp.MustCompile(fmt.Sprintf("^(?:.*\\.)?%s$", regexp.QuoteMeta(serverConfig.Host.Host)))
+			e.AutoTLSManager.HostPolicy = func(ctx context.Context, host string) error {
+				if matches := allowedHosts.MatchString(host); !matches {
+					return fmt.Errorf("invalid host: %s", host)
+				}
+				return nil
 			}
-			return nil
+			e.AutoTLSManager.Cache = autocert.DirCache("data/.cache")
+			hosts.SetAutoTLSManager(&e.AutoTLSManager)
+			e.Logger.Fatal(e.StartAutoTLS(":443"))
+		} else {
+			slog.Info("Starting server without HTTPS - THIS IS NOT SAFE FOR PRODUCTION ENVIRONMENTS")
+			e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", serverConfig.Host.Port)))
 		}
-		e.AutoTLSManager.Cache = autocert.DirCache("data/.cache")
-		hosts.SetAutoTLSManager(&e.AutoTLSManager)
-		e.Logger.Fatal(e.StartAutoTLS(":443"))
-	} else {
-		slog.Info("Starting server without HTTPS - THIS IS NOT SAFE FOR PRODUCTION ENVIRONMENTS")
-		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", serverConfig.Host.Port)))
+	}()
+
+	time.Sleep(time.Millisecond * 100)
+	slog.Info("Ensuring app certificates are prepared")
+	if err := hosts.EnsureCertificates(); err != nil {
+		panic(err)
 	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	<-quit
+
+	if err := e.Shutdown(context.Background()); err != nil {
+		slog.Error(err.Error())
+	}
+
+	slog.Info("Shutting down server")
 }
