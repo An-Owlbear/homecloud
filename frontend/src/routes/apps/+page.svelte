@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Dropdown, DropdownItem, Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownItem, Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import type { PageProps } from './$types';
 	import App from './App.svelte';
 	import { ChevronDownOutline, CogSolid, ShoppingBagSolid, UserCircleSolid } from 'flowbite-svelte-icons';
@@ -42,7 +42,11 @@
 			</div>
 			<Dropdown>
 				<DropdownItem href="/auth/settings">My Account Settings</DropdownItem>
-				<DropdownItem>Logout</DropdownItem>
+				<DropdownItem class="p-0">
+					<form id="homecloud-logout-form" method="post" action="/auth/logout">
+						<button type="submit" class="hover:cursor-pointer w-full h-full px-4 py-2 text-left">Logout</button>
+					</form>
+				</DropdownItem>
 			</Dropdown>
 		</NavLi>
 	</NavUl>

@@ -186,6 +186,27 @@ func Recovery(kratosClient *kratos.APIClient) echo.HandlerFunc {
 	}
 }
 
+func Logout(kratosClient *kratos.APIClient) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		flow, _, err := kratosClient.FrontendAPI.CreateBrowserLogoutFlow(c.Request().Context()).
+			Cookie(c.Request().Header.Get("Cookie")).
+			Execute()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Error during logout process")
+		}
+
+		_, err = kratosClient.FrontendAPI.UpdateLogoutFlow(c.Request().Context()).
+			Cookie(c.Request().Header.Get("Cookie")).
+			Token(flow.LogoutToken).
+			Execute()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Error during logout process")
+		}
+
+		return c.Redirect(http.StatusFound, "/")
+	}
+}
+
 func ListUsers(kratosAdminClient kratos.IdentityAPI) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		users, err := auth.ListUsers(c.Request().Context(), kratosAdminClient)
