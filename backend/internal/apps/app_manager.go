@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/util"
 	"github.com/docker/docker/client"
 	"golang.org/x/mod/semver"
 
@@ -176,13 +177,27 @@ func StartApp(
 	}
 
 	for _, appContainer := range containers {
-		err = docker.UntilState(
-			dockerClient,
-			appContainer.ID,
-			docker.ContainerRunning,
-			time.Second*20,
-			time.Millisecond*10,
-		)
+		err = util.WaitUntil(func() (bool, error) {
+			info, err := dockerClient.ContainerInspect(context.Background(), appContainer.ID)
+			if err != nil {
+				return false, err
+			}
+			if info.State.Running {
+				// For containers that don't report health data we can only assume they're ready
+				if info.State.Health == nil {
+					return true, nil
+				}
+
+				// If the container has health values to indicate not being ready wait, otherwise continue
+				if info.State.Health.Status == "starting" || info.State.Health.Status == "unhealthy" {
+					return false, nil
+				} else {
+					return true, nil
+				}
+			} else {
+				return false, nil
+			}
+		}, time.Minute, time.Millisecond*25)
 		if err != nil {
 			return err
 		}
