@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
+	import { Dropdown, DropdownItem, Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import type { PageProps } from './$types';
 	import App from './App.svelte';
-	import { CogSolid, ShoppingBagSolid, UserCircleSolid } from 'flowbite-svelte-icons';
+	import { ChevronDownOutline, CogSolid, ShoppingBagSolid, UserCircleSolid } from 'flowbite-svelte-icons';
 	import { type HomecloudApp, UserRoles } from '$lib/models';
 	import { getUserOptionsState } from '$lib/userOptions.svelte';
 
@@ -34,9 +34,16 @@
 				<span>Settings</span>
 			</NavLi>
 		{/if}
-		<NavLi href="/user" class="flex flex-row items-center space-x-2">
-			<UserCircleSolid />
-			<span>My Account</span>
+		<NavLi class="flex flex-col">
+			<div class="flex flex-row items-center gap-2 hover:cursor-pointer">
+				<UserCircleSolid />
+				<span>My Account</span>
+				<ChevronDownOutline />
+			</div>
+			<Dropdown>
+				<DropdownItem href="/auth/settings">My Account Settings</DropdownItem>
+				<DropdownItem>Logout</DropdownItem>
+			</Dropdown>
 		</NavLi>
 	</NavUl>
 </Navbar>
