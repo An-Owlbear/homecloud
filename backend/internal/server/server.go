@@ -118,7 +118,7 @@ func CreateServer() {
 
 	// Sets up hosts config
 	hostsMap := apps.HostsMap{}
-	hosts := apps.NewHosts(hostsMap, serverConfig.Host)
+	hosts := apps.NewHosts(hostsMap, nil, serverConfig.Host)
 
 	// Sets up proxies for installed apps
 	err = apps.SetupProxies(dockerClient, queries, hosts, appDataHandler, serverConfig.Host, serverConfig.Ory)
@@ -200,6 +200,7 @@ func CreateServer() {
 			return nil
 		}
 		e.AutoTLSManager.Cache = autocert.DirCache("data/.cache")
+		hosts.SetAutoTLSManager(&e.AutoTLSManager)
 		e.Logger.Fatal(e.StartAutoTLS(":443"))
 	} else {
 		slog.Info("Starting server without HTTPS - THIS IS NOT SAFE FOR PRODUCTION ENVIRONMENTS")

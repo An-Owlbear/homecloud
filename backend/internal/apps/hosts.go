@@ -1,11 +1,13 @@
 package apps
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/url"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
@@ -13,12 +15,17 @@ import (
 type HostsMap map[string]*echo.Echo
 
 type Hosts struct {
-	hosts  HostsMap
-	config config.Host
+	hosts      HostsMap
+	tlsManager *autocert.Manager
+	config     config.Host
 }
 
-func NewHosts(hosts HostsMap, config config.Host) *Hosts {
-	return &Hosts{hosts: hosts, config: config}
+func NewHosts(hosts HostsMap, tlsManager *autocert.Manager, config config.Host) *Hosts {
+	return &Hosts{
+		hosts:      hosts,
+		tlsManager: tlsManager,
+		config:     config,
+	}
 }
 
 // AddProxy creates and adds a new reverse proxy at the given address
@@ -45,10 +52,33 @@ func (hosts *Hosts) AddProxy(hostAddress string, proxyAddress string, proxyPort 
 	}
 	hosts.hosts[publicHost] = proxyHost
 
+	// If HTTPS is enabled preload certificate, skips when nil, like during startup
+	if hosts.config.HTTPS && hosts.tlsManager != nil {
+		if _, err := hosts.tlsManager.GetCertificate(&tls.ClientHelloInfo{ServerName: publicHost}); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 // RemoveProxy removes the proxy for the given host address
 func (hosts *Hosts) RemoveProxy(hostAddress string) {
 	delete(hosts.hosts, fmt.Sprintf("%s.%s:%d", hostAddress, hosts.config.Host, hosts.config.Port))
+}
+
+// SetAutoTLSManager sets the AutoTLSManager used for retrieving certificates. This is done to skip the process
+// during startup
+func (hosts *Hosts) SetAutoTLSManager(tlsManager *autocert.Manager) {
+	hosts.tlsManager = tlsManager
+}
+
+// EnsureCertificates ensures TLS certificates have been retrieved for all domains
+func (hosts *Hosts) EnsureCertificates() error {
+	for host, _ := range hosts.hosts {
+		if _, err := hosts.tlsManager.GetCertificate(&tls.ClientHelloInfo{ServerName: host}); err != nil {
+			return err
+		}
+	}
+	return nil
 }

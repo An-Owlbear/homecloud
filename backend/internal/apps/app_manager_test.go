@@ -52,7 +52,7 @@ func TestUpdateApps(t *testing.T) {
 	storageConfig := testutils.SetupTempStorage()
 
 	hostsMap := make(map[string]*echo.Echo)
-	hosts := NewHosts(hostsMap, testutils.BasicHostConfig)
+	hosts := NewHosts(hostsMap, nil, testutils.BasicHostConfig)
 
 	appDataHandler := storage.NewAppDataHandler(storageConfig, storeConfig)
 

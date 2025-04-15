@@ -36,7 +36,7 @@ var hostClient *client.Client
 var BasicHostConfig = config.Host{
 	Host:        "example.com",
 	Port:        80,
-	HTTPS:       true,
+	HTTPS:       false,
 	PortForward: true,
 }
 
