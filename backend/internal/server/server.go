@@ -163,6 +163,12 @@ func CreateServer() {
 	hosts.AddProxy("hydra", "hydra", "4444")
 	hosts.AddProxy("kratos", "kratos", "4433")
 
+	// Creates and starts the health check server
+	healthServer := HealthCheckServer(hosts)
+	go func() {
+		healthServer.Logger.Info(healthServer.Start(":1325"))
+	}()
+
 	// Sets up global logging
 	e := echo.New()
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{

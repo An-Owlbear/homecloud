@@ -3,6 +3,7 @@ package apps
 import (
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net/url"
 
 	"github.com/labstack/echo/v4"
@@ -15,16 +16,18 @@ import (
 type HostsMap map[string]*echo.Echo
 
 type Hosts struct {
-	hosts      HostsMap
-	tlsManager *autocert.Manager
-	config     config.Host
+	hosts        HostsMap
+	tlsManager   *autocert.Manager
+	config       config.Host
+	checkedCerts bool
 }
 
 func NewHosts(hosts HostsMap, tlsManager *autocert.Manager, config config.Host) *Hosts {
 	return &Hosts{
-		hosts:      hosts,
-		tlsManager: tlsManager,
-		config:     config,
+		hosts:        hosts,
+		tlsManager:   tlsManager,
+		config:       config,
+		checkedCerts: false,
 	}
 }
 
@@ -75,10 +78,19 @@ func (hosts *Hosts) SetAutoTLSManager(tlsManager *autocert.Manager) {
 
 // EnsureCertificates ensures TLS certificates have been retrieved for all domains
 func (hosts *Hosts) EnsureCertificates() error {
+	totalCerts := len(hosts.hosts)
+	i := 0
 	for host, _ := range hosts.hosts {
+		slog.Info(fmt.Sprintf("Ensuring certificate for %s, %d remaining", host, totalCerts-i))
 		if _, err := hosts.tlsManager.GetCertificate(&tls.ClientHelloInfo{ServerName: host}); err != nil {
 			return err
 		}
+		i++
 	}
+	hosts.checkedCerts = true
 	return nil
+}
+
+func (hosts *Hosts) CertsReady() bool {
+	return hosts.checkedCerts
 }

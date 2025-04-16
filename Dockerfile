@@ -29,12 +29,16 @@ RUN pnpm run build
 
 FROM debian:bookworm-slim
 RUN apt update -y && apt upgrade -y
-RUN apt install -y ca-certificates
+RUN apt install -y ca-certificates curl
 
 COPY --from=builder /app/homecloud /app/homecloud
 COPY --from=frontend-builder /app/build /app/spa
 COPY backend/assets /app/assets
 WORKDIR /app
+
+HEALTHCHECK --interval=1s --timeout=300s --start-period=30s \
+    CMD curl --fail http://localhost:1325/health || exit 1
+
 ENTRYPOINT ["./homecloud"]
 EXPOSE 1323
 EXPOSE 443

@@ -87,7 +87,15 @@ func StartContainers(
 			}
 		}
 
+		// Starts app and waits until it finishes starting
 		err = docker.StartApp(dockerClient, packageName)
+		appContainers, err := docker.GetAppContainers(dockerClient, packageName)
+		for _, appContainer := range appContainers {
+			if err := docker.UntilHealthy(context.Background(), dockerClient, appContainer.ID); err != nil {
+				return err
+			}
+		}
+
 		if err != nil {
 			return err
 		}

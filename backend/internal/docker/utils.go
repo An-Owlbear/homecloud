@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/An-Owlbear/homecloud/backend/internal/util"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -25,9 +26,30 @@ func UntilRemoved(ctx context.Context, dockerClient *client.Client, containerId 
 }
 
 func UntilHealthy(ctx context.Context, dockerClient *client.Client, containerId string) error {
-	err := UntilState(dockerClient, containerId, ContainerRunning, time.Second*20, time.Millisecond*10)
+	err := util.WaitUntil(func() (bool, error) {
+		info, err := dockerClient.ContainerInspect(context.Background(), containerId)
+		if err != nil {
+			return false, err
+		}
+		if info.State.Running {
+			// For containers that don't report health data we can only assume they're ready
+			if info.State.Health == nil {
+				return true, nil
+			}
+
+			// If the container has health values to indicate not being ready wait, otherwise continue
+			if info.State.Health.Status == "starting" || info.State.Health.Status == "unhealthy" {
+				return false, nil
+			} else {
+				return true, nil
+			}
+		} else {
+			return false, nil
+		}
+	}, time.Minute, time.Millisecond*25)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
