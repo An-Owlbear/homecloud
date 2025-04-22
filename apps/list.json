@@ -55,16 +55,6 @@
     ]
   },
   {
-    "id": "stonith404.pingvin-share",
-    "name": "pingvin-share",
-    "version": "v1.11.1",
-    "author": "stonith404",
-    "description": "A self-hosted file sharing platform that combines lightness and beauty, perfect for seamless and efficient file sharing.",
-    "categories": [
-      "sharing"
-    ]
-  },
-  {
     "id": "traefik.whoami",
     "name": "whoami",
     "version": "v1.7",
