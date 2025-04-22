@@ -22,8 +22,7 @@
       },
       "volumes": [
         "data:/opt/backend/data",
-        "images:/opt/app/frontend/public/img",
-        "./config.yaml:/opt/app/config.yaml"
+        "images:/opt/app/frontend/public/img"
       ],
       "proxy_target": true,
       "proxy_port": "3000",
