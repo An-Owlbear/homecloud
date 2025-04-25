@@ -217,9 +217,11 @@ func CreateServer() {
 	}()
 
 	time.Sleep(time.Millisecond * 100)
-	slog.Info("Ensuring app certificates are prepared")
-	if err := hosts.EnsureCertificates(); err != nil {
-		panic(err)
+	if serverConfig.Host.HTTPS {
+		slog.Info("Ensuring app certificates are prepared")
+		if err := hosts.EnsureCertificates(); err != nil {
+			panic(err)
+		}
 	}
 
 	quit := make(chan os.Signal, 1)

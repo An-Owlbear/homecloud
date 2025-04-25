@@ -58,7 +58,7 @@ func (h *Host) PublicSubdomain(app string) string {
 	}
 	url := fmt.Sprintf("%s://%s.%s", scheme, app, h.Host)
 	if h.Port != 80 && h.Port != 443 {
-		url = fmt.Sprintf("%s://%s:%d", scheme, h.Host, h.Port)
+		url = fmt.Sprintf("%s:%d", url, h.Port)
 	}
 	return url
 }

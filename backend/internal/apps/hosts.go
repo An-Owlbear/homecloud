@@ -92,5 +92,5 @@ func (hosts *Hosts) EnsureCertificates() error {
 }
 
 func (hosts *Hosts) CertsReady() bool {
-	return hosts.checkedCerts
+	return !hosts.config.HTTPS || hosts.checkedCerts
 }
