@@ -3,17 +3,19 @@ package deviceinfo
 import (
 	"context"
 	"errors"
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"os"
 )
 
 var TableName = os.Getenv("TABLE_NAME")
 
 var NotFoundError = errors.New("key not found")
 
+// Get retrieves information stored in the given database for the given device ID
 func Get(ctx context.Context, client *dynamodb.Client, deviceId string) (deviceInfo DeviceInfo, err error) {
 	idAttributeValue, err := attributevalue.Marshal(deviceId)
 	if err != nil {
@@ -39,6 +41,7 @@ func Get(ctx context.Context, client *dynamodb.Client, deviceId string) (deviceI
 	return
 }
 
+// SubdomainTaken checks if the given subdomain is taken by any other user, returning true if it is
 func SubdomainTaken(ctx context.Context, client *dynamodb.Client, deviceId string, subdomain string) (bool, error) {
 	result, err := client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(TableName),
@@ -69,6 +72,7 @@ func SubdomainTaken(ctx context.Context, client *dynamodb.Client, deviceId strin
 	return false, nil
 }
 
+// Put adds or updates a device info record in the database
 func Put(ctx context.Context, client *dynamodb.Client, deviceInfo DeviceInfo) error {
 	deviceInfoMap, err := attributevalue.MarshalMap(deviceInfo)
 	if err != nil {

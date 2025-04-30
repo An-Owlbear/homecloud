@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
-	"os"
 )
 
 var HostedZoneID = os.Getenv("HOSTED_ZONE_ID")
@@ -24,6 +25,7 @@ func New(ctx context.Context) (*route53.Client, error) {
 	return route53.NewFromConfig(cfg), nil
 }
 
+// SetRecord sets the specified DNS record for the given subdomain and IP address
 func SetRecord(ctx context.Context, client *route53.Client, subdomainBase string, address string) error {
 	hostedZone, err := client.GetHostedZone(ctx, &route53.GetHostedZoneInput{
 		Id: aws.String(HostedZoneID),
@@ -62,6 +64,7 @@ func SetRecord(ctx context.Context, client *route53.Client, subdomainBase string
 	return nil
 }
 
+// RemoveRecord removes the DNS record for the given subdomain and IP address
 func RemoveRecord(ctx context.Context, client *route53.Client, subdomainBase string, address string) error {
 	hostedZone, err := client.GetHostedZone(ctx, &route53.GetHostedZoneInput{
 		Id: aws.String(HostedZoneID),

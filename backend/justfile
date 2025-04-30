@@ -31,7 +31,7 @@ test target=default_test:
 		--name "homecloud-tester" \
 		--entrypoint go \
 		golang:1.23 \
-		test -v -p 1 -run {{target}} ./...
+		test -p 1 -run {{target}} ./...
 
 launcher:
     go run "./cmd/launcher/main.go"
@@ -51,14 +51,14 @@ build_launcher version os arch:
 build_docker version:
     cd ../ && docker buildx build -t ghcr.io/an-owlbear/homecloud:{{version}} .
 
-deploy_docker_dev ssh_address version:
+deploy_docker_dev ssh_address version ssh_port="22":
     mkdir -p build/dev/docker
     docker save -o build/dev/docker/homecloud-docker-dev.tar.gz ghcr.io/an-owlbear/homecloud:{{version}}
-    ssh {{ssh_address}} 'mkdir -p /tmp/docker'
-    scp build/dev/docker/homecloud-docker-dev.tar.gz {{ssh_address}}:/tmp/docker
-    ssh {{ssh_address}} 'docker load -i /tmp/docker/homecloud-docker-dev.tar.gz'
+    ssh {{ssh_address}} -p {{ssh_port}} 'mkdir -p /tmp/docker'
+    scp -P {{ssh_port}} build/dev/docker/homecloud-docker-dev.tar.gz {{ssh_address}}:/tmp/docker
+    ssh {{ssh_address}} -p {{ssh_port}} 'docker load -i /tmp/docker/homecloud-docker-dev.tar.gz'
 
-deploy_launcher_dev ssh_address:
+deploy_launcher_dev ssh_address ssh_port="22":
     mkdir -p build/dev/ory_config
     GOOS=linux GOARCH=arm64 go build -o build/dev/launcher ./cmd/launcher/main.go
     cp ory_config/identity.schema.json build/dev/ory_config/
@@ -69,20 +69,20 @@ deploy_launcher_dev ssh_address:
     cd ../setup-frontend && pnpm run build
     cp -R ../setup-frontend/build build/dev/launcher_spa
     cd build/dev && gtar -cvzf homecloud-dev.tar.gz ory_config launcher .env .dev.env launcher_spa --owner=0 --group=0 --no-same-owner --no-same-permissions
-    ssh {{ssh_address}} 'mkdir -p ~/homecloud_dev'
-    scp build/dev/homecloud-dev.tar.gz {{ssh_address}}:~/homecloud_dev
-    ssh -t {{ssh_address}} 'cd ~/homecloud_dev; tar -xzf homecloud-dev.tar.gz; sudo ENVIRONMENT=DEV ./launcher;'
+    ssh {{ssh_address}} -p {{ssh_port}} 'mkdir -p ~/homecloud_dev'
+    scp -P {{ssh_port}} build/dev/homecloud-dev.tar.gz {{ssh_address}}:~/homecloud_dev
+    ssh -t {{ssh_address}} -p {{ssh_port}} 'cd ~/homecloud_dev; tar -xzf homecloud-dev.tar.gz; sudo ENVIRONMENT=DEV ./launcher;'
 
-deploy_launcher_test_prod version ssh_address:
+deploy_launcher_test_prod version ssh_address ssh_port="22":
     @just build_launcher {{version}} linux arm64
-    ssh {{ssh_address}} 'mkdir -p ~/homecloud_prod_test'
-    scp build/homecloud-{{version}}-linux-arm64.tar.gz {{ssh_address}}:~/homecloud_prod_test
-    ssh -t {{ssh_address}} 'cd ~/homecloud_prod_test; tar -xzf homecloud-{{version}}-linux-arm64.tar.gz; sudo HOMECLOUD_LAUNCHER_ALWAYS_UPDATE=true ./launcher;'
+    ssh {{ssh_address}} -p {{ssh_port}} 'mkdir -p ~/homecloud_prod_test'
+    scp -P {{ssh_port}} build/homecloud-{{version}}-linux-arm64.tar.gz {{ssh_address}}:~/homecloud_prod_test
+    ssh -t {{ssh_address}} -p {{ssh_port}} 'cd ~/homecloud_prod_test; tar -xzf homecloud-{{version}}-linux-arm64.tar.gz; sudo HOMECLOUD_LAUNCHER_ALWAYS_UPDATE=true ./launcher;'
 
-build_deploy_launcher_test_prod version ssh_address:
+build_deploy_launcher_test_prod version ssh_address ssh_port="22":
     @just build_docker {{version}}
-    @just deploy_docker_dev {{ssh_address}} {{version}}
-    @just deploy_launcher_test_prod {{version}} {{ssh_address}}
+    @just deploy_docker_dev {{ssh_address}} {{version}} {{ssh_port}}
+    @just deploy_launcher_test_prod {{version}} {{ssh_address}} {{ssh_port}}
 
 deploy_sync_dev ssh_address:
     rsync -a . homecloud@homecloud.local:/tmp/homecloud_backend --exclude '/.git' --filter='dir-merge,- .gitignore'

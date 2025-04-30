@@ -64,6 +64,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 	domain, _ := strings.CutSuffix(*hostedZone.HostedZone.Name, ".")
 
+	// Sends a HTTP request to the device's address to check port forwarding works correctly
 	requestUrl := fmt.Sprintf("http://%s.%s:%d/api/v1/check", deviceInfo.Subdomain, domain, requestBody.Port)
 	response, err := http.Get(requestUrl)
 	if err != nil {
