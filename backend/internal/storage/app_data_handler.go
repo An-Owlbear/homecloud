@@ -30,6 +30,7 @@ func NewAppDataHandler(storageConfig config.Storage, storeConfig config.Store) *
 	}
 }
 
+// SavePackage downloads and extracts the specified app package to the device
 func (h *AppDataHandler) SavePackage(appId string) error {
 	packageUrl, err := url.JoinPath(strings.Trim(h.storeConfig.StoreUrl, "list.json"), "packages", appId, "package.tar.gz")
 	if err != nil {
@@ -86,6 +87,7 @@ func (h *AppDataHandler) SavePackage(appId string) error {
 	return nil
 }
 
+// RenderTemplates renders any templates files in the given app data directory
 func (h *AppDataHandler) RenderTemplates(
 	ctx context.Context,
 	queries *persistence.Queries,

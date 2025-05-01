@@ -17,6 +17,7 @@ import (
 	"github.com/An-Owlbear/homecloud/backend/internal/config"
 )
 
+// BackupVolume backs up the contents of the specified docker volume to the specified local host directory
 func BackupVolume(
 	ctx context.Context,
 	dockerClient *client.Client,
@@ -28,6 +29,7 @@ func BackupVolume(
 		Cmd:   []string{"tar", "-czf", fmt.Sprintf("/backup/%s.tar.gz", volumeName), "-C", "/target", "."},
 	}
 
+	// Configures mounts for the volume and specified local directory
 	hostConfig := container.HostConfig{
 		Mounts: []mount.Mount{
 			{
@@ -46,6 +48,7 @@ func BackupVolume(
 		AutoRemove: true,
 	}
 
+	// Creates and starts a minimal container to back up the volume
 	result, err := dockerClient.ContainerCreate(ctx, &containerConfig, &hostConfig, nil, nil, fmt.Sprintf("%s-backup", volumeName))
 	if err != nil {
 		return fmt.Errorf("failed creating volume backup container for %s: %w", volumeName, err)
@@ -56,11 +59,13 @@ func BackupVolume(
 		return fmt.Errorf("failed starting volume backup container for %s: %w", volumeName, err)
 	}
 
+	// Waits until the containers are removed to ensure the backups are complete
 	err = UntilRemoved(ctx, dockerClient, result.ID)
 
 	return nil
 }
 
+// BackupFolder backs up the data directory of the specified app to the specified local host directory
 func BackupFolder(storageConfig config.Storage, appId string, outputDir string) (string, error) {
 	outputPath := filepath.Join(outputDir, "data.tar.gz")
 	output, err := os.Create(outputPath)
@@ -80,6 +85,7 @@ func BackupFolder(storageConfig config.Storage, appId string, outputDir string) 
 	return outputPath, nil
 }
 
+// BackupAppData backs up all volumes and the data directory for the given app
 func BackupAppData(
 	ctx context.Context,
 	dockerClient *client.Client,
@@ -109,6 +115,7 @@ func BackupAppData(
 	return nil
 }
 
+// RestoreVolume restores data from the specified backup to the named docker volume
 func RestoreVolume(
 	ctx context.Context,
 	dockerClient *client.Client,
@@ -120,6 +127,7 @@ func RestoreVolume(
 		Cmd:   []string{"tar", "-xzf", "/backup/volume.tar.gz", "-C", "/target"},
 	}
 
+	// Mounts backup location and target volume
 	hostConfig := container.HostConfig{
 		Mounts: []mount.Mount{
 			{
@@ -136,6 +144,7 @@ func RestoreVolume(
 		AutoRemove: true,
 	}
 
+	// Creates and starts minimal containers for restoration
 	result, err := dockerClient.ContainerCreate(ctx, &containerConfig, &hostConfig, nil, nil, fmt.Sprintf("%s-restore", volumeName))
 	if err != nil {
 		return fmt.Errorf("failed creating volume restore container for %s: %w", volumeName, err)
@@ -146,6 +155,7 @@ func RestoreVolume(
 		return fmt.Errorf("failed starting volume restore container for %s: %w", volumeName, err)
 	}
 
+	// Waits until containers finish restoring data and are removed
 	err = UntilRemoved(ctx, dockerClient, result.ID)
 	if err != nil {
 		return fmt.Errorf("failed removing volume restore container for %s: %w", volumeName, err)
@@ -154,6 +164,7 @@ func RestoreVolume(
 	return nil
 }
 
+// RestoreFolder restores data from the specified backup to an app's data folder
 func RestoreFolder(storageConfig config.Storage, appId string, backupPath string) error {
 	// Ensures path to restore to exists
 	restorePath := filepath.Join(storageConfig.DataPath, appId, "data")

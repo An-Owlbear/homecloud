@@ -33,6 +33,7 @@ type RouterClient interface {
 	)
 }
 
+// PickRouterClient Boilerplate goupnp code for picking the correct router client
 func PickRouterClient(ctx context.Context) (RouterClient, error) {
 	tasks, _ := errgroup.WithContext(ctx)
 	// Request each type of client in parallel, and return what is found.

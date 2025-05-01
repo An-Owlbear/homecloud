@@ -1,38 +1,24 @@
-# sv
+# Homecloud Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+This folder cotnains all the code the for the main frontend for Homecloud.
 
 ## Building
 
-To create a production version of your app:
+The build process is handled by the Homecloud Dockerfile, see instructions at
+[backend/README.md](../backend/README.md#building) for more details.
 
-```bash
-npm run build
-```
+## Running in development
 
-You can preview the production build with `npm run preview`.
+For a smoother development process the code should be sent to the test device
+and run there.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+For this you will need
+- `pnpm` and `node` installed on the test device
+- The Homecloud backend deployed on the test device
+- SSH access to the test device
+
+For this the test device will need `pnpm` and `node` installed.
+
+The script `pnpm run deploy_dev` can be used to sync the data with the test
+device. This script assumes it uses the domain `homecloud.local` and has the
+user `homecloud`. For different values the script must be modified.

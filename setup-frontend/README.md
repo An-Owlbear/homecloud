@@ -1,38 +1,13 @@
-# sv
+# Homecloud Setup Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+This folder contains all code related to the Homecloud setup frontend.
 
 ## Building
 
-To create a production version of your app:
+Similar to the main frontend, the build process for this is handled by scripts
+ as detailed in [backend//README.md](../backend/README.md)
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+This component be tested locally more easily than the main frontend, but has a
+few requirements:
+- The launcher API is available at http://homecloud.local:1234
+- For testing the update API it must be running on a Debian system

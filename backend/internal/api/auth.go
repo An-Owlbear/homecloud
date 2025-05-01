@@ -99,6 +99,7 @@ func Registration(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Han
 		redirectUri.Path = "/self-service/registration/browser"
 		redirectUri.RawQuery = url.Values{"code": {inviteCode}}.Encode()
 
+		// Redirects to Ory self-service if now flow is set
 		if flowId == "" {
 			return c.Redirect(http.StatusFound, redirectUri.String())
 		}
@@ -108,6 +109,7 @@ func Registration(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Han
 			Cookie(c.Request().Header.Get("Cookie")).
 			Execute()
 
+		// Redirects to Ory self-service to make a new flow if the given one is not found
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return c.Redirect(http.StatusFound, redirectUri.String())
@@ -122,6 +124,7 @@ func Registration(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Han
 		}
 		inviteCode = originalUrl.Query().Get("code")
 
+		// Encodes the invite code to add to the registration form
 		if inviteCode == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "Cannot signup without an invite code")
 		}
@@ -144,6 +147,7 @@ func Settings(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Handler
 		redirectUri := oryConfig.Kratos.PublicAddress
 		redirectUri.Path = "/self-service/settings/browser"
 
+		// Redirects to self-service url to create flow if none is given
 		if flowId == "" {
 			return c.Redirect(http.StatusMovedPermanently, redirectUri.String())
 		}
@@ -153,6 +157,7 @@ func Settings(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Handler
 			Cookie(c.Request().Header.Get("Cookie")).
 			Execute()
 
+		// Redirects to create flow if given one is not found
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return c.Redirect(http.StatusMovedPermanently, redirectUri.String())
@@ -162,6 +167,7 @@ func Settings(kratosClient *kratos.APIClient, oryConfig config.Ory) echo.Handler
 			return err
 		}
 
+		// Returns form rendered from flow
 		return render(c, http.StatusOK, templates.Settings(flow.Ui))
 	}
 }
@@ -173,6 +179,7 @@ func Recovery(kratosClient *kratos.APIClient) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid recovery link")
 		}
 
+		// Checks flow is valid and renders form if it is
 		flow, _, err := kratosClient.FrontendAPI.GetRecoveryFlow(c.Request().Context()).
 			Id(flowId).
 			Cookie(c.Request().Header.Get("Cookie")).
@@ -188,6 +195,7 @@ func Recovery(kratosClient *kratos.APIClient) echo.HandlerFunc {
 
 func Logout(kratosClient *kratos.APIClient) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// Creates and executes the logout flow
 		flow, _, err := kratosClient.FrontendAPI.CreateBrowserLogoutFlow(c.Request().Context()).
 			Cookie(c.Request().Header.Get("Cookie")).
 			Execute()
@@ -313,6 +321,7 @@ func OidcConsent(hydraClient *hydra.APIClient) echo.HandlerFunc {
 
 func InitialSetup(kratosAdmin kratos.IdentityAPI, queries *persistence.Queries) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// If no users exist create an invite for the owner, otherwise return error
 		users, err := auth.ListUsers(c.Request().Context(), kratosAdmin)
 		if err != nil {
 			slog.Error(err.Error())

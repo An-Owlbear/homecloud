@@ -54,6 +54,7 @@ var filterLabels = []string{"boot", "efi", "efi system partition", "reserved", "
 
 const lsblkColumns = "NAME,RM,RO,PARTLABEL,SIZE,LABEL,TYPE,FSTYPE"
 
+// ListExternalStorage　retrieves a list of external storage devices connected to the device
 func ListExternalStorage() ([]DriveInfo, error) {
 	// Retrieves list of devices. This only works on linux systems, but since that is the main target it will be no
 	// problem
@@ -120,6 +121,7 @@ func GetExternalPartition(device string) (LsblkDetails, error) {
 	return response.BlockDevices[0], nil
 }
 
+// checkLsblkDetails checks the details for a single device from lsblk to determine whether it's suitable to use
 func checkLsblkDetails(details LsblkDetails) (bool, error) {
 	// If the entry isn't a partition return false
 	if details.Type != "part" {
@@ -173,6 +175,7 @@ func UnmountPartition(details LsblkDetails) error {
 	return nil
 }
 
+// ListBackups lists the backups on the given device for the given app
 func ListBackups(targetDevice string, appId string) ([]string, error) {
 	details, err := GetExternalPartition(targetDevice)
 	if err != nil {

@@ -17,6 +17,7 @@ import (
 )
 
 func main() {
+	// Loads development environment variables if specified
 	if os.Getenv("ENVIRONMENT") == "DEV" {
 		if err := godotenv.Load(".dev.env"); err != nil {
 			panic(err)

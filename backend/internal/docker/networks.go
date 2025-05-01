@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/errdefs"
 )
 
+// GetOrCreateNetwork retrieves information about the specified docker network, creating one if none exist
 func GetOrCreateNetwork(
 	ctx context.Context,
 	dockerClient *client.Client,
@@ -35,6 +36,7 @@ func GetOrCreateNetwork(
 	return networkId, nil
 }
 
+// ConnectProxyNetworks connects all proxy networks to the backend contain to allow apps to be reverse proxied
 func ConnectProxyNetworks(
 	ctx context.Context,
 	dockerClient *client.Client,
@@ -65,6 +67,8 @@ func ConnectProxyNetworks(
 	return nil
 }
 
+// IsNetworkAlreadyConnectErr checks if the given network error is due to the network already existing
+// used to avoid long repeated checks when creating new networks
 func IsNetworkAlreadyConnectErr(err error) bool {
 	return err != nil && errdefs.IsForbidden(err) && strings.Contains(err.Error(), "already exists")
 }

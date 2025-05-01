@@ -23,6 +23,7 @@ type OryTemplateParams struct {
 	RootHost       string
 }
 
+// SetupTemplates templates and copies the required files for Ory and Homecloud to their respective folders
 func SetupTemplates(hostConfig config.Host, storageConfig config.Storage) error {
 	scheme := "http"
 	if hostConfig.HTTPS {

@@ -14,6 +14,7 @@ import (
 
 var PortForwardError = errors.New("couldn't setup port forwarding properly")
 
+// TryMapPort attempts to map the given port using UPnP
 func TryMapPort(ctx context.Context, externalPort uint16, internalPort uint16, deviceConfig config.DeviceConfig) error {
 	client, err := PickRouterClient(ctx)
 	if err != nil {
@@ -39,6 +40,7 @@ type CheckPortForwardingRequest struct {
 	Port      int    `json:"port"`
 }
 
+// CheckPortForwarding uses the AWS function to check if the port forwarding was successful
 func CheckPortForwarding(deviceConfig config.DeviceConfig, forwardedPort int) error {
 	requestBody := CheckPortForwardingRequest{
 		DeviceId:  deviceConfig.DeviceId,

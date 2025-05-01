@@ -29,6 +29,8 @@ func Middleware(kratosFrontend kratos.FrontendAPI) echo.MiddlewareFunc {
 	}
 }
 
+// RequireAuth checks if the request is authenticated with Ory Kratos, storing session information if so, and
+// returning an error if not
 func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cc := c.(*config.Context)

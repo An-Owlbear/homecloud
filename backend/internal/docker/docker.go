@@ -41,6 +41,7 @@ const AppVersionLabel = "AppVersion"
 var NotFoundError = errors.New("no containers for app found")
 var InvalidContainerError = errors.New("container has invalid configuration")
 
+// InstallApp downloads images and creates containers for the given app package. Also sets up configuration and local files
 func InstallApp(
 	dockerClient *client.Client,
 	app persistence.AppPackage,
@@ -242,6 +243,7 @@ func StopApp(dockerClient *client.Client, appID string) error {
 	return nil
 }
 
+// RemoveContainers removes all containers for the given app
 func RemoveContainers(dockerClient *client.Client, appId string) error {
 	// Stop the app so containers can be deleted
 	err := StopApp(dockerClient, appId)
@@ -274,6 +276,7 @@ func RemoveContainers(dockerClient *client.Client, appId string) error {
 	return nil
 }
 
+// UninstallApp removes containers and other non data resources for the specified app
 func UninstallApp(dockerClient *client.Client, appId string) error {
 	// removes containers
 	err := RemoveContainers(dockerClient, appId)

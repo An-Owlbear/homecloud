@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// RemoveAppVolumes removes all docker volumes associated with the given application
 func RemoveAppVolumes(ctx context.Context, dockerClient *client.Client, appId string) error {
 	volumes, err := dockerClient.VolumeList(ctx, volume.ListOptions{Filters: filters.NewArgs(AppFilter(appId))})
 	if err != nil {

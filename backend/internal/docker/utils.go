@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/errdefs"
 )
 
+// UntilRemoved waits until the specified docker container no longer exists
 func UntilRemoved(ctx context.Context, dockerClient *client.Client, containerId string) error {
 	statusCh, errCh := dockerClient.ContainerWait(ctx, containerId, container.WaitConditionRemoved)
 	select {
@@ -25,6 +26,8 @@ func UntilRemoved(ctx context.Context, dockerClient *client.Client, containerId 
 	return nil
 }
 
+// UntilHealthy waits until the container reports that it is healthy. Containers that don't report health information
+// are assumed to be healthy
 func UntilHealthy(ctx context.Context, dockerClient *client.Client, containerId string) error {
 	err := util.WaitUntil(func() (bool, error) {
 		info, err := dockerClient.ContainerInspect(context.Background(), containerId)

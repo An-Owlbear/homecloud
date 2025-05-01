@@ -67,6 +67,7 @@ func ApplyAppTemplate(
 	return appTemplate.Execute(output, parameters)
 }
 
+// TemplateAppPackage applies the templated values in the given app package, returning the resulting app package
 func TemplateAppPackage(
 	input persistence.AppPackage,
 	oauthClientID string,
@@ -75,6 +76,7 @@ func TemplateAppPackage(
 	hostConfig config.Host,
 	storageConfig config.Storage,
 ) (persistence.AppPackage, error) {
+	// Deserializes app package to template the templated values in it
 	packageBytes, err := json.Marshal(input)
 	if err != nil {
 		return persistence.AppPackage{}, err
@@ -95,6 +97,7 @@ func TemplateAppPackage(
 		return persistence.AppPackage{}, err
 	}
 
+	// Reserializes the package after applying the templated values
 	var output persistence.AppPackage
 	err = json.Unmarshal(templateOutput.Bytes(), &output)
 	if err != nil {

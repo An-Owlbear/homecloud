@@ -76,11 +76,13 @@ func ApplyUpdatesHandler(dockerClient *client.Client) echo.HandlerFunc {
 		c.Response().After(func() {
 		})
 
-		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
+		// Manually writes headers and response to finish HTTP request before restarting
 		c.Response().WriteHeader(http.StatusOK)
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlain)
 		c.Response().Write([]byte("Updated and restarting"))
 		c.Response().Flush()
 
+		// Restarts the server
 		go func() {
 			if err := exec.Command("reboot").Run(); err != nil {
 				c.Logger().Error("Failed to reboot: ", err.Error())
@@ -111,11 +113,13 @@ func SetSubdomainHandler(
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 		}
 
+		// Retrieves the public IP address for subdomain assignment
 		publicIP, err := networking.GetPublicIP()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to setup networking")
 		}
 
+		// Requests to set the devices registered subdomain
 		err = SetSubdomain(c.Request().Context(), SubdomainRequest{
 			DeviceId:  deviceConfig.DeviceId,
 			DeviceKey: deviceConfig.DeviceKey,
@@ -126,11 +130,13 @@ func SetSubdomainHandler(
 			return echo.NewHTTPError(http.StatusInternalServerError, "Error setting subdomain")
 		}
 
+		// Updates the launcher configuration to remember the assignment
 		launcherConfig.Subdomain = req.Subdomain
 		if err := launcherConfig.Save(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save config")
 		}
 
+		// Starts Docker system now the subdomain is configured
 		hostConfig.Host = fmt.Sprintf("%s.homecloudapp.com", req.Subdomain)
 		err = StartSystem(dockerClient, storeClient, hostConfig, oryConfig, storageConfig, launcherEnvConfig, deviceConfig)
 		if err != nil {

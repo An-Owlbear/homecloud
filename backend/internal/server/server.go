@@ -197,6 +197,7 @@ func CreateServer() {
 		return
 	})
 
+	// Uses a go func to start the server, allowing more code to be executed after starting is initialised
 	go func() {
 		if serverConfig.Host.HTTPS {
 			slog.Info("Starting server with HTTPS")
@@ -216,6 +217,7 @@ func CreateServer() {
 		}
 	}()
 
+	// Waits a short amount of time to ensure server starts, then ensures certificates are sets up if required
 	time.Sleep(time.Millisecond * 100)
 	if serverConfig.Host.HTTPS {
 		slog.Info("Ensuring app certificates are prepared")
