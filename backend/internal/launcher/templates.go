@@ -96,7 +96,7 @@ func SetupTemplates(hostConfig config.Host, storageConfig config.Storage) error 
 		homecloudFiles = append(homecloudFiles, ".dev.env")
 	}
 
-	// Copies required files to ory data folders
+	// Copies required files to app data folders
 	for app, files := range map[string][]string{
 		"ory.kratos":    {"ory_config/kratos.yml", "ory_config/identity.schema.json", "ory_config/invite_code.jsonnet"},
 		"ory.hydra":     {"ory_config/hydra.yml"},

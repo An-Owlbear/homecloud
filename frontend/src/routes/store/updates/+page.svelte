@@ -9,6 +9,7 @@
 
 	let updating = $state(false);
 
+	// Updates apps and invalidates loaded data to force available updates to be reloaded
 	const updateAppsBtn = async () => {
 		updating = true;
 		await updateAppsRequest();
